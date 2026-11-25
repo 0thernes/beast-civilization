@@ -1,14 +1,17 @@
-// Bare-metal PTX 7.8 / sm_80 forward-compatible GPU kernels JIT-compiled natively by nvcuda.dll
-// onto NVIDIA RTX 5070 Ti (Blackwell sm_120) with ZERO nvcc and ZERO MSVC dependency!
+// Bare-metal PTX 7.8 / sm_80 forward-compatible 3-Kernel GPU Suite
+// JIT-compiled directly by nvcuda.dll onto NVIDIA RTX 5070 Ti (Blackwell sm_120) — ZERO nvcc / ZERO MSVC!
 //
-// Kernel 1: `beast_b158_rowdot` — 5-trit/byte packed b1.58 ternary matrix-vector product (3^5 = 243 <= 256)
-//           Computes `out[row] = sum_{b=0}^{n_bytes-1} sum_{t=0}^{4} trit(W[row*n_bytes + b], t) * x[b*5 + t]`
-//           Bit-exact int64 parity with Zig `beast_dot_b158_ref` / `beast_dot_b158_simd`!
+// Kernel 1: `beast_b158_rowdot`         — 5-trit/byte packed b1.58 ternary matrix-vector dot (3^5 = 243 <= 256)
+// Kernel 2: `beast_nvfp4_rowdot`        — Blackwell OCP FP4 E2M1 (2 nibbles/byte) matrix-vector dot (f32)
+// Kernel 3: `beast_c2c_augment_scores`  — MIT Augment-Cache parallel Q * [K_self; K_peer]^T / sqrt(dim) scoring
 
 .version 7.8
 .target sm_80
 .address_size 64
 
+// ============================================================================
+// KERNEL 1: b1.58 5-Trit/Byte Ternary Matrix-Vector Dot Product (int64 exact)
+// ============================================================================
 .visible .entry beast_b158_rowdot(
     .param .u64 p_packed_w,
     .param .u64 p_x,
@@ -23,7 +26,6 @@
     .reg .u64 %rd<12>;
     .reg .s64 %acc, %term;
 
-    // row = blockIdx.x * blockDim.x + threadIdx.x
     mov.u32 %r0, %ctaid.x;
     mov.u32 %r1, %ntid.x;
     mov.u32 %r2, %tid.x;
@@ -31,64 +33,227 @@
 
     ld.param.u32 %r4, [p_rows];
     setp.ge.u32 %p0, %r3, %r4;
-    @%p0 bra DONE;
+    @%p0 bra K1_DONE;
 
     ld.param.u64 %rd0, [p_packed_w];
     ld.param.u64 %rd1, [p_x];
     ld.param.u64 %rd2, [p_out];
     ld.param.u32 %r5, [p_bytes_per_row];
 
-    // row_w_ptr = p_packed_w + row * bytes_per_row
     mul.wide.u32 %rd3, %r3, %r5;
     add.u64 %rd4, %rd0, %rd3;
 
     mov.s64 %acc, 0;
-    mov.u32 %r6, 0; // byte index b
+    mov.u32 %r6, 0;
 
-LOOP_BYTE:
+K1_LOOP_BYTE:
     setp.ge.u32 %p1, %r6, %r5;
-    @%p1 bra STORE;
+    @%p1 bra K1_STORE;
 
-    // load packed byte -> %r7
     cvt.u64.u32 %rd5, %r6;
     add.u64 %rd6, %rd4, %rd5;
     ld.global.u8 %r7, [%rd6];
 
-    // base x index = b * 5 -> %r8
     mul.lo.u32 %r8, %r6, 5;
-    mov.u32 %r9, 0; // trit lane t in 0..4
+    mov.u32 %r9, 0;
 
-LOOP_TRIT:
+K1_LOOP_TRIT:
     setp.ge.u32 %p2, %r9, 5;
-    @%p2 bra NEXT_BYTE;
+    @%p2 bra K1_NEXT_BYTE;
 
-    // rem = code % 3; code = code / 3; trit = rem - 1 in {-1, 0, +1}
     rem.u32 %r10, %r7, 3;
     div.u32 %r7, %r7, 3;
     sub.s32 %rs0, %r10, 1;
 
-    // load x[b*5 + t]
     add.u32 %r11, %r8, %r9;
     mul.wide.u32 %rd7, %r11, 4;
     add.u64 %rd8, %rd1, %rd7;
     ld.global.s32 %rs1, [%rd8];
 
-    // acc += (s64)trit * (s64)x
     mul.wide.s32 %term, %rs0, %rs1;
     add.s64 %acc, %acc, %term;
 
     add.u32 %r9, %r9, 1;
-    bra LOOP_TRIT;
+    bra K1_LOOP_TRIT;
 
-NEXT_BYTE:
+K1_NEXT_BYTE:
     add.u32 %r6, %r6, 1;
-    bra LOOP_BYTE;
+    bra K1_LOOP_BYTE;
 
-STORE:
+K1_STORE:
     mul.wide.u32 %rd9, %r3, 8;
     add.u64 %rd10, %rd2, %rd9;
     st.global.s64 [%rd10], %acc;
 
-DONE:
+K1_DONE:
+    ret;
+}
+
+// ============================================================================
+// KERNEL 2: OCP Blackwell NVFP4 E2M1 (2 nibbles/byte) Matrix-Vector Dot (f32)
+// Uses 16-entry FP4 LUT passed in global/const memory `p_lut16` for exact parity.
+// ============================================================================
+.visible .entry beast_nvfp4_rowdot(
+    .param .u64 p_packed_w,
+    .param .u64 p_x,
+    .param .u64 p_lut16,
+    .param .u64 p_out,
+    .param .u32 p_rows,
+    .param .u32 p_bytes_per_row
+)
+{
+    .reg .pred %p<4>;
+    .reg .u32 %r<16>;
+    .reg .u64 %rd<16>;
+    .reg .f32 %f<10>;
+    .reg .f64 %fd<8>;
+
+    mov.u32 %r0, %ctaid.x;
+    mov.u32 %r1, %ntid.x;
+    mov.u32 %r2, %tid.x;
+    mad.lo.u32 %r3, %r0, %r1, %r2;
+
+    ld.param.u32 %r4, [p_rows];
+    setp.ge.u32 %p0, %r3, %r4;
+    @%p0 bra K2_DONE;
+
+    ld.param.u64 %rd0, [p_packed_w];
+    ld.param.u64 %rd1, [p_x];
+    ld.param.u64 %rd2, [p_lut16];
+    ld.param.u64 %rd3, [p_out];
+    ld.param.u32 %r5, [p_bytes_per_row];
+
+    mul.wide.u32 %rd4, %r3, %r5;
+    add.u64 %rd5, %rd0, %rd4;
+
+    mov.f64 %fd0, 0d0000000000000000;
+    mov.u32 %r6, 0;
+
+K2_LOOP:
+    setp.ge.u32 %p1, %r6, %r5;
+    @%p1 bra K2_STORE;
+
+    cvt.u64.u32 %rd6, %r6;
+    add.u64 %rd7, %rd5, %rd6;
+    ld.global.u8 %r7, [%rd7];
+
+    and.b32 %r8, %r7, 15;      // lo nibble
+    shr.u32 %r9, %r7, 4;       // hi nibble
+
+    // lut[lo], lut[hi]
+    mul.wide.u32 %rd8, %r8, 4;
+    add.u64 %rd9, %rd2, %rd8;
+    ld.global.f32 %f0, [%rd9];
+
+    mul.wide.u32 %rd8, %r9, 4;
+    add.u64 %rd9, %rd2, %rd8;
+    ld.global.f32 %f1, [%rd9];
+
+    // x[2*b], x[2*b + 1]
+    shl.b32 %r10, %r6, 1;
+    mul.wide.u32 %rd10, %r10, 4;
+    add.u64 %rd11, %rd1, %rd10;
+    ld.global.f32 %f2, [%rd11];
+    ld.global.f32 %f3, [%rd11 + 4];
+
+    cvt.f64.f32 %fd1, %f0;
+    cvt.f64.f32 %fd2, %f2;
+    fma.rn.f64 %fd0, %fd1, %fd2, %fd0;
+
+    cvt.f64.f32 %fd3, %f1;
+    cvt.f64.f32 %fd4, %f3;
+    fma.rn.f64 %fd0, %fd3, %fd4, %fd0;
+
+    add.u32 %r6, %r6, 1;
+    bra K2_LOOP;
+
+K2_STORE:
+    cvt.rn.f32.f64 %f4, %fd0;
+    mul.wide.u32 %rd12, %r3, 4;
+    add.u64 %rd13, %rd3, %rd12;
+    st.global.f32 [%rd13], %f4;
+
+K2_DONE:
+    ret;
+}
+
+// ============================================================================
+// KERNEL 3: MIT Augment-Cache Parallel KV Attention Scoring
+// Computes `scores[t] = (Q . K_aug[t]) * inv_sqrt_d` over concatenated `[K_self; K_peer]`
+// ============================================================================
+.visible .entry beast_c2c_augment_scores(
+    .param .u64 p_q,
+    .param .u64 p_k_self,
+    .param .u64 p_k_peer,
+    .param .u64 p_scores,
+    .param .u32 p_len_self,
+    .param .u32 p_len_peer,
+    .param .u32 p_dim,
+    .param .f32 p_inv_sqrt_d
+)
+{
+    .reg .pred %p<4>;
+    .reg .u32 %r<14>;
+    .reg .u64 %rd<12>;
+    .reg .f32 %f<8>;
+
+    mov.u32 %r0, %ctaid.x;
+    mov.u32 %r1, %ntid.x;
+    mov.u32 %r2, %tid.x;
+    mad.lo.u32 %r3, %r0, %r1, %r2; // token index t
+
+    ld.param.u32 %r4, [p_len_self];
+    ld.param.u32 %r5, [p_len_peer];
+    add.u32 %r6, %r4, %r5;         // total_len = len_self + len_peer
+    setp.ge.u32 %p0, %r3, %r6;
+    @%p0 bra K3_DONE;
+
+    ld.param.u64 %rd0, [p_q];
+    ld.param.u64 %rd1, [p_k_self];
+    ld.param.u64 %rd2, [p_k_peer];
+    ld.param.u64 %rd3, [p_scores];
+    ld.param.u32 %r7, [p_dim];
+    ld.param.f32 %f0, [p_inv_sqrt_d];
+
+    // Select K_self[t] if t < len_self else K_peer[t - len_self]
+    setp.lt.u32 %p1, %r3, %r4;
+    @%p1 bra K3_USE_SELF;
+
+    sub.u32 %r8, %r3, %r4;
+    mul.wide.u32 %rd4, %r8, %r7;
+    shl.b64 %rd4, %rd4, 2;
+    add.u64 %rd5, %rd2, %rd4;
+    bra K3_DOT_INIT;
+
+K3_USE_SELF:
+    mul.wide.u32 %rd4, %r3, %r7;
+    shl.b64 %rd4, %rd4, 2;
+    add.u64 %rd5, %rd1, %rd4;
+
+K3_DOT_INIT:
+    mov.f32 %f1, 0f00000000;
+    mov.u32 %r9, 0;
+
+K3_DOT_LOOP:
+    setp.ge.u32 %p2, %r9, %r7;
+    @%p2 bra K3_STORE;
+
+    mul.wide.u32 %rd6, %r9, 4;
+    add.u64 %rd7, %rd0, %rd6;
+    add.u64 %rd8, %rd5, %rd6;
+    ld.global.f32 %f2, [%rd7];
+    ld.global.f32 %f3, [%rd8];
+    fma.rn.f32 %f1, %f2, %f3, %f1;
+
+    add.u32 %r9, %r9, 1;
+    bra K3_DOT_LOOP;
+
+K3_STORE:
+    mul.rn.f32 %f1, %f1, %f0;
+    mul.wide.u32 %rd9, %r3, 4;
+    add.u64 %rd10, %rd3, %rd9;
+    st.global.f32 [%rd10], %f1;
+
+K3_DONE:
     ret;
 }

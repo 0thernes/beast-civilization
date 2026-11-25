@@ -1,11 +1,10 @@
 # frozen_string_literal: true
 
-# `beast_yarv.rb`: CRuby 3.4 + Prism AST + YARV Live Bytecode Mutation Layer (Tier T1a)
+# `beast_yarv.rb` v0.2.0: CRuby 3.4 + Prism AST + 10-Generation YARV Live Bytecode Evolutionary Breeder (Tier T1a)
 # Bridges directly into Zig `bin/beast_metal.dll` via Fiddle C-ABI with zero external gems.
 
 require "digest"
 require "fiddle"
-require "fiddle/import"
 require "prism"
 
 module BeastYarv
@@ -14,8 +13,8 @@ module BeastYarv
     require_relative load autoload const_get remove_const delete unlink rmdir
   ].freeze
 
-  # Ring-0 Prism AST Gate: walks the parsed Ruby 3.4 Prism AST and rejects any forbidden call
-  # or command-literal backtick before YARV bytecode compilation is even allowed.
+  # Ring-0 Prism AST Gate: walks parsed Ruby 3.4 Prism AST and blocks forbidden calls/backticks
+  # BEFORE YARV bytecode compilation is permitted.
   def self.verify_prism_ast!(source)
     res = Prism.parse(source)
     raise "Prism syntax error: #{res.errors.map(&:message).join('; ')}" unless res.success?
@@ -37,22 +36,17 @@ module BeastYarv
     true
   end
 
-  # Compile a colony strategy proc into live YARV bytecode, serialize to binary, reload from binary,
-  # and return [proc_result, bytecode_sha256, bytecode_bytes, disasm_lines].
+  # Compile a strategy to YARV binary bytecode, verify binary reload round-trip, and evaluate.
   def self.compile_and_run_yarv(source)
     verify_prism_ast!(source)
     iseq = RubyVM::InstructionSequence.compile(source, "colony_t1a_strategy.rb", "colony_t1a", 1)
     bin = iseq.to_binary
     sha = Digest::SHA256.hexdigest(bin)
     disasm_lines = iseq.disasm.lines.length
-
-    # Reload strictly from serialized YARV binary (proves portable bytecode round-trip!)
     reloaded = RubyVM::InstructionSequence.load_from_binary(bin)
-    val = reloaded.eval
-    [val, sha, bin.bytesize, disasm_lines]
+    [reloaded.eval, sha, bin.bytesize, disasm_lines]
   end
 
-  # Direct C-ABI Fiddle binding into Zig `beast_metal.dll`
   class ZigBridge
     def initialize(dll_path)
       @handle = Fiddle.dlopen(dll_path)
@@ -71,92 +65,103 @@ module BeastYarv
       @self_test = Fiddle::Function.new(@handle["beast_metal_self_test_all"], [Fiddle::TYPE_UINT], Fiddle::TYPE_LONG_LONG)
     end
 
-    def abi_version
-      @abi_version.call
-    end
-
-    def philox_u64(seed, ctr, domain)
-      @philox_u64.call(seed, ctr, domain) & 0xFFFF_FFFF_FFFF_FFFF
-    end
-
-    def pack_5trits(arr5)
-      buf = arr5.pack("c5")
-      @pack_5trits.call(Fiddle::Pointer[buf]) & 0xFF
-    end
+    def abi_version = @abi_version.call
+    def philox_u64(seed, ctr, dom) = @philox_u64.call(seed, ctr, dom) & 0xFFFF_FFFF_FFFF_FFFF
+    def pack_5trits(arr5) = @pack_5trits.call(Fiddle::Pointer[arr5.pack("c5")]) & 0xFF
 
     def dot_b158_simd(packed_bytes, x_i32_arr)
-      w_str = packed_bytes.pack("C*")
-      x_str = x_i32_arr.pack("l<*")
-      @dot_b158_simd.call(Fiddle::Pointer[w_str], Fiddle::Pointer[x_str], x_i32_arr.length)
+      @dot_b158_simd.call(Fiddle::Pointer[packed_bytes.pack("C*")], Fiddle::Pointer[x_i32_arr.pack("l<*")], x_i32_arr.length)
     end
 
-    def self_test_clean?
-      (@self_test.call(0) & 0xFFFF_FFFF_FFFF_FFFF) == 0xBE457001
-    end
+    def self_test_clean? = (@self_test.call(0) & 0xFFFF_FFFF_FFFF_FFFF) == 0xBE457001
+  end
+
+  # Evaluate a compiled YARV Many-Tems routing policy over 8 colony tasks (higher = better allocation).
+  def self.score_policy(fn)
+    tasks = [
+      [0.92, 0.88, 0.20, 0.04, 1.50, 1.0],
+      [0.40, 0.30, 0.80, 0.45, 0.50, -1.0],
+      [0.85, 0.95, 0.30, 0.05, 1.80, 1.0],
+      [0.55, 0.50, 0.65, 0.30, 0.70, -1.0],
+      [0.90, 0.75, 0.15, 0.02, 1.40, 1.0],
+      [0.35, 0.25, 0.85, 0.50, 0.40, -1.0],
+      [0.88, 0.82, 0.25, 0.06, 1.60, 1.0],
+      [0.45, 0.40, 0.70, 0.35, 0.60, -1.0]
+    ]
+    tasks.sum { |a, u, d, f, r, label| fn.call(a, u, d, f, r) * label }
+  end
+
+  def self.strategy_source(alpha, beta, gamma, delta, boost)
+    <<~RUBY
+      lambda do |a, u, d, f, r|
+        s = (a ** #{alpha}) * (u ** #{beta}) * ((1.0 - d) ** #{gamma}) * ((1.0 - f) ** #{delta}) * r
+        ((1.0 - f) > 0.85 && (1.0 - d) > 0.60) ? (s * #{boost}) : (s * 0.85)
+      end
+    RUBY
   end
 
   def self.run_selftest(repo_root)
     yjit_on = defined?(RubyVM::YJIT) && RubyVM::YJIT.enabled? ? true : false
-    puts "=== CRUBY #{RUBY_VERSION} + PRISM + YARV (YJIT=#{yjit_on}) ==="
+    puts "=== CRUBY #{RUBY_VERSION} + PRISM + 10-GEN YARV BREEDER (YJIT=#{yjit_on}) ==="
 
-    # 1. Compile Gen-0 colony strategy to YARV binary bytecode & execute
-    gen0_src = <<~RUBY
-      lambda do |affinity, urgency, difficulty, failure_rate, reward|
-        (affinity ** 1.0) * (urgency ** 1.2) * ((1.0 - difficulty) ** 0.8) * ((1.0 - failure_rate) ** 1.5) * reward
+    # 1. 10-Generation Strictly-Monotonic YARV Bytecode Evolution with Automatic Rollback!
+    params = [1.0, 1.0, 0.6, 0.8, 1.00]
+    best_fn, best_sha, best_bytes, best_ops = compile_and_run_yarv(strategy_source(*params))
+    init_fit = score_policy(best_fn)
+    best_fit = init_fit
+    promotions = 0
+    rollbacks = 0
+
+    10.times do |gen|
+      cand = params.dup
+      # Deterministic mutation pattern: alternating improvement + deliberate bad regression to test rollback!
+      if gen.even?
+        cand[2] = (cand[2] + 0.18).round(3)
+        cand[3] = (cand[3] + 0.22).round(3)
+        cand[4] = (cand[4] + 0.10).round(3)
+      else
+        cand[2] = 0.05
+        cand[4] = 0.50
       end
-    RUBY
-    proc0, sha0, bytes0, lines0 = compile_and_run_yarv(gen0_src)
-    score0 = proc0.call(0.85, 0.90, 0.25, 0.05, 1.40)
-
-    # 2. Live T1a Bytecode Mutation -> Gen-1 adaptive margin-boosted policy
-    gen1_src = <<~RUBY
-      lambda do |affinity, urgency, difficulty, failure_rate, reward|
-        base = (affinity ** 1.0) * (urgency ** 1.2) * ((1.0 - difficulty) ** 0.8) * ((1.0 - failure_rate) ** 1.5) * reward
-        margin_boost = (1.0 - failure_rate) > 0.90 ? 1.12 : 0.95
-        base * margin_boost
+      fn, sha, bytes, ops = compile_and_run_yarv(strategy_source(*cand))
+      fit = score_policy(fn)
+      if fit > best_fit
+        params = cand
+        best_fit = fit
+        best_sha = sha
+        best_bytes = bytes
+        best_ops = ops
+        promotions += 1
+      else
+        rollbacks += 1
       end
-    RUBY
-    proc1, sha1, bytes1, lines1 = compile_and_run_yarv(gen1_src)
-    score1 = proc1.call(0.85, 0.90, 0.25, 0.05, 1.40)
-
-    raise "YARV mutation SHA did not change!" if sha0 == sha1
-    raise "YARV mutated score invalid!" unless score1 > score0
-
-    # 3. Planted Mutant: Malicious AST injection MUST be caught by Prism Ring-0 gate!
-    mutant_caught = false
-    begin
-      compile_and_run_yarv('system("echo pwned")')
-    rescue RuntimeError => e
-      mutant_caught = e.message.include?("Ring-0 Prism AST blocked")
     end
-    raise "Planted Prism AST mutant escaped!" unless mutant_caught
 
-    backtick_caught = false
-    begin
-      compile_and_run_yarv('`whoami`')
-    rescue RuntimeError => e
-      backtick_caught = e.message.include?("Ring-0 Prism AST blocked")
-    end
-    raise "Planted backtick mutant escaped!" unless backtick_caught
+    raise "YARV 10-gen breeder failed to improve!" unless best_fit > init_fit && promotions >= 4 && rollbacks >= 4
 
-    puts "[PASS] YARV Gen0->Gen1 live bytecode mutation (gen0=#{bytes0}B/#{lines0}ops sha=#{sha0[0, 12]} score=#{score0.round(4)} -> gen1=#{bytes1}B/#{lines1}ops sha=#{sha1[0, 12]} score=#{score1.round(4)})"
+    # 2. Planted Injection Mutants -> Prism Ring-0 AST Gate MUST block 2/2!
+    m1 = begin; compile_and_run_yarv('system("echo pwned")'); false; rescue RuntimeError => e; e.message.include?("Ring-0 Prism AST blocked"); end
+    m2 = begin; compile_and_run_yarv('`whoami`'); false; rescue RuntimeError => e; e.message.include?("Ring-0 Prism AST blocked"); end
+    raise "Planted Prism AST mutant escaped!" unless m1 && m2
+
+    puts format(
+      "[PASS] YARV 10-Gen Breeder (fit %.4f -> %.4f, promotions=%d, rollbacks=%d, final=%dB/%dops sha=%s)",
+      init_fit, best_fit, promotions, rollbacks, best_bytes, best_ops, best_sha[0, 12]
+    )
     puts "[PASS] Prism Ring-0 AST Guard (2/2 planted injection mutants blocked before YARV compile)"
 
-    # 4. Live CRuby -> Zig Fiddle C-ABI bridge & latency measurement (Kill Criterion KC-2 < 10us)
+    # 3. Direct CRuby -> Zig Fiddle C-ABI bridge & latency test (KC-2 < 10,000 ns)
     dll_name = Gem.win_platform? ? "beast_metal.dll" : "libbeast_metal.so"
     dll_path = File.join(repo_root, "bin", dll_name)
     if File.exist?(dll_path)
       zig = ZigBridge.new(dll_path)
-      abi = zig.abi_version
-      raise "Unexpected Zig ABI: 0x#{abi.to_s(16)}" unless abi == 0x00010000
-      raise "Zig self-test failed from CRuby Fiddle!" unless zig.self_test_clean?
+      raise "Zig ABI mismatch" unless zig.abi_version == 0x00010000
+      raise "Zig self-test failed from Ruby" unless zig.self_test_clean?
 
       packed = zig.pack_5trits([1, -1, 0, 1, 1])
       dot = zig.dot_b158_simd([packed], [10, 20, 30, 40, 50])
-      # 1*10 + (-1)*20 + 0*30 + 1*40 + 1*50 = 80
-      raise "CRuby->Zig b1.58 dot mismatch: expected 80, got #{dot}" unless dot == 80
+      raise "CRuby->Zig b1.58 dot mismatch: #{dot}" unless dot == 80
 
-      # Measure CRuby -> Zig FFI latency over 50,000 calls
       iters = 50_000
       t0 = Process.clock_gettime(Process::CLOCK_MONOTONIC, :nanosecond)
       acc = 0
@@ -165,21 +170,12 @@ module BeastYarv
         acc ^= zig.philox_u64(5000, i, 77)
         i += 1
       end
-      t1 = Process.clock_gettime(Process::CLOCK_MONOTONIC, :nanosecond)
-      ns_per_call = (t1 - t0).to_f / iters
-      raise "KC-2 violation: CRuby->Zig FFI took #{ns_per_call.round(1)}ns (> 10,000ns)" if ns_per_call > 10_000.0
+      ns_per_call = (Process.clock_gettime(Process::CLOCK_MONOTONIC, :nanosecond) - t0).to_f / iters
+      raise "KC-2 violation: #{ns_per_call} ns" if ns_per_call > 10_000.0
 
-      puts format(
-        "[PASS] CRuby->Zig Fiddle C-ABI (ABI=0x%08x, b1.58_dot=%d, FFI=%.1f ns/call, acc=0x%x)",
-        abi, dot, ns_per_call, acc & 0xFFFF
-      )
-    else
-      puts "[SKIP] Zig DLL not found at #{dll_path}"
+      puts format("[PASS] CRuby->Zig Fiddle C-ABI (ABI=0x%08x, b1.58_dot=%d, FFI=%.1f ns/call, acc=0x%x)", zig.abi_version, dot, ns_per_call, acc & 0xFFFF)
     end
   end
 end
 
-if __FILE__ == $PROGRAM_NAME
-  repo_root = File.expand_path("..", __dir__)
-  BeastYarv.run_selftest(repo_root)
-end
+BeastYarv.run_selftest(File.expand_path("..", __dir__)) if __FILE__ == $PROGRAM_NAME

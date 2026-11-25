@@ -1,60 +1,61 @@
 1/1 root.test.beast_metal clean pass and 3 planted mutants caught...OK
 All 1 tests passed.
-warning: error finalizing incremental compilation session directory `\\?\Z:\[Vibe Coded (AI)]\ANTIGRAVITY\beast-civilization\target\debug\incremental\beast_wire-0ckxp163ja2bj\s-hoi511lw91-1ald21s-working`: Access is denied. (os error 5)
+   Compiling beast-wire v0.2.0 (Z:\[Vibe Coded (AI)]\ANTIGRAVITY\beast-civilization\crates\beast-wire)
+   Compiling beast-root v0.2.0 (Z:\[Vibe Coded (AI)]\ANTIGRAVITY\beast-civilization\crates\beast-root)
+   Compiling beast-c2c v0.2.0 (Z:\[Vibe Coded (AI)]\ANTIGRAVITY\beast-civilization\crates\beast-c2c)
+   Compiling beast-cuda v0.2.0 (Z:\[Vibe Coded (AI)]\ANTIGRAVITY\beast-civilization\crates\beast-cuda)
+   Compiling beast-colony v0.2.0 (Z:\[Vibe Coded (AI)]\ANTIGRAVITY\beast-civilization\crates\beast-colony)
+   Compiling beast-cli v0.2.0 (Z:\[Vibe Coded (AI)]\ANTIGRAVITY\beast-civilization\crates\beast-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.29s
+     Running unittests src\lib.rs (target\debug\deps\beast_c2c-da1a7b270049b00e.exe)
 
-warning: `beast-wire` (lib) generated 1 warning
-   Compiling beast-colony v0.1.0 (Z:\[Vibe Coded (AI)]\ANTIGRAVITY\beast-civilization\crates\beast-colony)
-warning: error finalizing incremental compilation session directory `\\?\Z:\[Vibe Coded (AI)]\ANTIGRAVITY\beast-civilization\target\debug\incremental\beast_colony-2m2z54dhrhj9j\s-hoi52hlmbl-0f53s8e-working`: Access is denied. (os error 5)
-
-warning: `beast-colony` (lib) generated 1 warning
-   Compiling beast-cli v0.1.0 (Z:\[Vibe Coded (AI)]\ANTIGRAVITY\beast-civilization\crates\beast-cli)
-    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.32s
-     Running unittests src\lib.rs (target\debug\deps\beast_c2c-f7d1dafdf7ccb73b.exe)
-
-running 1 test
+running 2 tests
 test tests::augment_preserves_self_kv_and_catches_cloud_spoof_mutant ... ok
+test trainer::tests::trained_swat_recovers_heldout_semantics_and_augment_beats_overwrite ... ok
 
-test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.24s
 
-     Running unittests src\main.rs (target\debug\deps\beast-01168ac89d55c0b7.exe)
+     Running unittests src\main.rs (target\debug\deps\beast-931cf43caa620126.exe)
 
 running 0 tests
 
 test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
 
-     Running unittests src\lib.rs (target\debug\deps\beast_colony-99250a7c971af92a.exe)
+     Running unittests src\lib.rs (target\debug\deps\beast_colony-ea0e17bda84e2971.exe)
 
-running 6 tests
+running 7 tests
 test economics::tests::nonhuman_fewer_calls_strictly_cheaper ... ok
-test temm1e::tests::lambda_half_life_matches_69_3h ... ok
+test oss_apis::tests::allowlist_blocks_arbitrary_hosts_and_injection_mutants ... ok
 test temm1e::tests::wilson_matches_temm1e_exact_30_of_30_reference ... ok
 test verifier::tests::fsrs_and_strictly_better_reject_noise_mutant ... ok
+test temm1e::tests::lambda_half_life_matches_69_3h ... ok
 test quantum_geo::tests::qubo_annealer_reduces_energy ... ok
 test quantum_geo::tests::qgtl_exact_bloch_and_chsh_violates_classical_bound ... ok
 
-test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
 
-     Running unittests src\lib.rs (target\debug\deps\beast_cuda-f20151677fba15de.exe)
+     Running unittests src\lib.rs (target\debug\deps\beast_cuda-a55800fcf0b8e965.exe)
 
 running 0 tests
 
 test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
 
-     Running unittests src\lib.rs (target\debug\deps\beast_root-afde433e623d4342.exe)
+     Running unittests src\lib.rs (target\debug\deps\beast_root-d0eed65fee5bff03.exe)
 
 running 1 test
 test tests::ring0_acl_and_rollback_falsification ... ok
 
 test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
 
-     Running unittests src\lib.rs (target\debug\deps\beast_wire-054204e2d5bb4266.exe)
+     Running unittests src\lib.rs (target\debug\deps\beast_wire-4cb50ddd52265a2c.exe)
 
-running 3 tests
+running 4 tests
 test philox::tests::domain_isolation_holds ... ok
 test sha256::tests::nist_fips_180_4_vectors ... ok
 test tests::receipt_chain_and_tamper_mutant ... ok
+test hbin_capsule::tests::mitosis_50pct_annihilation_and_byzantine_trojan_quarantine ... ok
 
-test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
 
    Doc-tests beast_c2c
 
@@ -86,38 +87,54 @@ running 0 tests
 
 test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
 
-   Compiling beast-colony v0.1.0 (Z:\[Vibe Coded (AI)]\ANTIGRAVITY\beast-civilization\crates\beast-colony)
-   Compiling beast-cli v0.1.0 (Z:\[Vibe Coded (AI)]\ANTIGRAVITY\beast-civilization\crates\beast-cli)
-    Finished `release` profile [optimized] target(s) in 4.24s
-=== BEAST CIVILIZATION v0.1.0 HARDWARE & ENGINE PROBE ===
+   Compiling beast-wire v0.2.0 (Z:\[Vibe Coded (AI)]\ANTIGRAVITY\beast-civilization\crates\beast-wire)
+   Compiling beast-c2c v0.2.0 (Z:\[Vibe Coded (AI)]\ANTIGRAVITY\beast-civilization\crates\beast-c2c)
+   Compiling beast-root v0.2.0 (Z:\[Vibe Coded (AI)]\ANTIGRAVITY\beast-civilization\crates\beast-root)
+   Compiling beast-cuda v0.2.0 (Z:\[Vibe Coded (AI)]\ANTIGRAVITY\beast-civilization\crates\beast-cuda)
+   Compiling beast-colony v0.2.0 (Z:\[Vibe Coded (AI)]\ANTIGRAVITY\beast-civilization\crates\beast-colony)
+   Compiling beast-cli v0.2.0 (Z:\[Vibe Coded (AI)]\ANTIGRAVITY\beast-civilization\crates\beast-cli)
+    Finished `release` profile [optimized] target(s) in 3.17s
+=== BEAST CIVILIZATION v0.2.0 HARDWARE & ENGINE PROBE ===
 Repo root          : Z:\[Vibe Coded (AI)]\ANTIGRAVITY\beast-civilization
 Omnimodal domains  : 20 routes across 8 architectures
 Public OSS APIs    : 12 endpoints baked in
 Zig beast-metal    : LOADED (ABI=0x00010000)
 AUTOPHAGE v1.3 FFI : available=true ABI=0x00010300 CPU="Intel(R) Core(TM) Ultra 9 275HX" AVX2=true GFNI=true PCLMUL=true RDSEED=true RWX_JIT=true
-CUDA PTX GPU       : available=true dev="NVIDIA GeForce RTX 5070 Ti Laptop GPU" sm_12.0 SMs=46 b1.58_1024x320=145us bit_exact=true
-Freestanding ELF   : PRESENT (13448 bytes) at Z:\[Vibe Coded (AI)]\ANTIGRAVITY\beast-civilization\bin\beast_microkernel.elf
+CUDA PTX GPU (3x)  : available=true dev="NVIDIA GeForce RTX 5070 Ti Laptop GPU" sm_12.0 SMs=46 verified=3/3 (b1.58=96us nvfp4=27us c2c=18us)
+Freestanding ELF v2: PRESENT (13656 bytes) at Z:\[Vibe Coded (AI)]\ANTIGRAVITY\beast-civilization\bin\beast_microkernel.elf
+Materialized vendor: 7 upstream repositories cloned in vendor/
 =========================================================================
-  BEAST CIVILIZATION v0.1.0 — END-TO-END ZERO-THEATER VERIFICATION SUITE
+  BEAST CIVILIZATION v0.2.0 — 12-GATE / 12-MUTANT VERIFICATION SUITE
 =========================================================================
 [PASS] G01 Zig beast-metal (b1.58/u1/i2/NVFP4 SIMD==Ref, Philox Rust==Zig, 3/3 mutants caught)
-[PASS] G02 Ring-0 Root Guardian (ACL blocked, spend cap enforced, G0-G4 swap + 0-bit rollback, 2/2 mutants caught)
-[PASS] G03 MIT C2C / Swarm Telepathy (Rust==Zig max_diff=1.49e-8, speedup=3.63x, self_kv=64/80, spoof mutant caught)
-[PASS] G04 Colony OS Math (TEMM1E Wilson 30/30=0.818891, NonHuman savings=25.5%, Engram FSRS, StrictlyBetter mutant caught)
-[PASS] G05 Tsotchke Quantum/Geo (QUBO E=-7.20, QGTL g_tt=0.2500 Berry=-0.4330, QRNG CHSH S=2.8464 > 2.0)
-[PASS] G06 Chimera Insert-Network (blocks=6, ||W||_2=0.9900 <= 0.99, mutant magic caught)
-[PASS] G07 Bare-Metal Hardware (AUTOPHAGE_FFI=true RWX=true, GPU="NVIDIA GeForce RTX 5070 Ti Laptop GPU" sm_12.0 bit_exact=true 158us, Microkernel ELF=13448 bytes)
-[PASS] G08 Determinism & Repeatability Guard (0-bit Rust==Zig double-run parity)
+[PASS] G02 Ring-0 Root Guardian (ACL + spend cap + G0-G4 swap + 0-bit rollback, 2/2 mutants caught)
+[PASS] G03 MIT C2C / Swarm Telepathy (Rust==Zig max_diff=1.49e-8, speedup=4.76x, spoof mutant caught)
+[PASS] G04 Trained MIT SwaT + 2x2 Law (heldout MSE -100.0%, cos=1.0000, Augment self-recall=1.000 vs Overwrite=-0.311)
+[PASS] G05 MIT CacheGraft .bcg Repo Bank (chunks=13 tokens=10 size=1968B, tampered .bcg mutant caught)
+[PASS] G06 Planaria GF(2^8) + Merkle Capsule (50% data annihilated, 1/1 Byzantine Trojan quarantined, 100% bit-exact heal)
+[PASS] G07 Colony OS Math & Public OSS API Guard (Wilson=0.818891, NonHuman=-25.5%, 2/2 mutants caught)
+Measuring correlations (this may take a moment)...
+  E(a,b)... 0.669922
+  E(a,b')... -0.667969
+  E(a',b)... 0.710938
+  E(a',b')...[PASS] G08 Tsotchke Quantum/Geo (QUBO E=-7.20, QGTL g_tt=0.2500 Berry=-0.4330, QRNG S=2.8464, upstream_tsotchke_dll=true S=2.7461)
+[PASS] G09 120-Gen Zig Chimera Breeder KC-4 (heldout MSE 0.0277 -> 0.0095 vs rand 0.0313, ||W||_2=0.0661, mutant caught)
+[PASS] G10 Multi-Colony Civilization OS (3 colonies/18 agents, graduated=18/18, AUTOPHAGE 10-ep RWX==Scalar=true sha=1f7d6d6f5ee09fbe..)
+[PASS] G11 Blackwell RTX 5070 Ti 3-Kernel PTX (3/3 verified: b1.58=88us nvfp4=23us c2c=17us) + Microkernel v2 (13656 B)
+[PASS] G12 Determinism & Rosette-Wire Integrity (0-bit double-run parity, tampered chain mutant caught)
 -------------------------------------------------------------------------
-SUMMARY: 8/8 GATES PASSED | 8/8 PLANTED MUTANTS CAUGHT | 0 FAILURES
-Exported live runtime receipt to Z:\[Vibe Coded (AI)]\ANTIGRAVITY\beast-civilization\lean\LiveReceipt.lean
-CHIMERA EVOLVED: gen=7 blocks=8 mutation_ops=0x27 max_spectral_norm=0.2422 (<=0.99) out[0..4]=[0.8138, -0.5532, 0.7910, -0.0322]
-=== BEAST CIVILIZATION LIVE SILICON BENCHMARKS (ZERO MOCKS) ===
-1. Rust<->Zig FFI Philox4x32-10 : 6.34 ns/call (KC-2 target < 50 ns)
-2. Zig b1.58 (10M trits)        : ref=6554us simd=1434us speedup=4.57x BIT_EXACT=true
-3. MIT SwaT C2C vs Text Prefill : text=2662us swat_c2c=619us speedup=4.30x self_kv_kept=64/80
-4. Blackwell GPU PTX b1.58      : dev="NVIDIA GeForce RTX 5070 Ti Laptop GPU" sm_12.0 4096x640=176us bit_exact_cpu=true
-=== CRUBY 3.4.9 + PRISM + YARV (YJIT=false) ===
-[PASS] YARV Gen0->Gen1 live bytecode mutation (gen0=728B/30ops sha=1b3e770db9da score=0.7714 -> gen1=948B/45ops sha=79f7f77138a0 score=0.864)
+SUMMARY: 12/12 GATES PASSED | 12/12 PLANTED MUTANTS CAUGHT | 0 FAILURES
+Exported live v0.2.0 runtime receipt to Z:\[Vibe Coded (AI)]\ANTIGRAVITY\beast-civilization\lean\LiveReceipt.lean
+ 0.697266
+CHIMERA 120-GEN BREEDER (KC-4)  : 82ms | pop=24 blocks=10 ops=0x3f ||W||_2=0.0661 | heldout_MSE: init=0.0277 -> evolved=0.0095 vs rand_ctrl=0.0313 | BEATS_CTRL=true
+COLONY CIVILIZATION OS          : colonies=3 agents=18 ticks=20 QUBO_E=-9.70 c2c_handoffs=20 graduated=18/18 NonHuman=-28.8% AUTOPHAGE(avail=true bit_exact=true sha=1f7d6d6f5ee09fbe..) digest=35f99e9e0dda59aa..
+CACHEGRAFT .BCG REPO BANK       : chunks=13 compacted_tokens=12 dim=32 size=3120B sha=3ee86ce976796862..
+=== BEAST CIVILIZATION v0.2.0 LIVE SILICON BENCHMARKS (ZERO MOCKS) ===
+1. Rust<->Zig FFI Philox4x32-10 : 5.46 ns/call (KC-2 target < 50 ns)
+2. Zig b1.58 (10M trits)        : ref=5232us simd=1124us speedup=4.65x BIT_EXACT=true
+3. MIT SwaT C2C vs Text Prefill : text=2692us swat_c2c=477us speedup=5.64x self_kv_kept=64/80
+4. Blackwell GPU PTX (3 kernels): dev="NVIDIA GeForce RTX 5070 Ti Laptop GPU" sm_12.0 verified=3/3 | b1.58(4096x640)=178us | nvfp4(4096x256)=61us | c2c_aug(768x64)=28us
+=== CRUBY 3.4.9 + PRISM + 10-GEN YARV BREEDER (YJIT=false) ===
+[PASS] YARV 10-Gen Breeder (fit 3.8078 -> 4.4078, promotions=5, rollbacks=5, final=868B/53ops sha=0139dd384b4e)
 [PASS] Prism Ring-0 AST Guard (2/2 planted injection mutants blocked before YARV compile)
-[PASS] CRuby->Zig Fiddle C-ABI (ABI=0x00010000, b1.58_dot=80, FFI=1623.1 ns/call, acc=0xbf0a)
+[PASS] CRuby->Zig Fiddle C-ABI (ABI=0x00010000, b1.58_dot=80, FFI=1640.2 ns/call, acc=0xbf0a)

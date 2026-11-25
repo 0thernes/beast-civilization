@@ -16,6 +16,9 @@ use beast_wire::philox::philox_f64_unit;
 use beast_wire::sha256::sha256;
 use std::time::Instant;
 
+pub mod graft_io;
+pub mod trainer;
+
 pub const BC2C_MAGIC: [u8; 4] = *b"BC2C";
 
 #[repr(u8)]

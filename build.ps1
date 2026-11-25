@@ -34,6 +34,22 @@ if ($LASTEXITCODE -ne 0) { throw "Zig unit & planted-mutant tests failed!" }
     -femit-bin="$binDir\beast_metal.dll"
 if ($LASTEXITCODE -ne 0) { throw "Zig beast_metal.dll build failed!" }
 
+# Optional native Win64 compilation of vendored upstream `tsotchke/quantum_rng` via `zig cc`
+$tsoDir = "$proj\vendor\tsotchke__quantum_rng"
+if (Test-Path -LiteralPath "$tsoDir\src\quantum_rng\bell_test.c") {
+    Write-Host "      Compiling upstream tsotchke/quantum_rng Bell-test bridge DLL via zig cc..."
+    & $zig cc -O2 -msse3 -Wno-macro-redefined -shared `
+        -I"$tsoDir" -I"$tsoDir\src" -I"$tsoDir\src\quantum_rng" `
+        "$tsoDir\src\quantum_rng\quantum_state.c" `
+        "$tsoDir\src\quantum_rng\quantum_gates.c" `
+        "$tsoDir\src\quantum_rng\matrix_math.c" `
+        "$tsoDir\src\quantum_rng\simd_ops.c" `
+        "$tsoDir\src\quantum_rng\bell_test.c" `
+        "$proj\c_bridges\tsotchke_qrng_bridge.c" `
+        -o "$binDir\tsotchke_qrng_bridge.dll" -lm
+    if ($LASTEXITCODE -ne 0) { throw "tsotchke_qrng_bridge.dll build failed!" }
+}
+
 # ============================================================================
 # [2/6] Zig Freestanding x86-64 Multiboot2 Bare-Metal OS Microkernel ELF
 # ============================================================================
@@ -92,6 +108,12 @@ try {
     & "$binDir\beast.exe" evolve-chimera
     if ($LASTEXITCODE -ne 0) { throw "beast evolve-chimera failed!" }
 
+    & "$binDir\beast.exe" colony-sim
+    if ($LASTEXITCODE -ne 0) { throw "beast colony-sim failed!" }
+
+    & "$binDir\beast.exe" graft-repo
+    if ($LASTEXITCODE -ne 0) { throw "beast graft-repo failed!" }
+
     if (-not $SkipBench) {
         & "$binDir\beast.exe" bench
         if ($LASTEXITCODE -ne 0) { throw "beast bench failed!" }
@@ -111,7 +133,7 @@ if ($LASTEXITCODE -ne 0) { throw "CRuby/YARV bridge failed!" }
 # [6/6] Pure Lean 4 v4.35.0 Kernel Proofs + Strict Axiom Audit
 # ============================================================================
 if (-not $SkipLean -and (Test-Path -LiteralPath $lean)) {
-    Write-Host "`n[6/6] Machine-checking 16 Pure Lean 4 theorems (including live hardware receipt B16)..."
+    Write-Host "`n[6/6] Machine-checking 24 Pure Lean 4 theorems (including live hardware receipt B24)..."
     $leanDir = "$proj\lean"
     $env:LEAN_PATH = "$leanDir;$leanRoot\lib\lean"
     Push-Location -LiteralPath $leanDir
@@ -155,13 +177,13 @@ if (-not $SkipLean -and (Test-Path -LiteralPath $lean)) {
         }
         throw "Unexpected Lean 4 output line: $line"
     }
-    if ($audited -lt 16) {
-        throw "Expected >= 16 audited Lean 4 theorems, got $audited"
+    if ($audited -lt 24) {
+        throw "Expected >= 24 audited Lean 4 theorems, got $audited"
     }
     [System.IO.File]::WriteAllText("$resDir\lean4-audit.txt", ($cleanLines -join "`n") + "`n", [System.Text.UTF8Encoding]::new($false))
-    Write-Host "[PASS] $audited/16 Pure Lean 4 theorems audited cleanly (0 sorry, 0 custom axioms, 0 warnings)"
+    Write-Host "[PASS] $audited/24 Pure Lean 4 theorems audited cleanly (0 sorry, 0 custom axioms, 0 warnings)"
 }
 
 Write-Host "`n========================================================================="
-Write-Host "  BEAST CIVILIZATION v0.1.0 FULL-STACK BUILD & VERIFICATION: ALL GREEN!"
+Write-Host "  BEAST CIVILIZATION v0.2.0 FULL-STACK BUILD & VERIFICATION: ALL GREEN!"
 Write-Host "========================================================================="

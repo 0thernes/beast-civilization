@@ -7,8 +7,11 @@
 //! - Live FFI bridge to `0thernes/autophage` (`autophage.dll`) and `zig/beast-metal` (`beast_metal.dll`)
 
 pub mod autophage_ffi;
+pub mod civilization;
 pub mod economics;
+pub mod oss_apis;
 pub mod quantum_geo;
 pub mod temm1e;
+pub mod tsotchke_ffi;
 pub mod verifier;
 pub mod zig_ffi;

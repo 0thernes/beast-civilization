@@ -39,6 +39,21 @@ impl Default for BeastChimeraGenome {
     }
 }
 
+#[repr(C)]
+#[derive(Debug, Clone, Copy, Default)]
+pub struct BeastEvolutionReport {
+    pub generations: u32,
+    pub pop_size: u32,
+    pub apex_blocks: u32,
+    pub apex_mutation_ops: u32,
+    pub apex_spectral_norm: f32,
+    pub init_heldout_mse: f32,
+    pub evolved_heldout_mse: f32,
+    pub random_control_heldout_mse: f32,
+    pub evolved_beats_control: u32,
+    pub reserved: u32,
+}
+
 pub struct ZigMetalLib {
     _lib: DynLib,
     pub abi_version: extern "C" fn() -> u32,
@@ -65,6 +80,7 @@ pub struct ZigMetalLib {
     pub chimera_forward: extern "C" fn(
         *const BeastChimeraGenome, *const f32, *const f32, *mut f32, *mut f32,
     ) -> i32,
+    pub chimera_evolve_benchmark: extern "C" fn(u32, u32, u64, *mut BeastEvolutionReport) -> i32,
     pub self_test_all: extern "C" fn(u32) -> u64,
 }
 
@@ -96,6 +112,7 @@ impl ZigMetalLib {
             chimera_op_xenograft: sym!("beast_chimera_op_xenograft"),
             chimera_op_spectral_clamp: sym!("beast_chimera_op_spectral_clamp"),
             chimera_forward: sym!("beast_chimera_forward"),
+            chimera_evolve_benchmark: sym!("beast_chimera_evolve_benchmark"),
             self_test_all: sym!("beast_metal_self_test_all"),
             _lib: lib,
         })

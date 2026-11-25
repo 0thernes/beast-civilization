@@ -115,6 +115,27 @@ int32_t  beast_chimera_forward(
     float*       liquid_state16
 );
 
+/* 120-Generation Chimera Evolutionary Benchmark Report (Kill Criterion KC-4) */
+typedef struct BeastEvolutionReport {
+    uint32_t generations;
+    uint32_t pop_size;
+    uint32_t apex_blocks;
+    uint32_t apex_mutation_ops;
+    float    apex_spectral_norm;
+    float    init_heldout_mse;
+    float    evolved_heldout_mse;
+    float    random_control_heldout_mse;
+    uint32_t evolved_beats_control;
+    uint32_t reserved;
+} BeastEvolutionReport;
+
+int32_t  beast_chimera_evolve_benchmark(
+    uint32_t generations,
+    uint32_t pop_size,
+    uint64_t seed,
+    BeastEvolutionReport* out_report
+);
+
 /* Benchmark helper returning nanoseconds per 10,000 b1.58 1024-dim dot products */
 uint64_t beast_metal_self_test_all(uint32_t inject_mutant);
 

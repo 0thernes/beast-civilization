@@ -4,14 +4,14 @@ version = 4
 
 [[package]]
 name = "beast-c2c"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "beast-wire",
 ]
 
 [[package]]
 name = "beast-cli"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "beast-c2c",
  "beast-colony",
@@ -22,7 +22,7 @@ dependencies = [
 
 [[package]]
 name = "beast-colony"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "beast-c2c",
  "beast-root",
@@ -31,18 +31,18 @@ dependencies = [
 
 [[package]]
 name = "beast-cuda"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "beast-wire",
 ]
 
 [[package]]
 name = "beast-root"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "beast-wire",
 ]
 
 [[package]]
 name = "beast-wire"
-version = "0.1.0"
+version = "0.2.0"
