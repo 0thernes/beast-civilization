@@ -1,0 +1,31 @@
+schema_version: "1.2.0"
+name: "beast-civilization"
+version: "0.1.0"
+owner: "Alexander Stephen Donahue (0thernes LLC)"
+orcid: "0009-0006-8168-9648"
+profiles:
+  - T13
+  - T07
+  - T05
+  - T04
+excluded_profiles:
+  - T02
+languages:
+  - zig
+  - rust
+  - ruby
+  - c
+  - ptx
+  - lean4
+hard_rules:
+  commit_straight_to_main: true
+  blocking_hooks: false
+  branch_protection: false
+  informational_ci_only: true
+entry_points:
+  canonical_agent_doc: "AGENTS.md"
+  build_command: ".\\build.ps1"
+  claims_ledger: "CLAIMS.md"
+  limitations: "LIMITATIONS.md"
+  replication: "REPLICATION.md"
+  matrix_300: "docs/matrices/300_agent_matrix.yaml"

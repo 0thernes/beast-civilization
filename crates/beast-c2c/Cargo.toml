@@ -1,0 +1,9 @@
+[package]
+name = "beast-c2c"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Bare-metal Cache-to-Cache (ICLR 2026 C2C) + MIT Swarm Telepathy (arXiv:2610.15095) + Augment-Cache/Replace-Activation + CacheGraft engine"
+
+[dependencies]
+beast-wire = { path = "../beast-wire" }

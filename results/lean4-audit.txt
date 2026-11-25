@@ -1,0 +1,16 @@
+'BeastProofs.B01_b158_five_trits_per_byte' does not depend on any axioms
+'BeastProofs.B02_b158_pack_unpack_exact' does not depend on any axioms
+'BeastProofs.B03_nvfp4_two_nibbles_per_byte' does not depend on any axioms
+'BeastProofs.B04_u1_eight_bits_per_byte' does not depend on any axioms
+'BeastProofs.B05_i2_four_vals_per_byte' does not depend on any axioms
+'BeastProofs.B06_c2c_augment_preserves_self_kv' does not depend on any axioms
+'BeastProofs.B07_c2c_augment_strict_enrichment' does not depend on any axioms
+'BeastProofs.B08_c2c_cloud_spoof_impossible' depends on axioms: [propext]
+'BeastProofs.B09_ring0_immutability' depends on axioms: [propext]
+'BeastProofs.B10_ring0_spend_cap_invariant' depends on axioms: [propext]
+'BeastProofs.B11_nonhuman_call_monotonicity' does not depend on any axioms
+'BeastProofs.B12_chimera_rezero_loss_neutral' depends on axioms: [propext]
+'BeastProofs.B13_wse_spectral_contraction' does not depend on any axioms
+'BeastProofs.B14_matrix_300_exact_partition' does not depend on any axioms
+'BeastProofs.B15_omnimodal_architecture_bounds' does not depend on any axioms
+'BeastProofs.B16_live_hardware_receipt' does not depend on any axioms

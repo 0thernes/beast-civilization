@@ -1,0 +1,12 @@
+# beast-civilization
+
+> Bare-metal, self-rewriting, multi-colony AI civilization and evolutionary compute substrate in Zig, Rust, CRuby/YARV, C11/CUDA sm_120, and Pure Lean 4.
+
+## Key Files
+- [AGENTS.md](AGENTS.md): Canonical engineering rules, hard rules (R1-R9), and architecture map.
+- [README.md](README.md): Overview, quickstart, and live verified benchmarks.
+- [CLAIMS.md](CLAIMS.md): Falsifiable claims ledger mapping every claim to a live command and receipt.
+- [LIMITATIONS.md](LIMITATIONS.md): Honest verification boundaries (real silicon vs. metaphor).
+- [REPLICATION.md](REPLICATION.md): Clean-clone reproduction protocol.
+- [docs/matrices/300_agent_matrix.yaml](docs/matrices/300_agent_matrix.yaml): 100 Harness Problems x 100 User Wishlists x 100 Top Agent Features registry.
+- [lean/BeastProofs.lean](lean/BeastProofs.lean): Machine-checked Pure Lean 4 proofs (0 sorry, 0 custom axioms).

@@ -1,0 +1,5 @@
+---
+description: Canonical project rules for beast-civilization (Build Standard v1.2.0)
+alwaysApply: true
+---
+Follow `AGENTS.md` at the repository root. Never fabricate benchmarks, proofs, or C2C telemetry. Commit directly to `main` (R1-R9).

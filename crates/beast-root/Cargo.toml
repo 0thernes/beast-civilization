@@ -1,0 +1,9 @@
+[package]
+name = "beast-root"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Immutable Ring-0 Root guardian (INIT-Agent Win64+Linux + Noetic ACL + G0-G4 self-rewrite gates + 0-bit rollback)"
+
+[dependencies]
+beast-wire = { path = "../beast-wire" }

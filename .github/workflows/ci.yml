@@ -1,0 +1,26 @@
+# Informational CI only (R1-R3: never gates or blocks commits/pushes)
+name: beast-ci-informational
+on:
+  push:
+    branches: [main]
+jobs:
+  verify-linux:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+      - name: Install Zig 0.17.1
+        run: |
+          curl -fsSL https://ziglang.org/download/0.17.1/zig-x86_64-linux-0.17.1.tar.xz -o zig.tar.xz
+          tar -xf zig.tar.xz && sudo mv zig-x86_64-linux-0.17.1 /usr/local/zig
+          echo "/usr/local/zig" >> $GITHUB_PATH
+      - name: Zig tests & freestanding kernel
+        run: |
+          cd zig/beast-metal && zig build test
+          cd ../freestanding_kernel && zig build
+      - name: Rust workspace build & tests
+        run: cargo test --workspace
+      - name: Ruby YARV bridge test
+        run: ruby ruby/beast_yarv.rb --selftest

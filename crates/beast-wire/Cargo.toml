@@ -1,0 +1,6 @@
+[package]
+name = "beast-wire"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Zero-dependency Rosette-Wire typed contracts, FIPS 180-4 SHA-256, HMAC receipts, and dynamic FFI loader"

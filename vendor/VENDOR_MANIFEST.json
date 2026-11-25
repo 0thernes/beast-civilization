@@ -1,0 +1,208 @@
+{
+  "generated_utc": "2026-11-25T22:51:59.7681166Z",
+  "upstream_github": [
+    {
+      "repo": "nagisanzenin/INIT-Agent",
+      "branch": "main",
+      "pinned_sha": "16ef9cb6956093ce46efc50bb926295b973d07f2",
+      "license": "Apache-2.0",
+      "language": "Rust",
+      "stars": 26,
+      "url": "https://github.com/nagisanzenin/INIT-Agent"
+    },
+    {
+      "repo": "nagisanzenin/nonhuman",
+      "branch": "main",
+      "pinned_sha": "cfc67476ceffeab81e35f298557b8acad2d5c54f",
+      "license": "MIT",
+      "language": "Python",
+      "stars": 11,
+      "url": "https://github.com/nagisanzenin/nonhuman"
+    },
+    {
+      "repo": "nagisanzenin/engram",
+      "branch": "main",
+      "pinned_sha": "0590eb8f008680acbfb5aaa4dbc73bf63ca643dd",
+      "license": "MIT",
+      "language": "Python",
+      "stars": 1491,
+      "url": "https://github.com/nagisanzenin/engram"
+    },
+    {
+      "repo": "temm1e-labs/temm1e",
+      "branch": "main",
+      "pinned_sha": "42471e0d3074f904051f6ce743173e7af8dc3c68",
+      "license": "UNKNOWN",
+      "language": "Rust",
+      "stars": 497,
+      "url": "https://github.com/temm1e-labs/temm1e"
+    },
+    {
+      "repo": "nagisanzenin/effortmining",
+      "branch": "main",
+      "pinned_sha": "09090cf7cbca3f6cbf35fe54f018f675bdb49c65",
+      "license": "MIT",
+      "language": "Python",
+      "stars": 32,
+      "url": "https://github.com/nagisanzenin/effortmining"
+    },
+    {
+      "repo": "nagisanzenin/nagi",
+      "branch": "main",
+      "pinned_sha": "d7380a693dc76ecf9cf26f1a127875d5d16decab",
+      "license": "Apache-2.0",
+      "language": "Python",
+      "stars": 13,
+      "url": "https://github.com/nagisanzenin/nagi"
+    },
+    {
+      "repo": "nagisanzenin/strictlybetter",
+      "branch": "main",
+      "pinned_sha": "6532c052d1d716937c5673ab587743688acf65e1",
+      "license": "MIT",
+      "language": "Python",
+      "stars": 1,
+      "url": "https://github.com/nagisanzenin/strictlybetter"
+    },
+    {
+      "repo": "nagisanzenin/crucible",
+      "branch": "main",
+      "pinned_sha": "4f119e51635374fa338443ef0a7130439b988ee9",
+      "license": "MIT",
+      "language": "Python",
+      "stars": 0,
+      "url": "https://github.com/nagisanzenin/crucible"
+    },
+    {
+      "repo": "nagisanzenin/math-first",
+      "branch": "main",
+      "pinned_sha": "1bc67d6ec89037656553299e91a7f12a0d2eaa67",
+      "license": "MIT",
+      "language": "Python",
+      "stars": 0,
+      "url": "https://github.com/nagisanzenin/math-first"
+    },
+    {
+      "repo": "temm1e-labs/temrust",
+      "branch": "main",
+      "pinned_sha": "543cce79abe13240bb61fceb13218a1c2adb33de",
+      "license": "NOASSERTION",
+      "language": "Python",
+      "stars": 7,
+      "url": "https://github.com/temm1e-labs/temrust"
+    },
+    {
+      "repo": "tsotchke/eshkol",
+      "branch": "master",
+      "pinned_sha": "6925e2f3154ba3b192e836fc1a05f473c9819bf7",
+      "license": "MIT",
+      "language": "C++",
+      "stars": 176,
+      "url": "https://github.com/tsotchke/eshkol"
+    },
+    {
+      "repo": "tsotchke/moonlab",
+      "branch": "master",
+      "pinned_sha": "cd3b2347e3739327548708073d7e4ac710cc6a6c",
+      "license": "MIT",
+      "language": "C",
+      "stars": 39,
+      "url": "https://github.com/tsotchke/moonlab"
+    },
+    {
+      "repo": "tsotchke/quantum_geometric_tensor",
+      "branch": "master",
+      "pinned_sha": "770994aa8ddd858e6bb16eebb25250a7b9f67c96",
+      "license": "MIT",
+      "language": "C",
+      "stars": 452,
+      "url": "https://github.com/tsotchke/quantum_geometric_tensor"
+    },
+    {
+      "repo": "tsotchke/quantum_rng",
+      "branch": "master",
+      "pinned_sha": "1a77e77f803c63883349b658361c06401cd8ceb7",
+      "license": "MIT",
+      "language": "C",
+      "stars": 74,
+      "url": "https://github.com/tsotchke/quantum_rng"
+    },
+    {
+      "repo": "tsotchke/rosette-wire",
+      "branch": "main",
+      "pinned_sha": "bb34bbe7536f2ea9829dc302c6a578e9fdd877a0",
+      "license": "Apache-2.0",
+      "language": "Common Lisp",
+      "stars": 1,
+      "url": "https://github.com/tsotchke/rosette-wire"
+    },
+    {
+      "repo": "tsotchke/libirrep",
+      "branch": "master",
+      "pinned_sha": "6c6acab7960bd747d32bc841c9d1f61a0051f1b7",
+      "license": "MIT",
+      "language": "C",
+      "stars": 11,
+      "url": "https://github.com/tsotchke/libirrep"
+    },
+    {
+      "repo": "tsotchke/PINN",
+      "branch": "main",
+      "pinned_sha": "8ec293633e4716f7c93d04a34b573afb4032e9d4",
+      "license": "UNKNOWN",
+      "language": "C",
+      "stars": 41,
+      "url": "https://github.com/tsotchke/PINN"
+    },
+    {
+      "repo": "tsotchke/spin_based_neural_network",
+      "branch": "main",
+      "pinned_sha": "9e8f2d0cd5ee6eab5e297ad626e1f60aed6b0fef",
+      "license": "MIT",
+      "language": "C",
+      "stars": 85,
+      "url": "https://github.com/tsotchke/spin_based_neural_network"
+    },
+    {
+      "repo": "tsotchke/tensorcore",
+      "branch": "master",
+      "pinned_sha": "553823c7c56807f70ef3f628e491ba307df43b7d",
+      "license": "MIT",
+      "language": "Python",
+      "stars": 6,
+      "url": "https://github.com/tsotchke/tensorcore"
+    }
+  ],
+  "local_0thernes_engines": [
+    {
+      "name": "autophage",
+      "path": "Z:\\[Vibe Coded (AI)]\\ANTIGRAVITY\\autophage",
+      "head_sha": "1f39157b3c2f214917447aedacb286f2eeb4b67f"
+    },
+    {
+      "name": "cellular-engine-omega",
+      "path": "Z:\\[Vibe Coded (AI)]\\ANTIGRAVITY\\cellular-engine-omega",
+      "head_sha": "62d00a6ba567cd6dad8f49b4745b1c5903d3ee87"
+    },
+    {
+      "name": "cellulogonic-mecha",
+      "path": "Z:\\[Vibe Coded (AI)]\\ANTIGRAVITY\\cellulogonic-mecha",
+      "head_sha": "3b85b1515af7507e7ddd1ce132d8a0e091fa5ee9"
+    },
+    {
+      "name": "noetic-organism-omega",
+      "path": "Z:\\[Vibe Coded (AI)]\\ANTIGRAVITY\\noetic-organism-omega",
+      "head_sha": "0c372fdae4d9794021b04128df3f95ea50727452"
+    },
+    {
+      "name": "planaria",
+      "path": "Z:\\[Vibe Coded (AI)]\\ANTIGRAVITY\\planaria",
+      "head_sha": "b4eaf7cfc88ccc12191f86e910448db43b42c993"
+    },
+    {
+      "name": "alife-singularity-omega-package",
+      "path": "Z:\\[Vibe Coded (AI)]\\ANTIGRAVITY\\alife-singularity-omega-package",
+      "head_sha": "c5319dd04507a3a45e00536704974009e0c8f11e"
+    }
+  ]
+}

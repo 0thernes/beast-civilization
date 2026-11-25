@@ -1,0 +1,9 @@
+[package]
+name = "beast-cuda"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Zero-MSVC direct CUDA Driver API (nvcuda.dll) PTX launcher targeting NVIDIA RTX 5070 Ti Blackwell (sm_120)"
+
+[dependencies]
+beast-wire = { path = "../beast-wire" }

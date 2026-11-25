@@ -1,0 +1,11 @@
+[package]
+name = "beast-colony"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Multi-colony Civilization OS: TEMM1E math + NonHuman/EffortMining/Nagi + Engram/Crucible/StrictlyBetter + Moonlab QUBO + QGTL Fubini-Study/Berry + QRNG CHSH + AUTOPHAGE FFI"
+
+[dependencies]
+beast-wire = { path = "../beast-wire" }
+beast-root = { path = "../beast-root" }
+beast-c2c = { path = "../beast-c2c" }

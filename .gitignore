@@ -1,0 +1,43 @@
+# Build outputs (A24: never commit binaries, build artifacts, or secrets)
+/target/
+/bin/
+/dist/
+/zig/beast-metal/zig-out/
+/zig/beast-metal/.zig-cache/
+/zig/freestanding_kernel/zig-out/
+/zig/freestanding_kernel/.zig-cache/
+*.exe
+*.dll
+*.lib
+*.exp
+*.pdb
+*.obj
+*.o
+*.a
+*.so
+*.dylib
+*.elf
+*.bin
+*.ptx
+!/cuda/beast_blackwell.ptx
+*.cubin
+*.olean
+/.lake/
+
+# Vendored upstream source checkouts (tracked via vendor/VENDOR_MANIFEST.json + SHA pins)
+/vendor/*/
+!/vendor/VENDOR_MANIFEST.json
+!/vendor/README.md
+
+# Local secrets & runtime state
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+/runtime_state/
+/snapshots/
+__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db

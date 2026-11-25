@@ -1,0 +1,17 @@
+[package]
+name = "beast-cli"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Unified bare-metal CLI & full-stack verification harness for beast-civilization"
+
+[[bin]]
+name = "beast"
+path = "src/main.rs"
+
+[dependencies]
+beast-wire = { path = "../beast-wire" }
+beast-root = { path = "../beast-root" }
+beast-c2c = { path = "../beast-c2c" }
+beast-colony = { path = "../beast-colony" }
+beast-cuda = { path = "../beast-cuda" }

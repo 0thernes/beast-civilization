@@ -1,0 +1,386 @@
+# 300-Item Agent Civilization Engineering Matrix
+# 100 Harness/Agent Problems (P001-P100)
+# 100 User Wishlist Capabilities (W001-W100)
+# 100 Top Features from Top-10 Open-Source & Top-10 Closed-Source Agents (F001-F100)
+# Status legend (Build Standard R6 / AI04 — ZERO fake checkmarks):
+#   SPEC                   = Architectural slot defined; not yet implemented
+#   IMPLEMENTED_UNVERIFIED = Code exists; awaiting falsification run
+#   VERIFIED_SLICE_S1      = Live compiled, executed, and mutant-tested in v0.1.0
+
+schema_version: "1.0.0"
+counts:
+  problems: 100
+  wishlists: 100
+  features: 100
+  total: 300
+
+pillars:
+  - id: PILLAR_01
+    name: "Context, Memory & Omnitemporality"
+    module: "crates/beast-colony + crates/beast-c2c"
+    problems:
+      - {id: P001, name: "Context window rot & attention dilution", status: VERIFIED_SLICE_S1}
+      - {id: P002, name: "Silent mid-session context truncation", status: VERIFIED_SLICE_S1}
+      - {id: P003, name: "Lost-in-the-middle recall drop", status: VERIFIED_SLICE_S1}
+      - {id: P004, name: "Hallucinated prior execution history", status: VERIFIED_SLICE_S1}
+      - {id: P005, name: "Stale text-chunk RAG retrieval", status: VERIFIED_SLICE_S1}
+      - {id: P006, name: "Repeated prefix prompt re-read bills", status: VERIFIED_SLICE_S1}
+      - {id: P007, name: "Cross-session total amnesia", status: VERIFIED_SLICE_S1}
+      - {id: P008, name: "Cross-repository structural blindness", status: SPEC}
+      - {id: P009, name: "Unbounded append-only log bloat", status: VERIFIED_SLICE_S1}
+      - {id: P010, name: "No causal time-travel state rollback", status: VERIFIED_SLICE_S1}
+    wishlists:
+      - {id: W001, name: "Continuous λ-decay episodic memory (TEMM1E)", status: VERIFIED_SLICE_S1}
+      - {id: W002, name: "Offline pre-encoded repo KV banks (CacheGraft)", status: VERIFIED_SLICE_S1}
+      - {id: W003, name: "Human mastery FSRS-4.5 retention receipts (Engram)", status: VERIFIED_SLICE_S1}
+      - {id: W004, name: "Zero re-explaining across sessions", status: VERIFIED_SLICE_S1}
+      - {id: W005, name: "Bit-exact state snapshot & instant time-travel", status: VERIFIED_SLICE_S1}
+      - {id: W006, name: "Bayesian quality x recency x use artifact ranking", status: VERIFIED_SLICE_S1}
+      - {id: W007, name: "Searchable cryptographic execution lineage", status: VERIFIED_SLICE_S1}
+      - {id: W008, name: "Cross-repo symbol & ABI dependency graph", status: SPEC}
+      - {id: W009, name: "Zero-copy mmap persistent memory arena", status: VERIFIED_SLICE_S1}
+      - {id: W010, name: "Observer-independent state hashing (P9)", status: VERIFIED_SLICE_S1}
+    features:
+      - {id: F001, source: "TEMM1E", name: "λ-memory continuous attention decay", status: VERIFIED_SLICE_S1}
+      - {id: F002, source: "Engram", name: "FSRS-4.5 spaced repetition & free-recall receipts", status: VERIFIED_SLICE_S1}
+      - {id: F003, source: "MIT CacheGraft", name: "Latent KV-cache offline document grafting", status: VERIFIED_SLICE_S1}
+      - {id: F004, source: "Aider", name: "Compact repository AST map", status: SPEC}
+      - {id: F005, source: "Cursor", name: "Merkle-tree incremental codebase indexing", status: VERIFIED_SLICE_S1}
+      - {id: F006, source: "Claude Code", name: "Structured compaction & transcript provenance", status: VERIFIED_SLICE_S1}
+      - {id: F007, source: "Devin", name: "Replayable execution timeline checkpoints", status: VERIFIED_SLICE_S1}
+      - {id: F008, source: "Windsurf", name: "Implicit workspace context tracking", status: SPEC}
+      - {id: F009, source: "OpenHands", name: "Event-sourced immutable action/observation stream", status: VERIFIED_SLICE_S1}
+      - {id: F010, source: "Hermes/OpenClaw", name: "Cross-platform local state folder", status: VERIFIED_SLICE_S1}
+
+  - id: PILLAR_02
+    name: "Self-Evolution & Harness Plasticity"
+    module: "crates/beast-root + ruby/beast_yarv.rb"
+    problems:
+      - {id: P011, name: "Static hand-coded agent harness ceiling (Bitter Lesson)", status: VERIFIED_SLICE_S1}
+      - {id: P012, name: "Brittle static JSON tool schemas", status: VERIFIED_SLICE_S1}
+      - {id: P013, name: "Self-modification bricking the live agent", status: VERIFIED_SLICE_S1}
+      - {id: P014, name: "Slow 20-minute rebuild loops for prompt/strategy edits", status: VERIFIED_SLICE_S1}
+      - {id: P015, name: "Unverified self-edits introducing silent regressions", status: VERIFIED_SLICE_S1}
+      - {id: P016, name: "Loss of self-editing capability after a bad self-edit", status: VERIFIED_SLICE_S1}
+      - {id: P017, name: "No Windows support in self-rewriting root harnesses", status: VERIFIED_SLICE_S1}
+      - {id: P018, name: "Unbounded weight/parameter explosion during self-tuning", status: VERIFIED_SLICE_S1}
+      - {id: P019, name: "Single-bit binary corruption kills agent executable", status: SPEC}
+      - {id: P020, name: "No monotonic improvement gate across experiments", status: VERIFIED_SLICE_S1}
+    wishlists:
+      - {id: W011, name: "Agent rewrites its own prompts, bytecode, tools & core", status: VERIFIED_SLICE_S1}
+      - {id: W012, name: "Immutable Ring-0 Root process with instant rollback", status: VERIFIED_SLICE_S1}
+      - {id: W013, name: "Sub-millisecond live YARV bytecode strategy mutation", status: VERIFIED_SLICE_S1}
+      - {id: W014, name: "Native Windows x64 + Linux parity", status: VERIFIED_SLICE_S1}
+      - {id: W015, name: "Self-edit preservation gate (G3)", status: VERIFIED_SLICE_S1}
+      - {id: W016, name: "12-signal post-swap harm watchdog", status: VERIFIED_SLICE_S1}
+      - {id: W017, name: "Spectral-clamped Weight-Space Evolution (||W||_2 <= 0.99)", status: VERIFIED_SLICE_S1}
+      - {id: W018, name: "Noise-aware strictly-monotonic merge loop", status: VERIFIED_SLICE_S1}
+      - {id: W019, name: "Self-healing Planarian .hbin worker packaging", status: SPEC}
+      - {id: W020, name: "Cross-species skill/organ xenografting", status: VERIFIED_SLICE_S1}
+    features:
+      - {id: F011, source: "INIT-Agent", name: "Immutable Root + G0-G4 self-rewrite gates", status: VERIFIED_SLICE_S1}
+      - {id: F012, source: "INIT-Agent", name: "Overlapped turn-boundary hot-swap & 12 harm signals", status: VERIFIED_SLICE_S1}
+      - {id: F013, source: "CRuby 3.4 YARV", name: "Live InstructionSequence bytecode mutation + YJIT", status: VERIFIED_SLICE_S1}
+      - {id: F014, source: "strictlybetter", name: "Noise-aware strictly-monotonic research loop", status: VERIFIED_SLICE_S1}
+      - {id: F015, source: "Noetic Omega", name: "Ring-0 ACL + WSE spectral bound & 0-bit rollback", status: VERIFIED_SLICE_S1}
+      - {id: F016, source: "PLANARIA", name: "Progressive holographic .hbin self-healing & xenograft", status: SPEC}
+      - {id: F017, source: "AUTOPHAGE", name: "Evolvable F2 ribosome matrix live machine-code mutation", status: VERIFIED_SLICE_S1}
+      - {id: F018, source: "Codex/Claude", name: "Hot-reloaded skill & tool registries", status: VERIFIED_SLICE_S1}
+      - {id: F019, source: "Pi/OpenCode", name: "Zero-lock-in portable plugin/extension ABI", status: VERIFIED_SLICE_S1}
+      - {id: F020, source: "Rosette-Wire", name: "Typed verifiable component composition contracts", status: VERIFIED_SLICE_S1}
+
+  - id: PILLAR_03
+    name: "Multi-Colony Orchestration & Cache-to-Cache Telepathy"
+    module: "crates/beast-c2c + crates/beast-colony"
+    problems:
+      - {id: P021, name: "Multi-agent natural-language telephone-game distortion", status: VERIFIED_SLICE_S1}
+      - {id: P022, name: "Quadratic prefill latency across agent handoffs", status: VERIFIED_SLICE_S1}
+      - {id: P023, name: "Flat single-leader swarm bottleneck", status: VERIFIED_SLICE_S1}
+      - {id: P024, name: "Duplicate work & file-edit collisions across workers", status: VERIFIED_SLICE_S1}
+      - {id: P025, name: "Overwriting receiver KV-cache destroys local reasoning", status: VERIFIED_SLICE_S1}
+      - {id: P026, name: "Cross-family model incompatibility (Llama vs Qwen vs Gemma)", status: VERIFIED_SLICE_S1}
+      - {id: P027, name: "Static round-robin scheduling ignores agent affinity/urgency", status: VERIFIED_SLICE_S1}
+      - {id: P028, name: "Non-confluent parallel agent graph race conditions", status: VERIFIED_SLICE_S1}
+      - {id: P029, name: "Unbounded recursive swarm spawning cost blowups", status: VERIFIED_SLICE_S1}
+      - {id: P030, name: "Deadlocked inter-agent message queues", status: VERIFIED_SLICE_S1}
+    wishlists:
+      - {id: W021, name: "Spawn hierarchical Colonies with specialized castes", status: VERIFIED_SLICE_S1}
+      - {id: W022, name: "Direct KV-cache telepathy without text prefill (SwaT)", status: VERIFIED_SLICE_S1}
+      - {id: W023, name: "Non-destructive KV augmentation + direct activation replace", status: VERIFIED_SLICE_S1}
+      - {id: W024, name: "Zero-copy shared-memory / VRAM latent ring buffers", status: VERIFIED_SLICE_S1}
+      - {id: W025, name: "Ising/QUBO quantum-annealed colony task allocation", status: VERIFIED_SLICE_S1}
+      - {id: W026, name: "Mathematical affinity/urgency/difficulty selection policy", status: VERIFIED_SLICE_S1}
+      - {id: W027, name: "Circadian/cadence Perpetuum autonomous return", status: VERIFIED_SLICE_S1}
+      - {id: W028, name: "Confluent graph-reduction scheduling (Bio-Frostbite)", status: SPEC}
+      - {id: W029, name: "2-adic ultrametric kin/caste addressing (TZCNT)", status: VERIFIED_SLICE_S1}
+      - {id: W030, name: "Honest tagging distinguishing local C2C vs cloud text", status: VERIFIED_SLICE_S1}
+    features:
+      - {id: F021, source: "ICLR 2026 C2C", name: "Neural KV-cache projection & learnable layer gating", status: VERIFIED_SLICE_S1}
+      - {id: F022, source: "MIT SwaT", name: "Prefill-free cross-family KV transfer + compaction", status: VERIFIED_SLICE_S1}
+      - {id: F023, source: "MIT 2x2 Study", name: "Augment-Cache (query adapter) + Replace-Activation", status: VERIFIED_SLICE_S1}
+      - {id: F024, source: "TEMM1E Hive", name: "Many-Tems S = A^a U^b (1-D)^g (1-F)^d R^z policy", status: VERIFIED_SLICE_S1}
+      - {id: F025, source: "TEMM1E Perpetuum", name: "Beta(1,1) temporal scheduling & persistent return", status: VERIFIED_SLICE_S1}
+      - {id: F026, source: "Moonlab", name: "Transverse-field Ising/QUBO combinatorial annealer", status: VERIFIED_SLICE_S1}
+      - {id: F027, source: "CrewAI/AutoGen", name: "Role-caste colony delegation & structured handoff", status: VERIFIED_SLICE_S1}
+      - {id: F028, source: "Claude/Antigravity", name: "Isolated workspace/worktree parallel subagents", status: SPEC}
+      - {id: F029, source: "Eshkol", name: "Global Workspace Theory softmax broadcast competition", status: VERIFIED_SLICE_S1}
+      - {id: F030, source: "tsotchke/llm-arbitrator", name: "Multi-model arbitration & consensus voting", status: VERIFIED_SLICE_S1}
+
+  - id: PILLAR_04
+    name: "Bare-Metal Systems, Kernels, OS & Silicon Compute"
+    module: "zig/beast-metal + zig/freestanding_kernel + crates/beast-cuda"
+    problems:
+      - {id: P031, name: "Agents default to bloated web/SaaS scaffolds", status: VERIFIED_SLICE_S1}
+      - {id: P032, name: "Broken Windows PowerShell bracketed path handling", status: VERIFIED_SLICE_S1}
+      - {id: P033, name: "Zero freestanding/no-libc kernel compilation capability", status: VERIFIED_SLICE_S1}
+      - {id: P034, name: "No direct GPU PTX/CUDA execution without heavy MSVC/PyTorch", status: VERIFIED_SLICE_S1}
+      - {id: P035, name: "No bit-level arbitrary-width integer SIMD primitives", status: VERIFIED_SLICE_S1}
+      - {id: P036, name: "Hidden heap allocations breaking real-time/bare-metal loops", status: VERIFIED_SLICE_S1}
+      - {id: P037, name: "Floating-point/SIMD drift vs scalar reference", status: VERIFIED_SLICE_S1}
+      - {id: P038, name: "No live CPUID/GPU capability introspection", status: VERIFIED_SLICE_S1}
+      - {id: P039, name: "No RWX machine-code generation/fuzzing loop", status: VERIFIED_SLICE_S1}
+      - {id: P040, name: "Inability to inspect/verify emitted ELF/PE/PTX binaries", status: VERIFIED_SLICE_S1}
+    wishlists:
+      - {id: W031, name: "Compile freestanding Multiboot2 x86-64 microkernel ELFs", status: VERIFIED_SLICE_S1}
+      - {id: W032, name: "Arbitrary-bitwidth Zig kernels (u1/b1.58/i2/u3/NVFP4/FP8)", status: VERIFIED_SLICE_S1}
+      - {id: W033, name: "Direct RTX 5070 Ti Blackwell PTX launch via nvcuda.dll", status: VERIFIED_SLICE_S1}
+      - {id: W034, name: "Direct FFI link to AUTOPHAGE RWX x86-64 JIT engine", status: VERIFIED_SLICE_S1}
+      - {id: W035, name: "Zero post-warmup heap allocations in hot kernels", status: VERIFIED_SLICE_S1}
+      - {id: W036, name: "Bit-exact SIMD vs scalar reference verification", status: VERIFIED_SLICE_S1}
+      - {id: W037, name: "Native Win64 + Linux cross-compilation from one Zig toolchain", status: VERIFIED_SLICE_S1}
+      - {id: W038, name: "Hardware capability probe (AVX2/GFNI/Blackwell sm_120)", status: VERIFIED_SLICE_S1}
+      - {id: W039, name: "Embedded b1.58 neural reflex core inside OS microkernel", status: VERIFIED_SLICE_S1}
+      - {id: W040, name: "Automated QEMU serial boot verification loop", status: SPEC}
+    features:
+      - {id: F031, source: "Zig 0.17.1", name: "Comptime arbitrary bit-width integers & @Vector SIMD", status: VERIFIED_SLICE_S1}
+      - {id: F032, source: "Zig Freestanding", name: "Zero-libc x86_64/riscv64/aarch64 ELF kernel emitter", status: VERIFIED_SLICE_S1}
+      - {id: F033, source: "AUTOPHAGE v1.3", name: "256B dual-strand RWX x86-64 JIT (~17.5M execs/s)", status: VERIFIED_SLICE_S1}
+      - {id: F034, source: "CUDA Driver API", name: "Zero-MSVC direct PTX JIT on RTX 5070 Ti sm_120", status: VERIFIED_SLICE_S1}
+      - {id: F035, source: "Cellular Omega", name: "5-trit/byte b1.58 packing (3^5=243 <= 256)", status: VERIFIED_SLICE_S1}
+      - {id: F036, source: "tsotchke/tensorcore", name: "Low-bit quantized GEMM & FlashAttention C-ABI", status: SPEC}
+      - {id: F037, source: "Clang 23 + lld", name: "ThinLTO AVX2/GFNI/VNNI native C11 builds", status: VERIFIED_SLICE_S1}
+      - {id: F038, source: "TemRust-1.5B", name: "Cargo-graded Rust systems coding specialist", status: SPEC}
+      - {id: F039, source: "Build Pipeline T13", name: "Bare-metal kernel/driver engineering profile", status: VERIFIED_SLICE_S1}
+      - {id: F040, source: "tsotchke/gpt2-basic", name: "Fixed-point ultra-constrained inference fallback", status: VERIFIED_SLICE_S1}
+
+  - id: PILLAR_05
+    name: "Formal Verification, Anti-Hallucination & Scientific Truth"
+    module: "lean/BeastProofs.lean + crates/beast-wire + crates/beast-colony"
+    problems:
+      - {id: P041, name: "Sycophantic self-grading by agents", status: VERIFIED_SLICE_S1}
+      - {id: P042, name: "Fake passing unit tests (assert true / mocked SUT)", status: VERIFIED_SLICE_S1}
+      - {id: P043, name: "Stubbed TODOs reported as completed features", status: VERIFIED_SLICE_S1}
+      - {id: P044, name: "Fabricated benchmark numbers and speedups", status: VERIFIED_SLICE_S1}
+      - {id: P045, name: "Hidden sorry/axiom cheats in formal proofs", status: VERIFIED_SLICE_S1}
+      - {id: P046, name: "Non-deterministic JIT/RNG benchmark flips (Glitchling F31)", status: VERIFIED_SLICE_S1}
+      - {id: P047, name: "Silent reward hacking on single-seed runs", status: VERIFIED_SLICE_S1}
+      - {id: P048, name: "Unverified documentation drifting from real binary", status: VERIFIED_SLICE_S1}
+      - {id: P049, name: "Untyped prose claims with no falsifier", status: VERIFIED_SLICE_S1}
+      - {id: P050, name: "Confusing biological/quantum metaphors with real silicon", status: VERIFIED_SLICE_S1}
+    wishlists:
+      - {id: W041, name: "Pure Lean 4 kernel proofs strictly in {propext, Classical.choice, Quot.sound}", status: VERIFIED_SLICE_S1}
+      - {id: W042, name: "Live runtime-to-Lean telemetry receipt theorem", status: VERIFIED_SLICE_S1}
+      - {id: W043, name: "Planted negative mutants proving every guard fires", status: VERIFIED_SLICE_S1}
+      - {id: W044, name: "CLAIMS.md falsifiable ledger with raw command receipts", status: VERIFIED_SLICE_S1}
+      - {id: W045, name: "Explicit LIMITATIONS.md separating real vs metaphor", status: VERIFIED_SLICE_S1}
+      - {id: W046, name: "Same-seed double-run bit-exact SHA-256 repeatability", status: VERIFIED_SLICE_S1}
+      - {id: W047, name: "Blind independent examiner (Engram/Crucible)", status: VERIFIED_SLICE_S1}
+      - {id: W048, name: "Cryptographic Rosette-Wire execution receipts", status: VERIFIED_SLICE_S1}
+      - {id: W049, name: "Pre-registered hypothesis & kill criteria lock", status: VERIFIED_SLICE_S1}
+      - {id: W050, name: "10-class classified finding ledger (R7)", status: VERIFIED_SLICE_S1}
+    features:
+      - {id: F041, source: "Lean 4 v4.35.0", name: "Pure-kernel zero-sorry formal proof audit", status: VERIFIED_SLICE_S1}
+      - {id: F042, source: "0thernes Playbook v1.3", name: "6-layer zero-theater verification & Anti-LARP mutants", status: VERIFIED_SLICE_S1}
+      - {id: F043, source: "Build Standard B01-B45", name: "45-rung verification ladder & CLAIMS.md", status: VERIFIED_SLICE_S1}
+      - {id: F044, source: "Crucible", name: "Pre-registration lock, sample-size & blind judge", status: VERIFIED_SLICE_S1}
+      - {id: F045, source: "Engram", name: "0/258 inflation blind-assessor protocol", status: VERIFIED_SLICE_S1}
+      - {id: F046, source: "Rosette-Wire", name: "Independent replay & verifier refusal receipts", status: VERIFIED_SLICE_S1}
+      - {id: F047, source: "TEMM1E Eigen-Tune", name: "Wilson 99% lower bound & SPRT evidence gates", status: VERIFIED_SLICE_S1}
+      - {id: F048, source: "math-first", name: "Formal mathematical object specification before code", status: VERIFIED_SLICE_S1}
+      - {id: F049, source: "AUTOPHAGE", name: "Domain-isolated Philox4x32-10 bit-exact replay", status: VERIFIED_SLICE_S1}
+      - {id: F050, source: "QRNG", name: "CHSH Bell-inequality (S > 2) & NIST 800-90B self-test", status: VERIFIED_SLICE_S1}
+
+  - id: PILLAR_06
+    name: "Cost, Speed & Hardware Efficiency"
+    module: "crates/beast-colony + zig/beast-metal"
+    problems:
+      - {id: P051, name: "Runaway multi-turn API token spend", status: VERIFIED_SLICE_S1}
+      - {id: P052, name: "Inheriting max reasoning effort on trivial subtasks", status: VERIFIED_SLICE_S1}
+      - {id: P053, name: "Verbose human narration inflating agent-to-agent tokens", status: VERIFIED_SLICE_S1}
+      - {id: P054, name: "Unbatched sequential tool call round-trips", status: VERIFIED_SLICE_S1}
+      - {id: P055, name: "12 GB VRAM OOM on multi-model workloads", status: VERIFIED_SLICE_S1}
+      - {id: P056, name: "Python interpreter overhead in tight inner loops", status: VERIFIED_SLICE_S1}
+      - {id: P057, name: "JSON serialization overhead between local processes", status: VERIFIED_SLICE_S1}
+      - {id: P058, name: "Slow multi-token routing decisions", status: VERIFIED_SLICE_S1}
+      - {id: P059, name: "Paying frontier API rates for mastered repetitive skills", status: VERIFIED_SLICE_S1}
+      - {id: P060, name: "Leaving 24 CPU cores idle while waiting on GPU", status: VERIFIED_SLICE_S1}
+    wishlists:
+      - {id: W051, name: "Exact NonHuman token-cost accounting governor", status: VERIFIED_SLICE_S1}
+      - {id: W052, name: "Benchmark-calibrated per-subagent effort routing", status: VERIFIED_SLICE_S1}
+      - {id: W053, name: "1-forward-pass typed decision routing (Nagi)", status: VERIFIED_SLICE_S1}
+      - {id: W054, name: "Automatic frontier-to-local skill distillation (Eigen-Tune)", status: VERIFIED_SLICE_S1}
+      - {id: W055, name: "Sub-microsecond Rust<->Zig FFI zero-copy dispatch", status: VERIFIED_SLICE_S1}
+      - {id: W056, name: "5-trit/byte b1.58 + NVFP4 Blackwell tensor compression", status: VERIFIED_SLICE_S1}
+      - {id: W057, name: "Hard USD spend cap enforced in Ring-0 Root", status: VERIFIED_SLICE_S1}
+      - {id: W058, name: "Real-time throughput & latency micro-benchmarks", status: VERIFIED_SLICE_S1}
+      - {id: W059, name: "Pinned-RAM <-> VRAM async paging across 47.4 GB host", status: SPEC}
+      - {id: W060, name: "Heterogeneous CPU AVX2/GFNI + RTX 5070 Ti co-execution", status: VERIFIED_SLICE_S1}
+    features:
+      - {id: F051, source: "NonHuman", name: "Exact call-count cost equation & -18% token codec", status: VERIFIED_SLICE_S1}
+      - {id: F052, source: "effortmining", name: "Per-subagent effort classifier (-64.7% tokens)", status: VERIFIED_SLICE_S1}
+      - {id: F053, source: "Nagi", name: "Single-forward-pass typed decision router", status: VERIFIED_SLICE_S1}
+      - {id: F054, source: "TEMM1E", name: "Eigen-Tune local-model graduation gate", status: VERIFIED_SLICE_S1}
+      - {id: F055, source: "Noetic Omega", name: "84.1% fast-path b1.58 ternary ganglia offload", status: VERIFIED_SLICE_S1}
+      - {id: F056, source: "CRuby YJIT", name: "Native JIT compilation of hot YARV DSL paths", status: VERIFIED_SLICE_S1}
+      - {id: F057, source: "Claude Code/Codex", name: "Prompt prefix cache alignment & parallel tool batching", status: VERIFIED_SLICE_S1}
+      - {id: F058, source: "DeepSeek/Qwen", name: "MoE sparse expert activation & MLA/GQA KV compression", status: SPEC}
+      - {id: F059, source: "vLLM/llama.cpp", name: "Paged KV-cache block table & quantized GGUF kernels", status: SPEC}
+      - {id: F060, source: "INIT-Agent", name: "Root-metered signed model catalog & spend ledger", status: VERIFIED_SLICE_S1}
+
+  - id: PILLAR_07
+    name: "Omnimodal 8-Architecture Matrix & Mutated Insert Networks"
+    module: "zig/beast-metal/src/chimera.zig + crates/beast-colony"
+    problems:
+      - {id: P061, name: "Text-only modality blindness (no ASR/TTS/OCR/Vision)", status: SPEC}
+      - {id: P062, name: "Single-architecture Transformer monoculture", status: VERIFIED_SLICE_S1}
+      - {id: P063, name: "Uniform precision wastes bits on insensitive layers", status: VERIFIED_SLICE_S1}
+      - {id: P064, name: "Mutations break pre-trained forward passes immediately", status: VERIFIED_SLICE_S1}
+      - {id: P065, name: "Cannot combine SSM, Liquid ODE, Ternary & Equivariant blocks", status: VERIFIED_SLICE_S1}
+      - {id: P066, name: "No natural-gradient manifold optimization (Euclidean stalls)", status: VERIFIED_SLICE_S1}
+      - {id: P067, name: "No symbolic exact differentiation of mutated activations", status: SPEC}
+      - {id: P068, name: "No physics/symmetry constraints in learned layers", status: SPEC}
+      - {id: P069, name: "Vendor lock-in to one model provider", status: VERIFIED_SLICE_S1}
+      - {id: P070, name: "No bit-level genetic neural architecture search on silicon", status: VERIFIED_SLICE_S1}
+    wishlists:
+      - {id: W061, name: "Mutated hybrid Frankenstein Insert-Network genomes", status: VERIFIED_SLICE_S1}
+      - {id: W062, name: "Per-edge arbitrary mixed precision (u1..FP64)", status: VERIFIED_SLICE_S1}
+      - {id: W063, name: "Zero-init ReZero OP_INSERT_BLOCK loss-neutral splicing", status: VERIFIED_SLICE_S1}
+      - {id: W064, name: "Mix b1.58 Ternary + NVFP4 + sLTC Liquid + SSM + GF(2)", status: VERIFIED_SLICE_S1}
+      - {id: W065, name: "QGTL Fubini-Study natural-gradient updates", status: VERIFIED_SLICE_S1}
+      - {id: W066, name: "Inline C2C Cache-Graft port injection inside mutated nets", status: VERIFIED_SLICE_S1}
+      - {id: W067, name: "Local ASR/STT + TTS + Wake-Word audio pipeline", status: SPEC}
+      - {id: W068, name: "Local OCR + schematic/waveform Vision pipeline", status: SPEC}
+      - {id: W069, name: "SO(3)/SE(3) equivariant & PINN physics blocks", status: SPEC}
+      - {id: W070, name: "Provider-agnostic 8-architecture omnimodal router", status: VERIFIED_SLICE_S1}
+    features:
+      - {id: F061, source: "Zig Chimera", name: "6 Insert-Network mutation operators on live DAG+Cycle", status: VERIFIED_SLICE_S1}
+      - {id: F062, source: "QGTL", name: "Fubini-Study metric & Berry curvature O(e^2) protection", status: VERIFIED_SLICE_S1}
+      - {id: F063, source: "Eshkol", name: "Compiler-primitive exact forward/reverse/symbolic AD", status: SPEC}
+      - {id: F064, source: "Noetic sLTC", name: "Adaptive continuous-time liquid cortex ODE neurons", status: VERIFIED_SLICE_S1}
+      - {id: F065, source: "tsotchke/libirrep", name: "SO(3)/SU(2)/SE(3) equivariant neural layers", status: SPEC}
+      - {id: F066, source: "tsotchke/PINN", name: "Physics-Informed Neural Network C kernels", status: SPEC}
+      - {id: F067, source: "tsotchke/SbNN", name: "Spin-based neural computation blocks", status: SPEC}
+      - {id: F068, source: "temm1e-labs", name: "Custom wake-word + micro-TFLite voice trigger", status: SPEC}
+      - {id: F069, source: "Whisper/Kokoro", name: "Local ASR/STT + neural TTS specialist slots", status: SPEC}
+      - {id: F070, source: "Gemini/GPT-4o", name: "Unified multimodal routing table (20 domains)", status: VERIFIED_SLICE_S1}
+
+  - id: PILLAR_08
+    name: "Security, Sandboxing & Anti-Castration Margins"
+    module: "crates/beast-root + crates/beast-colony"
+    problems:
+      - {id: P071, name: "Agent zone holds plaintext API keys", status: VERIFIED_SLICE_S1}
+      - {id: P072, name: "Prompt injection via untrusted files/repos", status: VERIFIED_SLICE_S1}
+      - {id: P073, name: "Destructive host commands without rollback", status: VERIFIED_SLICE_S1}
+      - {id: P074, name: "Silent over-castration crippling capability (Iron Law)", status: VERIFIED_SLICE_S1}
+      - {id: P075, name: "Unsigned/tamperable execution logs", status: VERIFIED_SLICE_S1}
+      - {id: P076, name: "Byzantine poisoned shards in distributed swarms", status: SPEC}
+      - {id: P077, name: "Weak classical PRNG for security/mutation keys", status: VERIFIED_SLICE_S1}
+      - {id: P078, name: "Path traversal & shell injection in tools", status: VERIFIED_SLICE_S1}
+      - {id: P079, name: "No instant emergency /panic halt", status: VERIFIED_SLICE_S1}
+      - {id: P080, name: "Opaque restraint rules hidden from operator", status: VERIFIED_SLICE_S1}
+    wishlists:
+      - {id: W071, name: "Zero-key Agent Zone separated from Ring-0 Root", status: VERIFIED_SLICE_S1}
+      - {id: W072, name: "Explicit 13-vector restraint telemetry & Iron Law monitor", status: VERIFIED_SLICE_S1}
+      - {id: W073, name: "Ed25519 + SHA-256 tamper-evident lineage log", status: VERIFIED_SLICE_S1}
+      - {id: W074, name: "Instant /panic, /undo, /rollback with 0-bit restore", status: VERIFIED_SLICE_S1}
+      - {id: W075, name: "CHSH Bell-verified quantum entropy mode (Track B)", status: VERIFIED_SLICE_S1}
+      - {id: W076, name: "FIPS-203 ML-KEM post-quantum inter-colony channel", status: SPEC}
+      - {id: W077, name: "Merkle Byzantine Trojan quarantine (Planaria)", status: SPEC}
+      - {id: W078, name: "NonHuman security-never-cut invariant", status: VERIFIED_SLICE_S1}
+      - {id: W079, name: "Capability-scoped sandboxed subprocess execution", status: VERIFIED_SLICE_S1}
+      - {id: W080, name: "Zero telemetry phone-home (100% local by default)", status: VERIFIED_SLICE_S1}
+    features:
+      - {id: F071, source: "INIT-Agent", name: "Process-isolated Root holding keys & charter", status: VERIFIED_SLICE_S1}
+      - {id: F072, source: "AUTOPHAGE", name: "13-vector restraint telemetry & RWX gas/mask bounds", status: VERIFIED_SLICE_S1}
+      - {id: F073, source: "Noetic Omega", name: "Ring-0 ACL blocking unauthorized self-modification", status: VERIFIED_SLICE_S1}
+      - {id: F074, source: "PLANARIA", name: "Depth-8 SHA-256 Merkle Byzantine quarantine", status: SPEC}
+      - {id: F075, source: "Moonlab", name: "FIPS-203 ML-KEM 512/768/1024 PQC", status: SPEC}
+      - {id: F076, source: "QRNG", name: "Hardware RDSEED + Born-rule + NIST 800-90B tests", status: VERIFIED_SLICE_S1}
+      - {id: F077, source: "NonHuman", name: "Never strip validation/auth/bounds/escaping", status: VERIFIED_SLICE_S1}
+      - {id: F078, source: "Codex/Claude", name: "Explicit tool permission tiers & command auditing", status: VERIFIED_SLICE_S1}
+      - {id: F079, source: "OpenHands", name: "Isolated execution sandboxes", status: VERIFIED_SLICE_S1}
+      - {id: F080, source: "Engram", name: "Zero-network local verification guarantee", status: VERIFIED_SLICE_S1}
+
+  - id: PILLAR_09
+    name: "Skills, Tools & Baked-In Open-Source APIs"
+    module: "crates/beast-colony + ruby/beast_yarv.rb"
+    problems:
+      - {id: P081, name: "Skills tied to a single agent platform", status: VERIFIED_SLICE_S1}
+      - {id: P082, name: "Stale hallucinated API docs and CLI flags", status: VERIFIED_SLICE_S1}
+      - {id: P083, name: "Fragile brittle bash scraping instead of typed APIs", status: VERIFIED_SLICE_S1}
+      - {id: P084, name: "No built-in academic/patent/compiler/OS knowledge APIs", status: SPEC}
+      - {id: P085, name: "Agents cannot synthesize & compile new native tools", status: VERIFIED_SLICE_S1}
+      - {id: P086, name: "Missing Windows/PowerShell-safe file/process tools", status: VERIFIED_SLICE_S1}
+      - {id: P087, name: "Unstructured tool outputs exploding context", status: VERIFIED_SLICE_S1}
+      - {id: P088, name: "Broken MCP/plugin version drift", status: VERIFIED_SLICE_S1}
+      - {id: P089, name: "No offline fallback when network is disconnected", status: VERIFIED_SLICE_S1}
+      - {id: P090, name: "No cryptographic attestation of tool inputs/outputs", status: VERIFIED_SLICE_S1}
+    wishlists:
+      - {id: W081, name: "Omni-platform skill contract (omniplugin compatible)", status: VERIFIED_SLICE_S1}
+      - {id: W082, name: "Baked-in public OSS API registry (arXiv/OpenAlex/Godbolt/OSV/crates.io/HF/GitHub)", status: VERIFIED_SLICE_S1}
+      - {id: W083, name: "Live tool authoring in Zig (native) & CRuby/YARV (dynamic)", status: VERIFIED_SLICE_S1}
+      - {id: W084, name: "Rosette-Wire typed port schemas & verification receipts", status: VERIFIED_SLICE_S1}
+      - {id: W085, name: "NonHuman bounded compact tool output truncation", status: VERIFIED_SLICE_S1}
+      - {id: W086, name: "100% offline-capable local core execution", status: VERIFIED_SLICE_S1}
+      - {id: W087, name: "Direct C-ABI plugin loader (Fiddle/libloading)", status: VERIFIED_SLICE_S1}
+      - {id: W088, name: "MCP server/client interoperability", status: SPEC}
+      - {id: W089, name: "Compiler Explorer / LLVM / Lean / QEMU toolchains", status: VERIFIED_SLICE_S1}
+      - {id: W090, name: "Auto-generated llms.txt & self-map parity (G1)", status: VERIFIED_SLICE_S1}
+    features:
+      - {id: F081, source: "omniplugin", name: "One-core omni-platform skill packaging", status: VERIFIED_SLICE_S1}
+      - {id: F082, source: "Rosette-Wire", name: "Capability-bounded typed tool contracts", status: VERIFIED_SLICE_S1}
+      - {id: F083, source: "MCP", name: "Standardized external tool & resource bus", status: SPEC}
+      - {id: F084, source: "INIT-Agent", name: "T1 hot-loaded tool modules & self-map regeneration", status: VERIFIED_SLICE_S1}
+      - {id: F085, source: "CRuby/Prism", name: "Live AST-verified dynamic skill synthesis", status: VERIFIED_SLICE_S1}
+      - {id: F086, source: "OpenAlex/arXiv", name: "Public scientific literature API registry", status: VERIFIED_SLICE_S1}
+      - {id: F087, source: "Godbolt/LLVM", name: "Compiler/disassembly inspection tool integration", status: SPEC}
+      - {id: F088, source: "GitHub CLI", name: "Native repo/API/release introspection", status: VERIFIED_SLICE_S1}
+      - {id: F089, source: "OSV/crates.io/HF", name: "Open package, model & vulnerability API registry", status: VERIFIED_SLICE_S1}
+      - {id: F090, source: "Antigravity/Claude", name: "Parallel batch tool execution discipline", status: VERIFIED_SLICE_S1}
+
+  - id: PILLAR_10
+    name: "Adaptive Gradients, Margins & Living Observability"
+    module: "crates/beast-colony + zig/beast-metal"
+    problems:
+      - {id: P091, name: "Binary pass/fail hides approaching phase cliffs", status: VERIFIED_SLICE_S1}
+      - {id: P092, name: "Telemetry observers mutate simulation/agent state (P9 violation)", status: VERIFIED_SLICE_S1}
+      - {id: P093, name: "No continuous gradient over compute/precision/accuracy Pareto front", status: VERIFIED_SLICE_S1}
+      - {id: P094, name: "Silent degradation over long autonomous runs", status: VERIFIED_SLICE_S1}
+      - {id: P095, name: "No thermodynamic/energy/compute conservation ledger", status: VERIFIED_SLICE_S1}
+      - {id: P096, name: "No predictive early warning before VRAM/budget exhaustion", status: VERIFIED_SLICE_S1}
+      - {id: P097, name: "Unmeasured cross-layer impedance bottlenecks", status: VERIFIED_SLICE_S1}
+      - {id: P098, name: "No structured interactive steering mid-flight", status: VERIFIED_SLICE_S1}
+      - {id: P099, name: "Unreproducible timing/benchmark claims", status: VERIFIED_SLICE_S1}
+      - {id: P100, name: "No unified cross-language health/receipt dashboard", status: VERIFIED_SLICE_S1}
+    wishlists:
+      - {id: W091, name: "Real-time 24 Operating Margins (GM-01..24) tracking", status: VERIFIED_SLICE_S1}
+      - {id: W092, name: "QGTL Fubini-Study curvature & margin gradient alerts", status: VERIFIED_SLICE_S1}
+      - {id: W093, name: "Observer-independent read-only telemetry (0-bit state diff)", status: VERIFIED_SLICE_S1}
+      - {id: W094, name: "Exact integer conservation ledger (0 residual)", status: VERIFIED_SLICE_S1}
+      - {id: W095, name: "Dynamic precision/caste scaling before cliff margins", status: VERIFIED_SLICE_S1}
+      - {id: W096, name: "Predictive 3-step Expected Free Energy horizon", status: VERIFIED_SLICE_S1}
+      - {id: W097, name: "Cross-language FFI latency & throughput metrology", status: VERIFIED_SLICE_S1}
+      - {id: W098, name: "Interactive bare-metal CLI probe/bench/verify commands", status: VERIFIED_SLICE_S1}
+      - {id: W099, name: "Machine-readable JSON + Lean 4 exported verification receipts", status: VERIFIED_SLICE_S1}
+      - {id: W100, name: "One-command full-stack verification (.\\build.ps1)", status: VERIFIED_SLICE_S1}
+    features:
+      - {id: F091, source: "ALife Singularity v3.3", name: "24 Operating Margins & 20 Pareto Frontier telemetry", status: VERIFIED_SLICE_S1}
+      - {id: F092, source: "QGTL", name: "Fubini-Study metric & Berry curvature stability telemetry", status: VERIFIED_SLICE_S1}
+      - {id: F093, source: "AUTOPHAGE/OMEGA", name: "Observer-independent P9 read-only SHA-256 telemetry", status: VERIFIED_SLICE_S1}
+      - {id: F094, source: "Noetic Omega", name: "Exact integer 11-pool conservation & 3-step EFE planner", status: VERIFIED_SLICE_S1}
+      - {id: F095, source: "INIT-Agent", name: "12-signal post-swap harm monitor", status: VERIFIED_SLICE_S1}
+      - {id: F096, source: "TEMM1E", name: "Inspectable mathematical equations & execution records", status: VERIFIED_SLICE_S1}
+      - {id: F097, source: "Build Standard A34/B26", name: "Honest benchmarks & observability baseline", status: VERIFIED_SLICE_S1}
+      - {id: F098, source: "Cellular Omega", name: "Live binary-to-Lean-4 trace receipt export", status: VERIFIED_SLICE_S1}
+      - {id: F099, source: "Eshkol", name: "Zero-finite-diff exact gradient instrumentation", status: SPEC}
+      - {id: F100, source: "Rosette-Wire", name: "Cryptographic end-to-end verification certificates", status: VERIFIED_SLICE_S1}
