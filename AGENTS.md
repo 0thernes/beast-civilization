@@ -24,15 +24,15 @@ Target profiles: `T13` (OS kernel/bare-metal), `T07` (AI/LLM systems), `T05` (Li
 1. `zig/beast-metal/` — Arbitrary bit-width (`u1`, `b1.58` 5-trit/B, `i2`, `u3`, `nvfp4_e2m1`, `fp8_e4m3`) SIMD tensor kernels, Chimera Insert-Network engine, Philox4x32-10, C-ABI (`beast_metal.dll` / `libbeast_metal.a`).
 2. `zig/freestanding_kernel/` — Freestanding `x86_64` Multiboot2 (`kernel.zig`) + live QEMU-booted `i386` Multiboot1 (`boot32.zig`) bare-metal microkernels embedding `b1.58` + integer `NVFP4` neural reflex cores (zero libc).
 3. `crates/beast-wire/` — Verifiable typed component/composition/receipt protocol (`rosette-wire`, SHA-256, Planaria GF($2^8$)+Merkle self-healing capsules, ELF64/ELF32 Multiboot auditor).
-4. `crates/beast-root/` — Ring-0 immutable guardian (`INIT-Agent` Win64+Linux OS-process sandbox handoff + `Noetic` ACL + `G0–G4` self-rewrite gates + 12 harm signals + 0-bit rollback).
+4. `crates/beast-root/` — Ring-0 immutable guardian (`INIT-Agent` Win64+Linux OS-process sandbox handoff + Win32 OS Kernel Job Objects `128 MiB` + `Noetic` ACL + `G0–G4` self-rewrite gates + 12 harm signals + 0-bit rollback).
 5. `crates/beast-c2c/` — Bare-metal Cache-to-Cache & MIT `Swarm Telepathy` (`SwaT`) gradient trainer + `Augment-Cache / Replace-Activation` + persistent `.bcg` `CacheGraft` repo bank + honest `TEXT_CLOUD_FALLBACK` tagging.
-6. `crates/beast-colony/` — Multi-colony civilization OS (`TEMM1E` + `NonHuman` + `effortmining` + `Nagi` + `Engram` + `Moonlab` QUBO/QGT + `libirrep` SO(3) + `PINN` + `QRNG` + `AUTOPHAGE` + `OMEGA` + `CELLULOGONIC` 9-DLL live FFI).
-7. `crates/beast-model/` — Real GGUF v3 binary writer/parser, Cross-Architecture `Transformer -> Chimera` C2C + Planaria self-healing, and real 16 kHz Formant TTS/ASR `.wav` + noisy 2D Sobel/`b1.58` OCR `.pgm` DSP kernels.
-8. `crates/beast-agent/` — Merkle Multi-Language AST Repo-Map, Autonomous Matrix Forge (`forge-kernel` with live QEMU Ring-0 boot + `forge-model`), and unified `INIT`×`NonHuman`×`Engram`×`TEMM1E` autonomous agent loop.
-9. `crates/beast-cli/` — Unified `beast` CLI binary, interactive REPL, & 20-gate / 20-mutant verification harness.
+6. `crates/beast-colony/` — Multi-colony civilization OS (`TEMM1E` + `NonHuman` + `effortmining` + `Nagi` + `Engram` + `Moonlab` QUBO/QGT/FIPS-203 ML-KEM-768 + `SbNN` Fibonacci Anyons & `p-bit` + `libirrep` SO(3) + `PINN` + `QRNG` + `AUTOPHAGE` + `OMEGA` + `CELLULOGONIC` 11-DLL live FFI).
+7. `crates/beast-model/` — Real GGUF v3 binary writer/parser, 4-Layer Autoregressive GQA Transformer → `sLTC/b1.58` Chimera live C2C LLM, Planaria self-healing, and real 16 kHz Formant TTS/ASR `.wav` + noisy 2D Sobel/`b1.58` OCR `.pgm` DSP kernels.
+8. `crates/beast-agent/` — Merkle Multi-Language AST Repo-Map, Autonomous Bare-Metal Trinity Forge (`forge-kernel` with live QEMU Ring-0 boot + `forge-model` + `forge-alife` standalone Zig `.exe` with 0-residual conservation & P9), and unified `INIT`×`NonHuman`×`Engram`×`TEMM1E` agent loop.
+9. `crates/beast-cli/` — Unified `beast` CLI binary, interactive REPL, & 25-gate / 25-mutant verification harness.
 10. `ruby/beast_yarv.rb` — CRuby 3.4 + YARV + Prism live-mutable 10-gen bytecode breeder (`T1a` tier) calling Zig `beast_metal.dll` via Fiddle C-ABI.
 11. `cuda/beast_blackwell.ptx` & `crates/beast-cuda/` — Direct `nvcuda.dll` 3-kernel CUDA Driver API execution on NVIDIA RTX 5070 Ti (`sm_120` Blackwell) with zero MSVC dependency.
-12. `lean/BeastProofs.lean` — 40 Pure Lean 4 (`v4.35.0`) formal proofs + live runtime-to-Lean receipt verification (`B40`).
+12. `lean/BeastProofs.lean` — 50 Pure Lean 4 (`v4.35.0`) formal proofs + live runtime-to-Lean receipt verification (`B50`).
 
 ## One-Command Build & Verify (`A31`)
 ```powershell

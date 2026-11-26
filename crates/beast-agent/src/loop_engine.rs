@@ -1,7 +1,8 @@
-//! Unified Autonomous Agent Loop (`INIT` x `NonHuman` x `Engram` x `TEMM1E`).
-//! Executes bare-metal software/OS/model engineering goals under Ring-0 ACL + spend metering,
-//! Merkle Repo-Map context budgeting, blind verification, and signed Rosette-Wire receipts.
+//! Unified Autonomous Agent Loop (`INIT` x `NonHuman` x `Engram` x `TEMM1E` — `v0.5.0`).
+//! Executes bare-metal Trinity Forge goals (OS Microkernel + Chimera Model + Standalone A-Life World)
+//! under Ring-0 ACL + spend metering, Merkle Repo-Map budgeting, blind verification, and signed Rosette-Wire receipts.
 
+use crate::alife_forge::forge_bare_metal_alife;
 use crate::forge::{forge_chimera_model, forge_neural_kernel};
 use crate::repo_map::build_merkle_repo_map;
 use beast_colony::economics::classify_effort_tier;
@@ -21,6 +22,8 @@ pub struct AgentRunReport {
     pub forged_kernel_elf_bytes: Option<usize>,
     pub forged_kernel_qemu_exact: bool,
     pub forged_model_gguf_bytes: Option<usize>,
+    pub forged_alife_exe_bytes: Option<usize>,
+    pub forged_alife_p9_exact: bool,
     pub receipt_chain_valid: bool,
     pub final_receipt_hex: String,
     pub spend_used_microdollars: u64,
@@ -39,8 +42,8 @@ pub fn run_autonomous_agent_task(
         return Err("MUTANT CAUGHT: Ring-0 guardian blocked task requesting protected root modification".into());
     }
 
-    let mut r0 = Ring0Root::new(b"beast-agent-v0.4", 250_000, task.as_bytes().to_vec());
-    let key = sha256(b"beast-agent-rosette-key-v0.4");
+    let mut r0 = Ring0Root::new(b"beast-agent-v0.5", 250_000, task.as_bytes().to_vec());
+    let key = sha256(b"beast-agent-rosette-key-v0.5");
     let mut chain: Vec<WireReceipt> = Vec::new();
     let mut prev = [0u8; 32];
 
@@ -65,9 +68,12 @@ pub fn run_autonomous_agent_task(
     let mut forged_kernel_elf_bytes = None;
     let mut forged_kernel_qemu_exact = false;
     let mut forged_model_gguf_bytes = None;
+    let mut forged_alife_exe_bytes = None;
+    let mut forged_alife_p9_exact = false;
 
     let want_kernel = lower.contains("kernel") || lower.contains("os") || lower.contains("full") || lower.contains("matrix");
     let want_model = lower.contains("model") || lower.contains("chimera") || lower.contains("gguf") || lower.contains("full") || lower.contains("matrix");
+    let want_alife = lower.contains("alife") || lower.contains("a-life") || lower.contains("creature") || lower.contains("full") || lower.contains("matrix");
 
     // Step 2: Autonomous Freestanding Neural Microkernel Forge + QEMU Ring-0 Boot + Planaria Heal
     if want_kernel {
@@ -112,6 +118,28 @@ pub fn run_autonomous_agent_task(
         chain.push(rm);
     }
 
+    // Step 4: Autonomous Standalone Bare-Metal Zig A-Life Creature Simulator Forge + P9 & Planaria Heal
+    if want_alife {
+        r0.check_write_acl("bin/forged/agent_alife_alife.zig")
+            .map_err(|e| format!("{e:?}"))?;
+        r0.meter_spend(5_000).map_err(|e| format!("{e:?}"))?;
+        let fa = forge_bare_metal_alife(repo_root, "agent_alife", seed)?;
+        forged_alife_exe_bytes = Some(fa.exe_bytes);
+        forged_alife_p9_exact = fa.observer_independent_p9 && fa.energy_residual == 0;
+        let ra = WireReceipt::sign(
+            chain.len() as u64,
+            "agent.forge_bare_metal_alife",
+            fa.name.as_bytes(),
+            fa.world_sha256_prefix.as_bytes(),
+            prev,
+            &key,
+            fa.planaria_healed_exact && forged_alife_p9_exact,
+            &format!("exe={}B res={} p9={}", fa.exe_bytes, fa.energy_residual, forged_alife_p9_exact),
+        );
+        prev = ra.digest();
+        chain.push(ra);
+    }
+
     verify_chain(&chain, &key).map_err(|i| format!("Rosette-Wire chain failed at {i}"))?;
 
     Ok(AgentRunReport {
@@ -124,6 +152,8 @@ pub fn run_autonomous_agent_task(
         forged_kernel_elf_bytes,
         forged_kernel_qemu_exact,
         forged_model_gguf_bytes,
+        forged_alife_exe_bytes,
+        forged_alife_p9_exact,
         receipt_chain_valid: true,
         final_receipt_hex: hex_encode(&prev),
         spend_used_microdollars: r0.spent_micro_usd,

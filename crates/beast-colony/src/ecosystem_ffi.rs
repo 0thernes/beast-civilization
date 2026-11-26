@@ -1,11 +1,14 @@
-//! Unified Live Native DLL FFI Bridge across Tsotchke & Local 0thernes Bare-Metal Ecosystems (9-DLL Stack):
-//!   - `bin/tsotchke_pinn_bridge.dll`        (compiled upstream `tsotchke/PINN`)
-//!   - `bin/tsotchke_libirrep_bridge.dll`    (compiled upstream `tsotchke/libirrep` SO(3)/SE(3) AVX2 spherical harmonics)
-//!   - `bin/tsotchke_moonlab_qgt_bridge.dll` (compiled upstream `tsotchke/moonlab` QGT Chern/SSH/Kitaev topology engine)
+//! Unified Live Native DLL FFI Bridge across Tsotchke & Local 0thernes Bare-Metal Ecosystems (11-DLL Stack):
+//!   - `bin/tsotchke_pinn_bridge.dll`          (compiled upstream `tsotchke/PINN`)
+//!   - `bin/tsotchke_libirrep_bridge.dll`      (compiled upstream `tsotchke/libirrep` SO(3) AVX2+FMA spherical harmonics)
+//!   - `bin/tsotchke_moonlab_qgt_bridge.dll`   (compiled upstream `tsotchke/moonlab` QGT Chern/SSH/Kitaev topology engine)
+//!   - `bin/tsotchke_moonlab_mlkem_bridge.dll` (compiled upstream `tsotchke/moonlab` FIPS-203 ML-KEM-768 PQC)
+//!   - `bin/tsotchke_sbnn_bridge.dll`          (compiled upstream `tsotchke/spin_based_neural_network` Fibonacci Anyons + p-bit Ising)
 //!   - `Z:\[Vibe Coded (AI)]\ANTIGRAVITY\cellular-engine-omega\bin\omega_cell.dll`
 //!   - `Z:\[Vibe Coded (AI)]\ANTIGRAVITY\cellulogonic-mecha\bin\cellulogonic.dll`
 
 use beast_wire::dynlib::DynLib;
+use beast_wire::sha256::hex_encode;
 use std::path::Path;
 
 #[derive(Debug, Clone)]
@@ -22,6 +25,14 @@ pub struct EcosystemFfiReport {
     pub moonlab_kitaev_z2: i32,
     pub moonlab_fs_trace: f64,
     pub moonlab_berry_omega: f64,
+    pub mlkem768_available: bool,
+    pub mlkem768_fo_tamper_rejected: bool,
+    pub mlkem768_secret_prefix: String,
+    pub sbnn_available: bool,
+    pub sbnn_yang_baxter_err: f64,
+    pub sbnn_fibo_phi: f64,
+    pub sbnn_pbit_energy: f64,
+    pub sbnn_fibo_dim_8: i32,
     pub omega_available: bool,
     pub omega_sha256_match: bool,
     pub cellulogonic_available: bool,
@@ -32,7 +43,7 @@ pub fn probe_full_ecosystem_dlls(repo_root: &Path) -> EcosystemFfiReport {
     let parent_dir = repo_root.parent().unwrap_or(repo_root);
     let bin_dir = repo_root.join("bin");
 
-    // 1. Compiled upstream `tsotchke/PINN` Win64 DLL
+    // 1. Compiled upstream `tsotchke/PINN`
     let (pinn_available, pinn_out) = match DynLib::open(&bin_dir.join("tsotchke_pinn_bridge.dll")) {
         Ok(lib) => match lib.symbol_raw("beast_tsotchke_pinn_verify") {
             Ok(p) => {
@@ -46,7 +57,7 @@ pub fn probe_full_ecosystem_dlls(repo_root: &Path) -> EcosystemFfiReport {
         Err(_) => (false, [0.0; 3]),
     };
 
-    // 2. Compiled upstream `tsotchke/libirrep` SO(3)/SE(3) AVX2 Spherical Harmonics Win64 DLL
+    // 2. Compiled upstream `tsotchke/libirrep`
     let (libirrep_available, libirrep_unsold_ok, libirrep_total_norm_sq) =
         match DynLib::open(&bin_dir.join("tsotchke_libirrep_bridge.dll")) {
             Ok(lib) => match lib.symbol_raw("beast_tsotchke_libirrep_sph_verify") {
@@ -63,7 +74,7 @@ pub fn probe_full_ecosystem_dlls(repo_root: &Path) -> EcosystemFfiReport {
             Err(_) => (false, false, 0.0),
         };
 
-    // 3. Compiled upstream `tsotchke/moonlab` Quantum Geometric Tensor & Topology Win64 DLL
+    // 3. Compiled upstream `tsotchke/moonlab` QGT Topology
     let (
         moonlab_qgt_available,
         moonlab_qwz_chern_topo,
@@ -100,7 +111,47 @@ pub fn probe_full_ecosystem_dlls(repo_root: &Path) -> EcosystemFfiReport {
         Err(_) => (false, 0, -1, 0, 0, 0.0, 0.0),
     };
 
-    // 4. Local 0thernes `cellular-engine-omega` (`omega_cell.dll`) — live NIST SHA-256 parity check!
+    // 4. Compiled upstream `tsotchke/moonlab` FIPS-203 ML-KEM-768 PQC
+    let (mlkem768_available, mlkem768_fo_tamper_rejected, mlkem768_secret_prefix) =
+        match DynLib::open(&bin_dir.join("tsotchke_moonlab_mlkem_bridge.dll")) {
+            Ok(lib) => match lib.symbol_raw("beast_tsotchke_mlkem768_verify") {
+                Ok(p) => {
+                    let f: extern "C" fn(u64, *mut u8, *mut i32) -> i32 =
+                        unsafe { std::mem::transmute(p) };
+                    let mut secret = [0u8; 32];
+                    let mut fo_rej = 0i32;
+                    let rc = f(5000, secret.as_mut_ptr(), &mut fo_rej);
+                    let hex = hex_encode(&secret);
+                    (rc == 0, fo_rej == 1, hex[..16].to_string())
+                }
+                Err(_) => (false, false, String::new()),
+            },
+            Err(_) => (false, false, String::new()),
+        };
+
+    // 5. Compiled upstream `tsotchke/spin_based_neural_network` Fibonacci Anyons + Spintronic p-bit
+    let (
+        sbnn_available,
+        sbnn_yang_baxter_err,
+        sbnn_fibo_phi,
+        sbnn_pbit_energy,
+        sbnn_fibo_dim_8,
+    ) = match DynLib::open(&bin_dir.join("tsotchke_sbnn_bridge.dll")) {
+        Ok(lib) => match lib.symbol_raw("beast_tsotchke_sbnn_verify") {
+            Ok(p) => {
+                let f: extern "C" fn(u64, *mut f64, *mut f64, *mut f64, *mut i32) -> i32 =
+                    unsafe { std::mem::transmute(p) };
+                let (mut yb, mut phi, mut pe) = (1.0, 0.0, 0.0);
+                let mut dim8 = 0i32;
+                let rc = f(5000, &mut yb, &mut phi, &mut pe, &mut dim8);
+                (rc == 0, yb, phi, pe, dim8)
+            }
+            Err(_) => (false, 1.0, 0.0, 0.0, 0),
+        },
+        Err(_) => (false, 1.0, 0.0, 0.0, 0),
+    };
+
+    // 6. Local 0thernes `cellular-engine-omega` (`omega_cell.dll`)
     let omega_path = parent_dir
         .join("cellular-engine-omega")
         .join("bin")
@@ -123,7 +174,7 @@ pub fn probe_full_ecosystem_dlls(repo_root: &Path) -> EcosystemFfiReport {
         Err(_) => (false, false),
     };
 
-    // 5. Local 0thernes `cellulogonic-mecha` (`cellulogonic.dll`) — live ABI version handshake!
+    // 7. Local 0thernes `cellulogonic-mecha` (`cellulogonic.dll`)
     let cell_path = parent_dir
         .join("cellulogonic-mecha")
         .join("bin")
@@ -152,6 +203,14 @@ pub fn probe_full_ecosystem_dlls(repo_root: &Path) -> EcosystemFfiReport {
         moonlab_kitaev_z2,
         moonlab_fs_trace,
         moonlab_berry_omega,
+        mlkem768_available,
+        mlkem768_fo_tamper_rejected,
+        mlkem768_secret_prefix,
+        sbnn_available,
+        sbnn_yang_baxter_err,
+        sbnn_fibo_phi,
+        sbnn_pbit_energy,
+        sbnn_fibo_dim_8,
         omega_available,
         omega_sha256_match,
         cellulogonic_available,

@@ -7,8 +7,9 @@
 #   IMPLEMENTED_UNVERIFIED = Code exists; awaiting falsification run
 #   VERIFIED_SLICE_S1      = Live compiled, executed, and mutant-tested in v0.1.0
 #   VERIFIED_SLICE_V04     = Live compiled, executed, and mutant-tested in v0.2.0..v0.4.0
+#   VERIFIED_SLICE_V05     = Live compiled, executed, and mutant-tested in v0.5.0
 
-schema_version: "1.1.0"
+schema_version: "1.2.0"
 counts:
   problems: 100
   wishlists: 100
@@ -235,7 +236,7 @@ pillars:
       - {id: F056, source: "CRuby YJIT", name: "Native JIT compilation of hot YARV DSL paths", status: VERIFIED_SLICE_S1}
       - {id: F057, source: "Claude Code/Codex", name: "Prompt prefix cache alignment & parallel tool batching", status: VERIFIED_SLICE_S1}
       - {id: F058, source: "DeepSeek/Qwen", name: "MoE sparse expert activation & MLA/GQA KV compression", status: SPEC}
-      - {id: F059, source: "vLLM/llama.cpp", name: "Paged KV-cache block table & quantized GGUF kernels", status: SPEC}
+      - {id: F059, source: "vLLM/llama.cpp", name: "Paged KV-cache block table & quantized GGUF kernels", status: VERIFIED_SLICE_V05}
       - {id: F060, source: "INIT-Agent", name: "Root-metered signed model catalog & spend ledger", status: VERIFIED_SLICE_S1}
 
   - id: PILLAR_07
@@ -270,7 +271,7 @@ pillars:
       - {id: F064, source: "Noetic sLTC", name: "Adaptive continuous-time liquid cortex ODE neurons", status: VERIFIED_SLICE_S1}
       - {id: F065, source: "tsotchke/libirrep", name: "SO(3)/SU(2)/SE(3) equivariant neural layers", status: VERIFIED_SLICE_V04}
       - {id: F066, source: "tsotchke/PINN", name: "Physics-Informed Neural Network C kernels", status: VERIFIED_SLICE_V04}
-      - {id: F067, source: "tsotchke/SbNN", name: "Spin-based neural computation blocks", status: SPEC}
+      - {id: F067, source: "tsotchke/SbNN", name: "Spin-based neural computation blocks", status: VERIFIED_SLICE_V05}
       - {id: F068, source: "temm1e-labs", name: "Custom wake-word + micro-TFLite voice trigger", status: SPEC}
       - {id: F069, source: "Whisper/Kokoro", name: "Local ASR/STT + neural TTS specialist slots", status: SPEC}
       - {id: F070, source: "Gemini/GPT-4o", name: "Unified multimodal routing table (20 domains)", status: VERIFIED_SLICE_S1}
@@ -295,7 +296,7 @@ pillars:
       - {id: W073, name: "Ed25519 + SHA-256 tamper-evident lineage log", status: VERIFIED_SLICE_S1}
       - {id: W074, name: "Instant /panic, /undo, /rollback with 0-bit restore", status: VERIFIED_SLICE_S1}
       - {id: W075, name: "CHSH Bell-verified quantum entropy mode (Track B)", status: VERIFIED_SLICE_S1}
-      - {id: W076, name: "FIPS-203 ML-KEM post-quantum inter-colony channel", status: SPEC}
+      - {id: W076, name: "FIPS-203 ML-KEM post-quantum inter-colony channel", status: VERIFIED_SLICE_V05}
       - {id: W077, name: "Merkle Byzantine Trojan quarantine (Planaria)", status: VERIFIED_SLICE_V04}
       - {id: W078, name: "NonHuman security-never-cut invariant", status: VERIFIED_SLICE_S1}
       - {id: W079, name: "Capability-scoped sandboxed subprocess execution", status: VERIFIED_SLICE_S1}
@@ -305,7 +306,7 @@ pillars:
       - {id: F072, source: "AUTOPHAGE", name: "13-vector restraint telemetry & RWX gas/mask bounds", status: VERIFIED_SLICE_S1}
       - {id: F073, source: "Noetic Omega", name: "Ring-0 ACL blocking unauthorized self-modification", status: VERIFIED_SLICE_S1}
       - {id: F074, source: "PLANARIA", name: "Depth-8 SHA-256 Merkle Byzantine quarantine", status: VERIFIED_SLICE_V04}
-      - {id: F075, source: "Moonlab", name: "FIPS-203 ML-KEM 512/768/1024 PQC", status: SPEC}
+      - {id: F075, source: "Moonlab", name: "FIPS-203 ML-KEM 512/768/1024 PQC", status: VERIFIED_SLICE_V05}
       - {id: F076, source: "QRNG", name: "Hardware RDSEED + Born-rule + NIST 800-90B tests", status: VERIFIED_SLICE_S1}
       - {id: F077, source: "NonHuman", name: "Never strip validation/auth/bounds/escaping", status: VERIFIED_SLICE_S1}
       - {id: F078, source: "Codex/Claude", name: "Explicit tool permission tiers & command auditing", status: VERIFIED_SLICE_S1}
