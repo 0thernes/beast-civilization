@@ -13,4 +13,4 @@ foreach ($u in $m.upstream_github) {
 }
 ```
 
-Local bare-metal A-Life engines by the same author (`autophage`, `cellular-engine-omega`, `cellulogonic-mecha`, `noetic-organism-omega`, `planaria`, `alife-singularity-omega-package`) are linked directly from `Z:\[Vibe Coded (AI)]\ANTIGRAVITY\` via their flat C11 ABIs (`autophage.dll`, `noetic_abi.h`, etc.).
+Local bare-metal A-Life engines by the same author (`autophage`, `cellular-engine-omega`, `cellulogonic-mecha`, `noetic-organism-omega`, `planaria`, `alife-singularity-omega-package`) are linked directly from sibling checkouts via their flat C11 ABIs (`autophage.dll`, `noetic_abi.h`, etc.).

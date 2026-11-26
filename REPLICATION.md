@@ -1,9 +1,9 @@
 # Clean-Clone Replication Protocol (`B01`, `B43` — `v0.7.0`)
 
 ## Pinned Toolchains (`B02`)
-- **Zig:** `0.17.1` (`C:\tools\zig\zig.exe`, SHA-256 `b03f477a1943673e02aca0f570e8030dffd536ce1f45cbc4d3326ec31159562e`) — builds `beast_metal.dll`, both freestanding ELFs, forged A-Life `.exe`, x86-64 `-femit-asm` disassembly, and all 7 upstream Tsotchke C11 DLLs via `zig cc`.
+- **Zig:** `0.17.1` (`zig.exe` on `PATH`, SHA-256 `b03f477a1943673e02aca0f570e8030dffd536ce1f45cbc4d3326ec31159562e`) — builds `beast_metal.dll`, both freestanding ELFs, forged A-Life `.exe`, x86-64 `-femit-asm` disassembly, and all 7 upstream Tsotchke C11 DLLs via `zig cc`.
 - **Rust:** `1.94.1` (`rustc` + `cargo`, 8-crate workspace, **zero external crates.io dependencies** — 100% offline reproducible!).
-- **CRuby:** `3.4.9 +PRISM` (`C:\tools\ruby34\bin\ruby.exe`, stdlib + `prism` + `fiddle` only — **zero external gems!**).
+- **CRuby:** `3.4.9 +PRISM` (`ruby.exe` on `PATH`, stdlib + `prism` + `fiddle` only — **zero external gems!**).
 - **Lean 4:** `v4.35.0` (`~/.elan/toolchains/leanprover--lean4---v4.35.0/bin/lean.exe`, **zero Mathlib!**).
 - **QEMU:** `11.1.0` (`~/scoop/apps/qemu/current/qemu-system-x86_64.exe`, installed via `scoop install qemu`).
 - **Optional GPU:** NVIDIA Driver exposing `nvcuda.dll` / `libcuda.so.1` (verified on `RTX 5070 Ti Laptop GPU`, Compute Capability `12.0`).
@@ -11,14 +11,14 @@
 
 ## One-Command Reproduction (Windows x64)
 ```powershell
-Set-Location -LiteralPath 'Z:\[Vibe Coded (AI)]\ANTIGRAVITY\beast-civilization'
+Set-Location -LiteralPath '<path to your clone of beast-civilization>'
 .\build.ps1
 ```
 
 ## Individual Verification Commands
 ```powershell
 # 1. Zig unit tests + 3 planted mutants
-C:\tools\zig\zig.exe test zig\beast-metal\src\root.zig
+zig test zig\beast-metal\src\root.zig
 
 # 2. Rust 8-crate unit & mutant test suite (21/21 tests)
 cargo test --workspace
@@ -31,7 +31,7 @@ cargo test --workspace
 .\bin\beast.exe bench
 
 # 4. CRuby 3.4 + YARV 10-Gen Breeder + Prism AST guard + Zig Fiddle C-ABI
-C:\tools\ruby34\bin\ruby.exe ruby\beast_yarv.rb
+ruby ruby\beast_yarv.rb
 
 # 5. Clean-room Python 3 exact-arithmetic oracle
 python scripts\verify_independent_oracle.py

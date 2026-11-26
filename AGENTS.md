@@ -15,7 +15,7 @@ Target profiles: `T13` (OS kernel/bare-metal), `T07` (AI/LLM systems), `T05` (Li
 - **R9:** Safety comes from Ring-0 isolation, planted-mutant falsification, Lean 4 proofs, and tested 0-bit rollback — never from blocking commits.
 
 ## Non-Negotiable AI Guardrails (`AI01–AI15`)
-- **PowerShell Bracket Safety:** This repo lives on ReFS Dev Drive `Z:\[Vibe Coded (AI)]\ANTIGRAVITY\beast-civilization`. ALWAYS pass `-LiteralPath` to PowerShell file cmdlets.
+- **PowerShell Bracket Safety:** The working copy may sit in a folder whose path contains brackets and spaces. ALWAYS pass `-LiteralPath` to PowerShell file cmdlets.
 - **Zero Theater (`AI04`–`AI07`):** No stubbed bodies passed off as done. No `assert true` tests. Every test suite MUST include planted negative mutants that fail when injected. Never disguise HTTP cloud text calls as Cache-to-Cache KV transfer.
 - **Lean 4 Purity:** All Lean 4 proofs in `lean/` MUST compile with `0 sorry`, `0 admit`, `0` custom axioms, `0 bv_decide`/`native_decide`, strictly within `{propext, Classical.choice, Quot.sound}`.
 - **Determinism (`B03`):** Track-A verified benchmarks MUST use domain-isolated `Philox4x32-10` with 0-bit cross-run parity. Track-B feral exploration explicitly switches to hardware `RDSEED` / `QRNG`.
