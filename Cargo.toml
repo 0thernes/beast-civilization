@@ -6,11 +6,12 @@ members = [
     "crates/beast-c2c",
     "crates/beast-colony",
     "crates/beast-cuda",
+    "crates/beast-model",
     "crates/beast-cli",
 ]
 
 [workspace.package]
-version = "0.2.0"
+version = "0.3.0"
 edition = "2024"
 license = "MIT"
 authors = ["Alexander Stephen Donahue <0_0@0thernes.art>"]

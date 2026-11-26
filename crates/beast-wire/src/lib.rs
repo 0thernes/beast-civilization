@@ -3,6 +3,7 @@
 //! and zero-dependency Win64/POSIX dynamic FFI loader.
 
 pub mod dynlib;
+pub mod elf_audit;
 pub mod hbin_capsule;
 pub mod philox;
 pub mod sha256;

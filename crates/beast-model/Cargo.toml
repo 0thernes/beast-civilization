@@ -1,0 +1,10 @@
+[package]
+name = "beast-model"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Zero-dependency GGUF v3 codec, Cross-Architecture Transformer->Chimera C2C engine, and real bare-metal TTS/ASR/Vision/OCR DSP kernels"
+
+[dependencies]
+beast-wire = { path = "../beast-wire" }
+beast-c2c = { path = "../beast-c2c" }

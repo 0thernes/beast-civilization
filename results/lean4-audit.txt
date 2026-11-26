@@ -21,4 +21,12 @@
 'BeastProofs.B21_augment_strictly_dominates_overwrite' does not depend on any axioms
 'BeastProofs.B22_planaria_mitosis_50pct_threshold' depends on axioms: [propext, Classical.choice, Quot.sound]
 'BeastProofs.B23_blackwell_ptx_grid_covers_all_rows' depends on axioms: [propext, Quot.sound]
-'BeastProofs.B24_live_v020_hardware_receipt' does not depend on any axioms
+'BeastProofs.B24_multiboot2_checksum_zero_mod32' does not depend on any axioms
+'BeastProofs.B25_gguf_v3_alignment_32' depends on axioms: [propext, Classical.choice, Quot.sound]
+'BeastProofs.B26_wav_pcm16_nyquist_formants' does not depend on any axioms
+'BeastProofs.B27_ocr_hex_grid_dimensions' does not depend on any axioms
+'BeastProofs.B28_ring0_os_secret_scrubbing' depends on axioms: [propext]
+'BeastProofs.B29_ecosystem_7_dll_unity' does not depend on any axioms
+'BeastProofs.B30_cross_arch_c2c_dim_bridge' does not depend on any axioms
+'BeastProofs.B31_wav_header_and_frame_bytes' does not depend on any axioms
+'BeastProofs.B32_live_v030_matrix_receipt' does not depend on any axioms

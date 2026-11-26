@@ -9,6 +9,7 @@
 pub mod autophage_ffi;
 pub mod civilization;
 pub mod economics;
+pub mod ecosystem_ffi;
 pub mod oss_apis;
 pub mod quantum_geo;
 pub mod temm1e;

@@ -1,5 +1,14 @@
 # Changelog (`A07`)
 
+## [0.3.0] - 2026-11-25
+### Added
+- **7th Crate `crates/beast-model`**: Real GGUF v3 binary writer/parser (`gguf.rs`), Cross-Architecture `Transformer (32d) → Mamba/sLTC/b1.58 Chimera (24d)` C2C + GGUF v3 + Planaria 50%-annihilation self-healing pipeline (`omni_engine.rs`), and real bare-metal Omnimodal Audio (16 kHz Formant TTS → `.wav` → DFT ASR `4/4`) + Vision/OCR (`.pgm` → Sobel + `b1.58` noisy hex OCR `16/16`) kernels (`omnimodal.rs`).
+- **Live OS-Process Ring-0 Sandbox & Overlapped Handoff** (`crates/beast-root/src/os_sandbox.rs`): spawns two real sandboxed Windows/Linux child OS processes (`Parent → Child1 → Child2`), verifying `BEAST_API_KEY` secret-canary scrubbing across distinct OS PIDs.
+- **Interactive Bare-Metal Console** (`beast repl`) + `beast model-c2c` + `beast omni-test`.
+- **Unified 7-DLL Native Bare-Metal Ecosystem** (`c_bridges/tsotchke_pinn_bridge.c`, `crates/beast-colony/src/ecosystem_ffi.rs`): compiles upstream `tsotchke/PINN` via `zig cc` alongside `tsotchke/quantum_rng` and links local `omega_cell.dll` + `cellulogonic.dll` + `autophage.dll` + `beast_metal.dll` + `nvcuda.dll` live in one executable (`7/7` active, `12` upstream repos materialized in `vendor/`).
+- **Native ELF64 + Multiboot2 Forensic Binary Auditor** (`crates/beast-wire/src/elf_audit.rs`): verifies `ELF64`, `EM_X86_64`, `PT_LOAD`, entry address, and exact mod-$2^{32}$ Multiboot2 checksum with planted-mutant catch.
+- **32 Pure Lean 4 `v4.35.0` Theorems** (`lean/BeastProofs.lean`, `0 sorry`, `0` custom axioms) including live v0.3.0 hardware receipt `B32_live_v030_matrix_receipt` (`16/16` gates, `21/21` total planted mutants caught).
+
 ## [0.2.0] - 2026-11-25
 ### Added
 - **3-Kernel NVIDIA RTX 5070 Ti `sm_12.0` Blackwell CUDA PTX Suite** (`cuda/beast_blackwell.ptx`, `crates/beast-cuda`): added `beast_nvfp4_rowdot` (OCP FP4 E2M1) and `beast_c2c_augment_scores` (MIT Augment-Cache parallel KV scoring) alongside `beast_b158_rowdot` (`3/3` verified live via `nvcuda.dll`, zero MSVC/nvcc).

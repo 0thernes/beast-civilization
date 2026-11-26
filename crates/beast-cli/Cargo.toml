@@ -15,3 +15,4 @@ beast-root = { path = "../beast-root" }
 beast-c2c = { path = "../beast-c2c" }
 beast-colony = { path = "../beast-colony" }
 beast-cuda = { path = "../beast-cuda" }
+beast-model = { path = "../beast-model" }

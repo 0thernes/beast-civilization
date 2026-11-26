@@ -1,23 +1,10 @@
-# beast-civilization — llms-full.txt (Compact Context Bundle)
+# beast-civilization — llms-full.txt (v0.3.0 Compact Context Bundle)
 
 ## Summary
-`beast-civilization v0.1.0` fuses `nagisanzenin/{INIT-Agent,nonhuman,engram,effortmining,nagi,strictlybetter,crucible,math-first}`, `temm1e-labs/{temm1e,temrust}`, `tsotchke/{eshkol,moonlab,quantum_geometric_tensor,quantum_rng,rosette-wire,libirrep,PINN,spin_based_neural_network,tensorcore}`, `0thernes/{autophage,cellular-engine-omega,cellulogonic-mecha,noetic-organism-omega,planaria,alife-singularity-omega-package}`, and MIT/ICLR 2026 Cache-to-Cache / Swarm Telepathy into a zero-dependency polyglot bare-metal substrate (`Zig 0.17.1`, `Rust 1.94.1`, `CRuby 3.4.9/YARV`, `CUDA sm_12.0 PTX`, `Pure Lean 4 v4.35.0`).
-
-## Hard Rules
-- R1-R4: Commit straight to `main`, zero blocking hooks/PRs, informational CI only.
-- R6: Never fabricate numbers, proofs, or C2C telemetry; separate `LOCAL_C2C_KV` from `TEXT_CLOUD_FALLBACK`.
-- PowerShell: Always pass `-LiteralPath` for `Z:\[Vibe Coded (AI)]\ANTIGRAVITY\beast-civilization`.
+`beast-civilization v0.3.0` is a zero-dependency polyglot bare-metal Agent Civilization & Evolutionary Compute Substrate unifying `nagisanzenin/{INIT-Agent,nonhuman,engram,effortmining,nagi,strictlybetter,crucible,math-first}`, `temm1e-labs/{temm1e,temrust}`, `tsotchke/{eshkol,moonlab,quantum_geometric_tensor,quantum_rng,rosette-wire,libirrep,PINN,spin_based_neural_network,tensorcore}`, `0thernes/{autophage,cellular-engine-omega,cellulogonic-mecha,noetic-organism-omega,planaria,alife-singularity-omega-package}`, and MIT/ICLR 2026 Cache-to-Cache / Swarm Telepathy across **Zig `0.17.1`**, **Rust `1.94.1` (7 crates)**, **CRuby `3.4.9`/Prism/YARV**, **C11 (7 live native DLLs)**, **NVIDIA RTX 5070 Ti `sm_12.0` 3-Kernel PTX**, and **32 Pure Lean 4 `v4.35.0` Theorems**.
 
 ## Build & Verify
-Run `.\build.ps1` (6 layers: Zig `beast_metal.dll` + freestanding `x86_64` Multiboot2 ELF + Rust 6-crate workspace + RTX 5070 Ti CUDA PTX + CRuby/Prism/YARV + 16 Pure Lean 4 proofs).
+Run `.\build.ps1` (6 layers: Zig `beast_metal.dll` + upstream `tsotchke_qrng_bridge.dll` & `tsotchke_pinn_bridge.dll` + freestanding `x86_64` Multiboot2 ELF v2 + 7-crate Rust workspace + 16-gate/16-mutant suite + 3-kernel RTX 5070 Ti PTX + 10-gen CRuby/YARV breeder + 32 Pure Lean 4 proofs).
 
-## Verified Architecture Modules
-- `zig/beast-metal/src/root.zig` — `u1`, `b1.58` (5-trit/B), `i2`, `NVFP4 E2M1` SIMD==Ref, MIT Augment-Cache, Chimera Insert-Network engine, Philox4x32-10.
-- `zig/freestanding_kernel/src/kernel.zig` — Freestanding `x86_64` Multiboot2 microkernel with embedded `b1.58` reflex core.
-- `crates/beast-wire` — NIST FIPS 180-4 SHA-256, HMAC receipts, Philox4x32-10, Win64/POSIX dynamic FFI loader.
-- `crates/beast-root` — Ring-0 immutable guardian (`INIT-Agent` Win64+Linux + `Noetic` ACL + `G0-G4` + 0-bit rollback).
-- `crates/beast-c2c` — MIT `Swarm Telepathy`, `Augment-Cache`, `Replace-Activation`, `CacheGraft`, anti-spoof cloud fallback guard.
-- `crates/beast-colony` — `TEMM1E` math, `NonHuman`/`effortmining`/`Nagi` 8-arch/20-domain router + 12 Public OSS APIs, `Engram` FSRS-4.5, `StrictlyBetter`, `Moonlab` QUBO annealer, `QGTL` Fubini-Study/Berry, `QRNG` CHSH Bell test, `AUTOPHAGE` FFI.
-- `crates/beast-cuda` + `cuda/beast_blackwell.ptx` — Zero-MSVC direct `nvcuda.dll` PTX JIT on RTX 5070 Ti `sm_12.0`.
-- `ruby/beast_yarv.rb` — CRuby 3.4 + Prism AST guard + YARV live bytecode mutation + Zig Fiddle C-ABI.
-- `lean/BeastProofs.lean` — 16 Pure Lean 4 theorems strictly in `{propext, Classical.choice, Quot.sound}` + live receipt `B16`.
+## CLI Commands
+`beast probe` · `beast verify-all --export-lean lean\LiveReceipt.lean` · `beast evolve-chimera` · `beast colony-sim` · `beast graft-repo` · `beast model-c2c` · `beast omni-test` · `beast bench` · `beast api-query <prov> <q>` · `beast repl`

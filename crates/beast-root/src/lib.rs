@@ -7,6 +7,8 @@ use beast_wire::{verify_chain, WireReceipt};
 use std::collections::BTreeMap;
 use std::process::Command;
 
+pub mod os_sandbox;
+
 /// Mutable harness tiers (INIT-Agent T0..T2 extended with CRuby/YARV T1a & Zig/CUDA T3).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum HarnessTier {

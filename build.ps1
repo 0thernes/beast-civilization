@@ -50,6 +50,20 @@ if (Test-Path -LiteralPath "$tsoDir\src\quantum_rng\bell_test.c") {
     if ($LASTEXITCODE -ne 0) { throw "tsotchke_qrng_bridge.dll build failed!" }
 }
 
+# Optional native Win64 compilation of vendored upstream `tsotchke/PINN` via `zig cc`
+$pinnDir = "$proj\vendor\tsotchke__PINN"
+if (Test-Path -LiteralPath "$pinnDir\src\neural_network.c") {
+    Write-Host "      Compiling upstream tsotchke/PINN physics neural-net bridge DLL via zig cc..."
+    & $zig cc -O2 -shared `
+        -I"$pinnDir\include" `
+        "$pinnDir\src\neural_network.c" `
+        "$pinnDir\src\loss_functions.c" `
+        "$pinnDir\src\utils.c" `
+        "$proj\c_bridges\tsotchke_pinn_bridge.c" `
+        -o "$binDir\tsotchke_pinn_bridge.dll" -lm
+    if ($LASTEXITCODE -ne 0) { throw "tsotchke_pinn_bridge.dll build failed!" }
+}
+
 # ============================================================================
 # [2/6] Zig Freestanding x86-64 Multiboot2 Bare-Metal OS Microkernel ELF
 # ============================================================================
@@ -79,7 +93,7 @@ Write-Host "[PASS] Verified ELF64 + Multiboot2 header inside $elfPath ($($elfByt
 # ============================================================================
 # [3/6] Rust 1.94.1 6-Crate Workspace (Root, C2C, Colony, CUDA PTX, Wire, CLI)
 # ============================================================================
-Write-Host "`n[3/6] Testing & building Rust 6-crate workspace..."
+Write-Host "`n[3/6] Testing & building Rust 7-crate workspace..."
 $env:PATH = "$env:USERPROFILE\.cargo\bin;$env:PATH"
 Push-Location -LiteralPath $proj
 try {
@@ -114,6 +128,12 @@ try {
     & "$binDir\beast.exe" graft-repo
     if ($LASTEXITCODE -ne 0) { throw "beast graft-repo failed!" }
 
+    & "$binDir\beast.exe" model-c2c
+    if ($LASTEXITCODE -ne 0) { throw "beast model-c2c failed!" }
+
+    & "$binDir\beast.exe" omni-test
+    if ($LASTEXITCODE -ne 0) { throw "beast omni-test failed!" }
+
     if (-not $SkipBench) {
         & "$binDir\beast.exe" bench
         if ($LASTEXITCODE -ne 0) { throw "beast bench failed!" }
@@ -133,7 +153,7 @@ if ($LASTEXITCODE -ne 0) { throw "CRuby/YARV bridge failed!" }
 # [6/6] Pure Lean 4 v4.35.0 Kernel Proofs + Strict Axiom Audit
 # ============================================================================
 if (-not $SkipLean -and (Test-Path -LiteralPath $lean)) {
-    Write-Host "`n[6/6] Machine-checking 24 Pure Lean 4 theorems (including live hardware receipt B24)..."
+    Write-Host "`n[6/6] Machine-checking 32 Pure Lean 4 theorems (including live hardware receipt B32)..."
     $leanDir = "$proj\lean"
     $env:LEAN_PATH = "$leanDir;$leanRoot\lib\lean"
     Push-Location -LiteralPath $leanDir
@@ -177,13 +197,13 @@ if (-not $SkipLean -and (Test-Path -LiteralPath $lean)) {
         }
         throw "Unexpected Lean 4 output line: $line"
     }
-    if ($audited -lt 24) {
-        throw "Expected >= 24 audited Lean 4 theorems, got $audited"
+    if ($audited -lt 32) {
+        throw "Expected >= 32 audited Lean 4 theorems, got $audited"
     }
     [System.IO.File]::WriteAllText("$resDir\lean4-audit.txt", ($cleanLines -join "`n") + "`n", [System.Text.UTF8Encoding]::new($false))
-    Write-Host "[PASS] $audited/24 Pure Lean 4 theorems audited cleanly (0 sorry, 0 custom axioms, 0 warnings)"
+    Write-Host "[PASS] $audited/32 Pure Lean 4 theorems audited cleanly (0 sorry, 0 custom axioms, 0 warnings)"
 }
 
 Write-Host "`n========================================================================="
-Write-Host "  BEAST CIVILIZATION v0.2.0 FULL-STACK BUILD & VERIFICATION: ALL GREEN!"
+Write-Host "  BEAST CIVILIZATION v0.3.0 FULL-STACK BUILD & VERIFICATION: ALL GREEN!"
 Write-Host "========================================================================="
