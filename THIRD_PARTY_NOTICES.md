@@ -16,8 +16,8 @@
 - **Quantum RNG (QRNG)** (`https://github.com/tsotchke/quantum_rng`) — Born-rule state-vector quantum RNG with CHSH Bell-test verification and NIST SP 800-90B health tests.
 - Siblings referenced & pinned: `rosette-wire` (Apache-2.0), `libirrep`, `PINN`, `spin_based_neural_network`, `tensorcore`.
 
-## Local 0thernes LLC Engines (`Z:\[Vibe Coded (AI)]\ANTIGRAVITY\`)
-- **AUTOPHAGE v1.3.0** · **CELLULOGONIC MECHA v1.3.0** · **CELLULAR ENGINE OMEGA v5.1.0** · **NOETIC ORGANISM OMEGA v2.0.0** · **PLANARIA v2.2.0** · **alife-singularity-omega-package v3.3-Omega** (Author: Alexander Stephen Donahue, 0thernes LLC, ORCID `0009-0006-8168-9648`).
+## Local companion engines by the same author
+- **AUTOPHAGE v1.3.0** · **CELLULOGONIC MECHA v1.3.0** · **CELLULAR ENGINE OMEGA v5.1.0** · **NOETIC ORGANISM OMEGA v2.0.0** · **PLANARIA v2.2.0** · **alife-singularity-omega-package v3.3-Omega** (Author: Alexander Stephen Donahue, ORCID `0009-0006-8168-9648`).
 
 ## Academic Research Foundations (Cache-to-Cache / Latent Communication)
 - Fu et al., *"Cache-to-Cache: Direct Semantic Communication Between Large Language Models"*, `arXiv:2510.03215` (ICLR 2026).
