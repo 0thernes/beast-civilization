@@ -58,6 +58,7 @@ jobs:
       - name: Machine-check 65 Pure Lean 4 theorems via VerifyAxioms.lean + strict axiom allowlist
         run: |
           cd lean
+          export LEAN_PATH=".:$(lean --print-libdir)"
           lean -R . -o LiveReceipt.olean LiveReceipt.lean
           lean -R . -o BeastProofs.olean BeastProofs.lean
           lean -R . VerifyAxioms.lean > /tmp/lean_ci_audit.txt 2>&1
