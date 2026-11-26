@@ -1,9 +1,10 @@
-//! Unified Live Native DLL FFI Bridge across Tsotchke & Local 0thernes Bare-Metal Ecosystems (11-DLL Stack):
+//! Unified Live Native DLL FFI Bridge across Tsotchke & Local 0thernes Bare-Metal Ecosystems (12-DLL Stack):
 //!   - `bin/tsotchke_pinn_bridge.dll`          (compiled upstream `tsotchke/PINN`)
 //!   - `bin/tsotchke_libirrep_bridge.dll`      (compiled upstream `tsotchke/libirrep` SO(3) AVX2+FMA spherical harmonics)
 //!   - `bin/tsotchke_moonlab_qgt_bridge.dll`   (compiled upstream `tsotchke/moonlab` QGT Chern/SSH/Kitaev topology engine)
-//!   - `bin/tsotchke_moonlab_mlkem_bridge.dll` (compiled upstream `tsotchke/moonlab` FIPS-203 ML-KEM-768 PQC)
+//!   - `bin/tsotchke_moonlab_mlkem_bridge.dll` (compiled upstream `tsotchke/moonlab` FIPS-203 ML-KEM-768 + FIPS-197 AES-256)
 //!   - `bin/tsotchke_sbnn_bridge.dll`          (compiled upstream `tsotchke/spin_based_neural_network` Fibonacci Anyons + p-bit Ising)
+//!   - `bin/tsotchke_qgtl_bridge.dll`          (compiled upstream `tsotchke/quantum_geometric_tensor` Bloch complex fidelity)
 //!   - `Z:\[Vibe Coded (AI)]\ANTIGRAVITY\cellular-engine-omega\bin\omega_cell.dll`
 //!   - `Z:\[Vibe Coded (AI)]\ANTIGRAVITY\cellulogonic-mecha\bin\cellulogonic.dll`
 
@@ -33,6 +34,9 @@ pub struct EcosystemFfiReport {
     pub sbnn_fibo_phi: f64,
     pub sbnn_pbit_energy: f64,
     pub sbnn_fibo_dim_8: i32,
+    pub qgtl_available: bool,
+    pub qgtl_fidelity: f32,
+    pub qgtl_ortho_err: f32,
     pub omega_available: bool,
     pub omega_sha256_match: bool,
     pub cellulogonic_available: bool,
@@ -87,23 +91,11 @@ pub fn probe_full_ecosystem_dlls(repo_root: &Path) -> EcosystemFfiReport {
         Ok(lib) => match lib.symbol_raw("beast_tsotchke_moonlab_qgt_verify") {
             Ok(p) => {
                 let f: extern "C" fn(
-                    *mut i32,
-                    *mut i32,
-                    *mut i32,
-                    *mut i32,
-                    *mut f64,
-                    *mut f64,
+                    *mut i32, *mut i32, *mut i32, *mut i32, *mut f64, *mut f64,
                 ) -> i32 = unsafe { std::mem::transmute(p) };
                 let (mut c_topo, mut c_triv, mut w_ssh, mut z2) = (0, -1, 0, 0);
                 let (mut fs_tr, mut omega) = (0.0, 0.0);
-                let rc = f(
-                    &mut c_topo,
-                    &mut c_triv,
-                    &mut w_ssh,
-                    &mut z2,
-                    &mut fs_tr,
-                    &mut omega,
-                );
+                let rc = f(&mut c_topo, &mut c_triv, &mut w_ssh, &mut z2, &mut fs_tr, &mut omega);
                 (rc == 0, c_topo, c_triv, w_ssh, z2, fs_tr, omega)
             }
             Err(_) => (false, 0, -1, 0, 0, 0.0, 0.0),
@@ -111,7 +103,7 @@ pub fn probe_full_ecosystem_dlls(repo_root: &Path) -> EcosystemFfiReport {
         Err(_) => (false, 0, -1, 0, 0, 0.0, 0.0),
     };
 
-    // 4. Compiled upstream `tsotchke/moonlab` FIPS-203 ML-KEM-768 PQC
+    // 4. Compiled upstream `tsotchke/moonlab` FIPS-203 ML-KEM-768 + FIPS-197 AES-256
     let (mlkem768_available, mlkem768_fo_tamper_rejected, mlkem768_secret_prefix) =
         match DynLib::open(&bin_dir.join("tsotchke_moonlab_mlkem_bridge.dll")) {
             Ok(lib) => match lib.symbol_raw("beast_tsotchke_mlkem768_verify") {
@@ -130,28 +122,39 @@ pub fn probe_full_ecosystem_dlls(repo_root: &Path) -> EcosystemFfiReport {
         };
 
     // 5. Compiled upstream `tsotchke/spin_based_neural_network` Fibonacci Anyons + Spintronic p-bit
-    let (
-        sbnn_available,
-        sbnn_yang_baxter_err,
-        sbnn_fibo_phi,
-        sbnn_pbit_energy,
-        sbnn_fibo_dim_8,
-    ) = match DynLib::open(&bin_dir.join("tsotchke_sbnn_bridge.dll")) {
-        Ok(lib) => match lib.symbol_raw("beast_tsotchke_sbnn_verify") {
-            Ok(p) => {
-                let f: extern "C" fn(u64, *mut f64, *mut f64, *mut f64, *mut i32) -> i32 =
-                    unsafe { std::mem::transmute(p) };
-                let (mut yb, mut phi, mut pe) = (1.0, 0.0, 0.0);
-                let mut dim8 = 0i32;
-                let rc = f(5000, &mut yb, &mut phi, &mut pe, &mut dim8);
-                (rc == 0, yb, phi, pe, dim8)
-            }
+    let (sbnn_available, sbnn_yang_baxter_err, sbnn_fibo_phi, sbnn_pbit_energy, sbnn_fibo_dim_8) =
+        match DynLib::open(&bin_dir.join("tsotchke_sbnn_bridge.dll")) {
+            Ok(lib) => match lib.symbol_raw("beast_tsotchke_sbnn_verify") {
+                Ok(p) => {
+                    let f: extern "C" fn(u64, *mut f64, *mut f64, *mut f64, *mut i32) -> i32 =
+                        unsafe { std::mem::transmute(p) };
+                    let (mut yb, mut phi, mut pe) = (1.0, 0.0, 0.0);
+                    let mut dim8 = 0i32;
+                    let rc = f(5000, &mut yb, &mut phi, &mut pe, &mut dim8);
+                    (rc == 0, yb, phi, pe, dim8)
+                }
+                Err(_) => (false, 1.0, 0.0, 0.0, 0),
+            },
             Err(_) => (false, 1.0, 0.0, 0.0, 0),
-        },
-        Err(_) => (false, 1.0, 0.0, 0.0, 0),
-    };
+        };
 
-    // 6. Local 0thernes `cellular-engine-omega` (`omega_cell.dll`)
+    // 6. Compiled upstream `tsotchke/quantum_geometric_tensor` (`QGTL`) Bloch complex fidelity
+    let (qgtl_available, qgtl_fidelity, qgtl_ortho_err) =
+        match DynLib::open(&bin_dir.join("tsotchke_qgtl_bridge.dll")) {
+            Ok(lib) => match lib.symbol_raw("beast_tsotchke_qgtl_verify") {
+                Ok(p) => {
+                    let f: extern "C" fn(f32, f32, f32, *mut f32, *mut f32) -> i32 =
+                        unsafe { std::mem::transmute(p) };
+                    let (mut fid, mut oerr) = (0.0f32, 1.0f32);
+                    let rc = f(0.5, 1.5471976, 0.8, &mut fid, &mut oerr);
+                    (rc == 0, fid, oerr)
+                }
+                Err(_) => (false, 0.0, 1.0),
+            },
+            Err(_) => (false, 0.0, 1.0),
+        };
+
+    // 7. Local 0thernes `cellular-engine-omega` (`omega_cell.dll`)
     let omega_path = parent_dir
         .join("cellular-engine-omega")
         .join("bin")
@@ -174,7 +177,7 @@ pub fn probe_full_ecosystem_dlls(repo_root: &Path) -> EcosystemFfiReport {
         Err(_) => (false, false),
     };
 
-    // 7. Local 0thernes `cellulogonic-mecha` (`cellulogonic.dll`)
+    // 8. Local 0thernes `cellulogonic-mecha` (`cellulogonic.dll`)
     let cell_path = parent_dir
         .join("cellulogonic-mecha")
         .join("bin")
@@ -211,6 +214,9 @@ pub fn probe_full_ecosystem_dlls(repo_root: &Path) -> EcosystemFfiReport {
         sbnn_fibo_phi,
         sbnn_pbit_energy,
         sbnn_fibo_dim_8,
+        qgtl_available,
+        qgtl_fidelity,
+        qgtl_ortho_err,
         omega_available,
         omega_sha256_match,
         cellulogonic_available,

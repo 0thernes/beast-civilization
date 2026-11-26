@@ -1,8 +1,12 @@
-//! `beast-cuda`: Direct CUDA Driver API (`nvcuda.dll` / `libcuda.so.1`) 3-Kernel PTX JIT Suite
-//! running natively on NVIDIA RTX 5070 Ti (`sm_12.0` Blackwell) with ZERO nvcc and ZERO MSVC:
-//!   1. `beast_b158_rowdot`        — 5-trit/byte ternary matvec (bit-exact int64 CPU parity)
-//!   2. `beast_nvfp4_rowdot`       — OCP Blackwell FP4 E2M1 matvec (eps < 1e-4 CPU parity)
-//!   3. `beast_c2c_augment_scores` — MIT Augment-Cache parallel [K_self; K_peer] scoring (eps < 1e-5)
+//! `beast-cuda`: Direct CUDA Driver API (`nvcuda.dll` / `libcuda.so.1`) 5-Kernel PTX JIT Suite
+//! + Pinned Host-RAM <-> VRAM Async KV Paging (`W059`, `F058`) on NVIDIA RTX 5070 Ti (`sm_12.0` Blackwell)
+//! with ZERO nvcc and ZERO MSVC:
+//!   1. `beast_b158_rowdot`         — 5-trit/byte ternary matvec (bit-exact int64 CPU parity)
+//!   2. `beast_nvfp4_rowdot`        — OCP Blackwell FP4 E2M1 matvec (eps < 1e-4 CPU parity)
+//!   3. `beast_c2c_augment_scores`  — MIT Augment-Cache parallel [K_self; K_peer] scoring (eps < 1e-4)
+//!   4. `beast_mla_latent_compress` — DeepSeek/Qwen MLA 4x low-rank KV latent compression (eps < 1e-4)
+//!   5. `beast_moe_swiglu_sparse`   — Sparse MoE Top-2 Gated SwiGLU FFN activation (eps < 1e-4)
+//!   + Pinned Host Memory (`cuMemAllocHost_v2` / `cuMemcpyHtoDAsync_v2` / `cuMemcpyDtoHAsync_v2` on `CUstream`)
 
 use beast_wire::dynlib::DynLib;
 use std::ffi::{c_char, c_int, c_uint, c_void, CString};
@@ -20,6 +24,7 @@ type CuDevice = c_int;
 type CuContext = *mut c_void;
 type CuModule = *mut c_void;
 type CuFunction = *mut c_void;
+type CuStream = *mut c_void;
 type CuDevicePtr = u64;
 
 const CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MAJOR: c_int = 75;
@@ -37,9 +42,15 @@ pub struct CudaGpuReport {
     pub gpu_kernel_us: u64,
     pub nvfp4_kernel_us: u64,
     pub c2c_scores_us: u64,
+    pub mla_compress_us: u64,
+    pub moe_swiglu_us: u64,
+    pub pinned_paging_ok: bool,
+    pub pinned_paging_gbps: f64,
     pub bit_exact_cpu_match: bool,
     pub nvfp4_exact_match: bool,
     pub c2c_scores_match: bool,
+    pub mla_exact_match: bool,
+    pub moe_exact_match: bool,
     pub kernels_verified: u32,
     pub error_msg: Option<String>,
 }
@@ -93,6 +104,27 @@ fn cpu_c2c_scores(q: &[f32], k_self: &[f32], k_peer: &[f32], len_self: usize, le
     out
 }
 
+fn cpu_mla_compress(h: &[f32], w_dkv: &[f32], seq_len: usize, d_in: usize, d_lat: usize) -> Vec<f32> {
+    let mut out = vec![0.0f32; seq_len * d_lat];
+    for t in 0..seq_len {
+        for c in 0..d_lat {
+            let mut acc = 0.0f32;
+            for d in 0..d_in {
+                acc += h[t * d_in + d] * w_dkv[c * d_in + d];
+            }
+            out[t * d_lat + c] = acc;
+        }
+    }
+    out
+}
+
+fn cpu_moe_swiglu(g0: &[f32], u0: &[f32], g1: &[f32], u1: &[f32], w0: f32, w1: f32) -> Vec<f32> {
+    let silu = |x: f32| x / (1.0 + (-x).exp());
+    (0..g0.len())
+        .map(|i| w0 * silu(g0[i]) * u0[i] + w1 * silu(g1[i]) * u1[i])
+        .collect()
+}
+
 pub fn run_blackwell_b158_verify(rows: u32, bytes_per_row: u32) -> CudaGpuReport {
     #[cfg(windows)]
     let lib_path = Path::new("C:\\Windows\\System32\\nvcuda.dll");
@@ -125,8 +157,15 @@ pub fn run_blackwell_b158_verify(rows: u32, bytes_per_row: u32) -> CudaGpuReport
     let cu_mod_fn = cu!("cuModuleGetFunction", unsafe extern "C" fn(*mut CuFunction, CuModule, *const c_char) -> CuResult);
     let cu_mem_alloc = cu!("cuMemAlloc_v2", unsafe extern "C" fn(*mut CuDevicePtr, usize) -> CuResult);
     let cu_mem_free = cu!("cuMemFree_v2", unsafe extern "C" fn(CuDevicePtr) -> CuResult);
+    let cu_mem_alloc_host = cu!("cuMemAllocHost_v2", unsafe extern "C" fn(*mut *mut c_void, usize) -> CuResult);
+    let cu_mem_free_host = cu!("cuMemFreeHost", unsafe extern "C" fn(*mut c_void) -> CuResult);
+    let cu_stream_create = cu!("cuStreamCreate", unsafe extern "C" fn(*mut CuStream, c_uint) -> CuResult);
+    let cu_stream_sync = cu!("cuStreamSynchronize", unsafe extern "C" fn(CuStream) -> CuResult);
+    let cu_stream_destroy = cu!("cuStreamDestroy_v2", unsafe extern "C" fn(CuStream) -> CuResult);
     let cu_htod = cu!("cuMemcpyHtoD_v2", unsafe extern "C" fn(CuDevicePtr, *const c_void, usize) -> CuResult);
     let cu_dtoh = cu!("cuMemcpyDtoH_v2", unsafe extern "C" fn(*mut c_void, CuDevicePtr, usize) -> CuResult);
+    let cu_htod_async = cu!("cuMemcpyHtoDAsync_v2", unsafe extern "C" fn(CuDevicePtr, *const c_void, usize, CuStream) -> CuResult);
+    let cu_dtoh_async = cu!("cuMemcpyDtoHAsync_v2", unsafe extern "C" fn(*mut c_void, CuDevicePtr, usize, CuStream) -> CuResult);
     let cu_launch = cu!(
         "cuLaunchKernel",
         unsafe extern "C" fn(
@@ -284,10 +323,128 @@ pub fn run_blackwell_b158_verify(rows: u32, bytes_per_row: u32) -> CudaGpuReport
         let max_err3 = gpu_out3.iter().zip(cpu_ref3.iter()).map(|(a, b)| (a - b).abs()).fold(0.0f32, f32::max);
         let k3_ok = rc3 == 0 && rc3s == 0 && max_err3 < 1e-4;
 
+        // ---- KERNEL 4: DeepSeek/Qwen MLA 4x Low-Rank KV Compression ----
+        let fn4_name = CString::new("beast_mla_latent_compress").unwrap();
+        let mut fn4: CuFunction = std::ptr::null_mut();
+        assert_eq!(cu_mod_fn(&mut fn4, module, fn4_name.as_ptr()), 0);
+        let (mla_seq, mla_din, mla_dlat) = (256u32, 64u32, 16u32);
+        let mla_h: Vec<f32> = (0..(mla_seq * mla_din) as usize).map(|i| (((i * 23) % 53) as f32 - 26.0) * 0.03).collect();
+        let mla_w: Vec<f32> = (0..(mla_dlat * mla_din) as usize).map(|i| (((i * 11) % 31) as f32 - 15.0) * 0.05).collect();
+        let cpu_ref4 = cpu_mla_compress(&mla_h, &mla_w, mla_seq as usize, mla_din as usize, mla_dlat as usize);
+
+        let (mut d_mh, mut d_mw, mut d_mo) = (0u64, 0u64, 0u64);
+        assert_eq!(cu_mem_alloc(&mut d_mh, mla_h.len() * 4), 0);
+        assert_eq!(cu_mem_alloc(&mut d_mw, mla_w.len() * 4), 0);
+        assert_eq!(cu_mem_alloc(&mut d_mo, cpu_ref4.len() * 4), 0);
+        assert_eq!(cu_htod(d_mh, mla_h.as_ptr() as *const c_void, mla_h.len() * 4), 0);
+        assert_eq!(cu_htod(d_mw, mla_w.as_ptr() as *const c_void, mla_w.len() * 4), 0);
+
+        let (mut pmh, mut pmw, mut pmo) = (d_mh, d_mw, d_mo);
+        let (mut pms, mut pmd, mut pml) = (mla_seq, mla_din, mla_dlat);
+        let mut params4: [*mut c_void; 6] = [
+            &mut pmh as *mut u64 as *mut c_void,
+            &mut pmw as *mut u64 as *mut c_void,
+            &mut pmo as *mut u64 as *mut c_void,
+            &mut pms as *mut u32 as *mut c_void,
+            &mut pmd as *mut u32 as *mut c_void,
+            &mut pml as *mut u32 as *mut c_void,
+        ];
+        let blk4 = (mla_seq * mla_dlat).div_ceil(threads);
+        let t3 = Instant::now();
+        let rc4 = cu_launch(fn4, blk4, 1, 1, threads, 1, 1, 0, std::ptr::null_mut(), params4.as_mut_ptr(), std::ptr::null_mut());
+        let rc4s = cu_ctx_sync();
+        let mla_compress_us = t3.elapsed().as_micros().max(1) as u64;
+        let mut gpu_out4 = vec![0.0f32; cpu_ref4.len()];
+        if rc4 == 0 && rc4s == 0 {
+            assert_eq!(cu_dtoh(gpu_out4.as_mut_ptr() as *mut c_void, d_mo, cpu_ref4.len() * 4), 0);
+        }
+        cu_mem_free(d_mh); cu_mem_free(d_mw); cu_mem_free(d_mo);
+        let max_err4 = gpu_out4.iter().zip(cpu_ref4.iter()).map(|(a, b)| (a - b).abs()).fold(0.0f32, f32::max);
+        let k4_ok = rc4 == 0 && rc4s == 0 && max_err4 < 1e-4;
+
+        // ---- KERNEL 5: Sparse MoE Top-2 Gated SwiGLU FFN ----
+        let fn5_name = CString::new("beast_moe_swiglu_sparse").unwrap();
+        let mut fn5: CuFunction = std::ptr::null_mut();
+        assert_eq!(cu_mod_fn(&mut fn5, module, fn5_name.as_ptr()), 0);
+        let moe_n = 16_384u32;
+        let g0: Vec<f32> = (0..moe_n as usize).map(|i| (((i * 7) % 101) as f32 - 50.0) * 0.06).collect();
+        let u0: Vec<f32> = (0..moe_n as usize).map(|i| (((i * 11) % 89) as f32 - 44.0) * 0.04).collect();
+        let g1: Vec<f32> = (0..moe_n as usize).map(|i| (((i * 13) % 97) as f32 - 48.0) * 0.05).collect();
+        let u1: Vec<f32> = (0..moe_n as usize).map(|i| (((i * 17) % 83) as f32 - 41.0) * 0.04).collect();
+        let (mut w0, mut w1) = (0.68f32, 0.32f32);
+        let cpu_ref5 = cpu_moe_swiglu(&g0, &u0, &g1, &u1, w0, w1);
+
+        let (mut dg0, mut du0, mut dg1, mut du1, mut dmo5) = (0u64, 0u64, 0u64, 0u64, 0u64);
+        let nb5 = (moe_n as usize) * 4;
+        assert_eq!(cu_mem_alloc(&mut dg0, nb5), 0);
+        assert_eq!(cu_mem_alloc(&mut du0, nb5), 0);
+        assert_eq!(cu_mem_alloc(&mut dg1, nb5), 0);
+        assert_eq!(cu_mem_alloc(&mut du1, nb5), 0);
+        assert_eq!(cu_mem_alloc(&mut dmo5, nb5), 0);
+        assert_eq!(cu_htod(dg0, g0.as_ptr() as *const c_void, nb5), 0);
+        assert_eq!(cu_htod(du0, u0.as_ptr() as *const c_void, nb5), 0);
+        assert_eq!(cu_htod(dg1, g1.as_ptr() as *const c_void, nb5), 0);
+        assert_eq!(cu_htod(du1, u1.as_ptr() as *const c_void, nb5), 0);
+
+        let (mut pg0, mut pu0, mut pg1, mut pu1, mut po5, mut pn5) = (dg0, du0, dg1, du1, dmo5, moe_n);
+        let mut params5: [*mut c_void; 8] = [
+            &mut pg0 as *mut u64 as *mut c_void,
+            &mut pu0 as *mut u64 as *mut c_void,
+            &mut pg1 as *mut u64 as *mut c_void,
+            &mut pu1 as *mut u64 as *mut c_void,
+            &mut po5 as *mut u64 as *mut c_void,
+            &mut w0 as *mut f32 as *mut c_void,
+            &mut w1 as *mut f32 as *mut c_void,
+            &mut pn5 as *mut u32 as *mut c_void,
+        ];
+        let blk5 = moe_n.div_ceil(threads);
+        let t4 = Instant::now();
+        let rc5 = cu_launch(fn5, blk5, 1, 1, threads, 1, 1, 0, std::ptr::null_mut(), params5.as_mut_ptr(), std::ptr::null_mut());
+        let rc5s = cu_ctx_sync();
+        let moe_swiglu_us = t4.elapsed().as_micros().max(1) as u64;
+        let mut gpu_out5 = vec![0.0f32; moe_n as usize];
+        if rc5 == 0 && rc5s == 0 {
+            assert_eq!(cu_dtoh(gpu_out5.as_mut_ptr() as *mut c_void, dmo5, nb5), 0);
+        }
+        cu_mem_free(dg0); cu_mem_free(du0); cu_mem_free(dg1); cu_mem_free(du1); cu_mem_free(dmo5);
+        let max_err5 = gpu_out5.iter().zip(cpu_ref5.iter()).map(|(a, b)| (a - b).abs()).fold(0.0f32, f32::max);
+        let k5_ok = rc5 == 0 && rc5s == 0 && max_err5 < 1e-4;
+
+        // ---- PINNED HOST-RAM <-> VRAM ASYNC KV PAGING (`W059`, 8 MiB round-trip on CUstream) ----
+        let slab_bytes: usize = 8 * 1024 * 1024;
+        let mut h_src: *mut c_void = std::ptr::null_mut();
+        let mut h_dst: *mut c_void = std::ptr::null_mut();
+        let mut d_slab: CuDevicePtr = 0;
+        let mut stream: CuStream = std::ptr::null_mut();
+        let mut pinned_paging_ok = false;
+        let mut pinned_paging_gbps = 0.0f64;
+        if cu_mem_alloc_host(&mut h_src, slab_bytes) == 0
+            && cu_mem_alloc_host(&mut h_dst, slab_bytes) == 0
+            && cu_mem_alloc(&mut d_slab, slab_bytes) == 0
+            && cu_stream_create(&mut stream, 0) == 0
+        {
+            let src_slice = std::slice::from_raw_parts_mut(h_src as *mut u8, slab_bytes);
+            for (i, b) in src_slice.iter_mut().enumerate() {
+                *b = ((i.wrapping_mul(131) ^ (i >> 7)) & 0xFF) as u8;
+            }
+            let tp = Instant::now();
+            let r_up = cu_htod_async(d_slab, h_src, slab_bytes, stream);
+            let r_dn = cu_dtoh_async(h_dst, d_slab, slab_bytes, stream);
+            let r_sy = cu_stream_sync(stream);
+            let elapsed_s = tp.elapsed().as_secs_f64().max(1e-9);
+            let dst_slice = std::slice::from_raw_parts(h_dst as *const u8, slab_bytes);
+            pinned_paging_ok = r_up == 0 && r_dn == 0 && r_sy == 0 && src_slice == dst_slice;
+            pinned_paging_gbps = ((2 * slab_bytes) as f64) / 1e9 / elapsed_s;
+            cu_stream_destroy(stream);
+            cu_mem_free(d_slab);
+            cu_mem_free_host(h_src);
+            cu_mem_free_host(h_dst);
+        }
+
         cu_mod_unload(module);
         cu_ctx_destroy(ctx);
 
-        let kernels_verified = u32::from(k1_ok) + u32::from(k2_ok) + u32::from(k3_ok);
+        let kernels_verified = u32::from(k1_ok) + u32::from(k2_ok) + u32::from(k3_ok) + u32::from(k4_ok) + u32::from(k5_ok);
         CudaGpuReport {
             available: true,
             device_name,
@@ -298,14 +455,22 @@ pub fn run_blackwell_b158_verify(rows: u32, bytes_per_row: u32) -> CudaGpuReport
             gpu_kernel_us,
             nvfp4_kernel_us,
             c2c_scores_us,
+            mla_compress_us,
+            moe_swiglu_us,
+            pinned_paging_ok,
+            pinned_paging_gbps,
             bit_exact_cpu_match: k1_ok,
             nvfp4_exact_match: k2_ok,
             c2c_scores_match: k3_ok,
+            mla_exact_match: k4_ok,
+            moe_exact_match: k5_ok,
             kernels_verified,
-            error_msg: if kernels_verified == 3 {
+            error_msg: if kernels_verified == 5 && pinned_paging_ok {
                 None
             } else {
-                Some(format!("k1={k1_ok} k2={k2_ok}(err={max_err2:.2e}) k3={k3_ok}(err={max_err3:.2e})"))
+                Some(format!(
+                    "k1={k1_ok} k2={k2_ok}({max_err2:.2e}) k3={k3_ok}({max_err3:.2e}) k4={k4_ok}({max_err4:.2e}) k5={k5_ok}({max_err5:.2e}) pinned={pinned_paging_ok}"
+                ))
             },
         }
     }
@@ -322,9 +487,15 @@ fn err_report(msg: &str) -> CudaGpuReport {
         gpu_kernel_us: 0,
         nvfp4_kernel_us: 0,
         c2c_scores_us: 0,
+        mla_compress_us: 0,
+        moe_swiglu_us: 0,
+        pinned_paging_ok: false,
+        pinned_paging_gbps: 0.0,
         bit_exact_cpu_match: false,
         nvfp4_exact_match: false,
         c2c_scores_match: false,
+        mla_exact_match: false,
+        moe_exact_match: false,
         kernels_verified: 0,
         error_msg: Some(msg.to_string()),
     }

@@ -23,9 +23,9 @@ $resDir = Join-Path $proj "results"
 [System.IO.Directory]::CreateDirectory($resDir) | Out-Null
 
 # ============================================================================
-# [1/6] Zig 0.17.1 Bare-Metal Engine + 6 Upstream Tsotchke C11 Bridges via `zig cc`
+# [1/6] Zig 0.17.1 Bare-Metal Engine + 7 Upstream Tsotchke C11 Bridges via `zig cc`
 # ============================================================================
-Write-Host "`n[1/6] Building & testing Zig 0.17.1 beast-metal + 6 upstream Tsotchke Win64 DLLs..."
+Write-Host "`n[1/6] Building & testing Zig 0.17.1 beast-metal + 7 upstream Tsotchke Win64 DLLs..."
 & $zig test "$proj\zig\beast-metal\src\root.zig"
 if ($LASTEXITCODE -ne 0) { throw "Zig unit & planted-mutant tests failed!" }
 
@@ -34,10 +34,10 @@ if ($LASTEXITCODE -ne 0) { throw "Zig unit & planted-mutant tests failed!" }
     -femit-bin="$binDir\beast_metal.dll"
 if ($LASTEXITCODE -ne 0) { throw "Zig beast_metal.dll build failed!" }
 
-# Upstream 1: `tsotchke/quantum_rng` Bell-test bridge DLL
+# Upstream 1: `tsotchke/quantum_rng`
 $tsoDir = "$proj\vendor\tsotchke__quantum_rng"
 if (Test-Path -LiteralPath "$tsoDir\src\quantum_rng\bell_test.c") {
-    Write-Host "      [1/6] Compiling upstream tsotchke/quantum_rng Bell-test bridge DLL..."
+    Write-Host "      [1/7] Compiling upstream tsotchke/quantum_rng Bell-test bridge DLL..."
     & $zig cc -O2 -msse3 -Wno-macro-redefined -shared `
         -I"$tsoDir" -I"$tsoDir\src" -I"$tsoDir\src\quantum_rng" `
         "$tsoDir\src\quantum_rng\quantum_state.c" `
@@ -50,10 +50,10 @@ if (Test-Path -LiteralPath "$tsoDir\src\quantum_rng\bell_test.c") {
     if ($LASTEXITCODE -ne 0) { throw "tsotchke_qrng_bridge.dll build failed!" }
 }
 
-# Upstream 2: `tsotchke/PINN` Physics-Informed Neural Network bridge DLL
+# Upstream 2: `tsotchke/PINN`
 $pinnDir = "$proj\vendor\tsotchke__PINN"
 if (Test-Path -LiteralPath "$pinnDir\src\neural_network.c") {
-    Write-Host "      [2/6] Compiling upstream tsotchke/PINN bridge DLL..."
+    Write-Host "      [2/7] Compiling upstream tsotchke/PINN bridge DLL..."
     & $zig cc -O2 -shared `
         -I"$pinnDir\include" `
         "$pinnDir\src\neural_network.c" `
@@ -64,10 +64,10 @@ if (Test-Path -LiteralPath "$pinnDir\src\neural_network.c") {
     if ($LASTEXITCODE -ne 0) { throw "tsotchke_pinn_bridge.dll build failed!" }
 }
 
-# Upstream 3: `tsotchke/libirrep` SO(3)/SE(3) AVX2+FMA Spherical Harmonics bridge DLL
+# Upstream 3: `tsotchke/libirrep`
 $irrepDir = "$proj\vendor\tsotchke__libirrep"
 if (Test-Path -LiteralPath "$irrepDir\src\spherical_harmonics.c") {
-    Write-Host "      [3/6] Compiling upstream tsotchke/libirrep SO(3) AVX2+FMA bridge DLL..."
+    Write-Host "      [3/7] Compiling upstream tsotchke/libirrep SO(3) AVX2+FMA bridge DLL..."
     & $zig cc -O2 -mavx2 -mfma -DIRREP_BUILDING_DLL -shared `
         -I"$irrepDir\include" -I"$irrepDir\src" `
         "$irrepDir\src\spherical_harmonics.c" `
@@ -81,10 +81,10 @@ if (Test-Path -LiteralPath "$irrepDir\src\spherical_harmonics.c") {
     if ($LASTEXITCODE -ne 0) { throw "tsotchke_libirrep_bridge.dll build failed!" }
 }
 
-# Upstream 4: `tsotchke/moonlab` Quantum Geometric Tensor & Topological Invariants bridge DLL
+# Upstream 4: `tsotchke/moonlab` QGT Topology
 $moonDir = "$proj\vendor\tsotchke__moonlab"
 if (Test-Path -LiteralPath "$moonDir\src\algorithms\quantum_geometry\qgt.c") {
-    Write-Host "      [4/6] Compiling upstream tsotchke/moonlab QGT/Chern/SSH/Kitaev bridge DLL..."
+    Write-Host "      [4/7] Compiling upstream tsotchke/moonlab QGT/Chern/SSH/Kitaev bridge DLL..."
     & $zig cc -O2 -shared -Wno-macro-redefined `
         -I"$moonDir\src" `
         "$moonDir\src\algorithms\quantum_geometry\qgt.c" `
@@ -94,23 +94,24 @@ if (Test-Path -LiteralPath "$moonDir\src\algorithms\quantum_geometry\qgt.c") {
     if ($LASTEXITCODE -ne 0) { throw "tsotchke_moonlab_qgt_bridge.dll build failed!" }
 }
 
-# Upstream 5: `tsotchke/moonlab` FIPS-203 ML-KEM-512/768/1024 Post-Quantum Cryptography bridge DLL
+# Upstream 5: `tsotchke/moonlab` FIPS-203 ML-KEM-768 + FIPS-197 AES-256
 if (Test-Path -LiteralPath "$moonDir\src\crypto\mlkem\mlkem.c") {
-    Write-Host "      [5/6] Compiling upstream tsotchke/moonlab FIPS-203 ML-KEM-768 PQC bridge DLL..."
+    Write-Host "      [5/7] Compiling upstream tsotchke/moonlab FIPS-203 ML-KEM-768 + AES-256 bridge DLL..."
     & $zig cc -O2 -shared -Wno-macro-redefined `
         -I"$moonDir\src" `
         "$moonDir\src\crypto\mlkem\mlkem.c" `
         "$moonDir\src\crypto\mlkem\poly.c" `
         "$moonDir\src\crypto\sha3\sha3.c" `
+        "$moonDir\src\crypto\aes\aes.c" `
         "$proj\c_bridges\tsotchke_moonlab_mlkem_bridge.c" `
         -o "$binDir\tsotchke_moonlab_mlkem_bridge.dll"
     if ($LASTEXITCODE -ne 0) { throw "tsotchke_moonlab_mlkem_bridge.dll build failed!" }
 }
 
-# Upstream 6: `tsotchke/spin_based_neural_network` Fibonacci Anyons + Spintronic p-bit Ising bridge DLL
+# Upstream 6: `tsotchke/spin_based_neural_network` Fibonacci Anyons + Spintronic p-bit
 $sbnnDir = "$proj\vendor\tsotchke__spin_based_neural_network"
 if (Test-Path -LiteralPath "$sbnnDir\src\fibonacci_anyons\fibonacci_anyons.c") {
-    Write-Host "      [6/6] Compiling upstream tsotchke/spin_based_neural_network Anyon+p-bit bridge DLL..."
+    Write-Host "      [6/7] Compiling upstream tsotchke/spin_based_neural_network Anyon+p-bit bridge DLL..."
     & $zig cc -O2 -shared -Wno-macro-redefined `
         -I"$sbnnDir\include" `
         "$sbnnDir\src\fibonacci_anyons\fibonacci_anyons.c" `
@@ -118,6 +119,18 @@ if (Test-Path -LiteralPath "$sbnnDir\src\fibonacci_anyons\fibonacci_anyons.c") {
         "$proj\c_bridges\tsotchke_sbnn_bridge.c" `
         -o "$binDir\tsotchke_sbnn_bridge.dll" -lm
     if ($LASTEXITCODE -ne 0) { throw "tsotchke_sbnn_bridge.dll build failed!" }
+}
+
+# Upstream 7: `tsotchke/quantum_geometric_tensor` (`QGTL`) Bloch Complex Fidelity
+$qgtlDir = "$proj\vendor\tsotchke__quantum_geometric_tensor"
+if (Test-Path -LiteralPath "$qgtlDir\src\quantum_geometric\core\complex_arithmetic.c") {
+    Write-Host "      [7/7] Compiling upstream tsotchke/quantum_geometric_tensor QGTL bridge DLL..."
+    & $zig cc -O2 -shared -Wno-macro-redefined `
+        -I"$qgtlDir\include" `
+        "$qgtlDir\src\quantum_geometric\core\complex_arithmetic.c" `
+        "$proj\c_bridges\tsotchke_qgtl_bridge.c" `
+        -o "$binDir\tsotchke_qgtl_bridge.dll" -lm
+    if ($LASTEXITCODE -ne 0) { throw "tsotchke_qgtl_bridge.dll build failed!" }
 }
 
 # ============================================================================
@@ -162,9 +175,9 @@ try {
 Copy-Item -LiteralPath "$proj\target\release\beast.exe" -Destination "$binDir\beast.exe" -Force
 
 # ============================================================================
-# [4/6] Live End-to-End 25-Gate / 25-Mutant Verification + Trinity Forge + Lean Export
+# [4/6] Live End-to-End 30-Gate / 30-Mutant Verification + Hyper-Colony + Lean Export
 # ============================================================================
-Write-Host "`n[4/6] Running live 25-gate / 25-mutant verification, Trinity Forge, and Lean receipt export..."
+Write-Host "`n[4/6] Running live 30-gate / 30-mutant verification, 12-DLL probe, 5-kernel GPU, and Lean receipt export..."
 Push-Location -LiteralPath $proj
 try {
     & "$binDir\beast.exe" probe
@@ -187,6 +200,15 @@ try {
 
     & "$binDir\beast.exe" llm-c2c
     if ($LASTEXITCODE -ne 0) { throw "beast llm-c2c failed!" }
+
+    & "$binDir\beast.exe" ad-test
+    if ($LASTEXITCODE -ne 0) { throw "beast ad-test failed!" }
+
+    & "$binDir\beast.exe" cross-repo
+    if ($LASTEXITCODE -ne 0) { throw "beast cross-repo failed!" }
+
+    & "$binDir\beast.exe" inspect-asm
+    if ($LASTEXITCODE -ne 0) { throw "beast inspect-asm failed!" }
 
     & "$binDir\beast.exe" omni-test
     if ($LASTEXITCODE -ne 0) { throw "beast omni-test failed!" }
@@ -219,10 +241,10 @@ Write-Host "`n[5/6] Running CRuby 3.4 + YARV + Prism AST Guard + Zig Fiddle C-AB
 if ($LASTEXITCODE -ne 0) { throw "CRuby/YARV bridge failed!" }
 
 # ============================================================================
-# [6/6] Pure Lean 4 v4.35.0 Kernel Proofs (50 Theorems) + Strict Axiom Audit
+# [6/6] Pure Lean 4 v4.35.0 Kernel Proofs (60 Theorems) + Strict Axiom Audit
 # ============================================================================
 if (-not $SkipLean -and (Test-Path -LiteralPath $lean)) {
-    Write-Host "`n[6/6] Machine-checking 50 Pure Lean 4 theorems (including live hardware receipt B50)..."
+    Write-Host "`n[6/6] Machine-checking 60 Pure Lean 4 theorems (including live hardware receipt B60)..."
     $leanDir = "$proj\lean"
     $env:LEAN_PATH = "$leanDir;$leanRoot\lib\lean"
     Push-Location -LiteralPath $leanDir
@@ -266,13 +288,13 @@ if (-not $SkipLean -and (Test-Path -LiteralPath $lean)) {
         }
         throw "Unexpected Lean 4 output line: $line"
     }
-    if ($audited -lt 50) {
-        throw "Expected >= 50 audited Lean 4 theorems, got $audited"
+    if ($audited -lt 60) {
+        throw "Expected >= 60 audited Lean 4 theorems, got $audited"
     }
     [System.IO.File]::WriteAllText("$resDir\lean4-audit.txt", ($cleanLines -join "`n") + "`n", [System.Text.UTF8Encoding]::new($false))
-    Write-Host "[PASS] $audited/50 Pure Lean 4 theorems audited cleanly (0 sorry, 0 custom axioms, 0 warnings)"
+    Write-Host "[PASS] $audited/60 Pure Lean 4 theorems audited cleanly (0 sorry, 0 custom axioms, 0 warnings)"
 }
 
 Write-Host "`n========================================================================="
-Write-Host "  BEAST CIVILIZATION v0.5.0 FULL-STACK BUILD & VERIFICATION: ALL GREEN!"
+Write-Host "  BEAST CIVILIZATION v0.6.0 FULL-STACK BUILD & VERIFICATION: ALL GREEN!"
 Write-Host "========================================================================="

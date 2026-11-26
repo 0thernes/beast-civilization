@@ -8,8 +8,9 @@
 #   VERIFIED_SLICE_S1      = Live compiled, executed, and mutant-tested in v0.1.0
 #   VERIFIED_SLICE_V04     = Live compiled, executed, and mutant-tested in v0.2.0..v0.4.0
 #   VERIFIED_SLICE_V05     = Live compiled, executed, and mutant-tested in v0.5.0
+#   VERIFIED_SLICE_V06     = Live compiled, executed, and mutant-tested in v0.6.0
 
-schema_version: "1.2.0"
+schema_version: "1.3.0"
 counts:
   problems: 100
   wishlists: 100
@@ -28,7 +29,7 @@ pillars:
       - {id: P005, name: "Stale text-chunk RAG retrieval", status: VERIFIED_SLICE_S1}
       - {id: P006, name: "Repeated prefix prompt re-read bills", status: VERIFIED_SLICE_S1}
       - {id: P007, name: "Cross-session total amnesia", status: VERIFIED_SLICE_S1}
-      - {id: P008, name: "Cross-repository structural blindness", status: SPEC}
+      - {id: P008, name: "Cross-repository structural blindness", status: VERIFIED_SLICE_V06}
       - {id: P009, name: "Unbounded append-only log bloat", status: VERIFIED_SLICE_S1}
       - {id: P010, name: "No causal time-travel state rollback", status: VERIFIED_SLICE_S1}
     wishlists:
@@ -39,7 +40,7 @@ pillars:
       - {id: W005, name: "Bit-exact state snapshot & instant time-travel", status: VERIFIED_SLICE_S1}
       - {id: W006, name: "Bayesian quality x recency x use artifact ranking", status: VERIFIED_SLICE_S1}
       - {id: W007, name: "Searchable cryptographic execution lineage", status: VERIFIED_SLICE_S1}
-      - {id: W008, name: "Cross-repo symbol & ABI dependency graph", status: SPEC}
+      - {id: W008, name: "Cross-repo symbol & ABI dependency graph", status: VERIFIED_SLICE_V06}
       - {id: W009, name: "Zero-copy mmap persistent memory arena", status: VERIFIED_SLICE_S1}
       - {id: W010, name: "Observer-independent state hashing (P9)", status: VERIFIED_SLICE_S1}
     features:
@@ -113,7 +114,7 @@ pillars:
       - {id: W025, name: "Ising/QUBO quantum-annealed colony task allocation", status: VERIFIED_SLICE_S1}
       - {id: W026, name: "Mathematical affinity/urgency/difficulty selection policy", status: VERIFIED_SLICE_S1}
       - {id: W027, name: "Circadian/cadence Perpetuum autonomous return", status: VERIFIED_SLICE_S1}
-      - {id: W028, name: "Confluent graph-reduction scheduling (Bio-Frostbite)", status: SPEC}
+      - {id: W028, name: "Confluent graph-reduction scheduling (Bio-Frostbite)", status: VERIFIED_SLICE_V06}
       - {id: W029, name: "2-adic ultrametric kin/caste addressing (TZCNT)", status: VERIFIED_SLICE_S1}
       - {id: W030, name: "Honest tagging distinguishing local C2C vs cloud text", status: VERIFIED_SLICE_S1}
     features:
@@ -124,7 +125,7 @@ pillars:
       - {id: F025, source: "TEMM1E Perpetuum", name: "Beta(1,1) temporal scheduling & persistent return", status: VERIFIED_SLICE_S1}
       - {id: F026, source: "Moonlab", name: "Transverse-field Ising/QUBO combinatorial annealer", status: VERIFIED_SLICE_S1}
       - {id: F027, source: "CrewAI/AutoGen", name: "Role-caste colony delegation & structured handoff", status: VERIFIED_SLICE_S1}
-      - {id: F028, source: "Claude/Antigravity", name: "Isolated workspace/worktree parallel subagents", status: SPEC}
+      - {id: F028, source: "Claude/Antigravity", name: "Isolated workspace/worktree parallel subagents", status: VERIFIED_SLICE_V06}
       - {id: F029, source: "Eshkol", name: "Global Workspace Theory softmax broadcast competition", status: VERIFIED_SLICE_S1}
       - {id: F030, source: "tsotchke/llm-arbitrator", name: "Multi-model arbitration & consensus voting", status: VERIFIED_SLICE_S1}
 
@@ -225,7 +226,7 @@ pillars:
       - {id: W056, name: "5-trit/byte b1.58 + NVFP4 Blackwell tensor compression", status: VERIFIED_SLICE_S1}
       - {id: W057, name: "Hard USD spend cap enforced in Ring-0 Root", status: VERIFIED_SLICE_S1}
       - {id: W058, name: "Real-time throughput & latency micro-benchmarks", status: VERIFIED_SLICE_S1}
-      - {id: W059, name: "Pinned-RAM <-> VRAM async paging across 47.4 GB host", status: SPEC}
+      - {id: W059, name: "Pinned-RAM <-> VRAM async paging across 47.4 GB host", status: VERIFIED_SLICE_V06}
       - {id: W060, name: "Heterogeneous CPU AVX2/GFNI + RTX 5070 Ti co-execution", status: VERIFIED_SLICE_S1}
     features:
       - {id: F051, source: "NonHuman", name: "Exact call-count cost equation & -18% token codec", status: VERIFIED_SLICE_S1}
@@ -235,7 +236,7 @@ pillars:
       - {id: F055, source: "Noetic Omega", name: "84.1% fast-path b1.58 ternary ganglia offload", status: VERIFIED_SLICE_S1}
       - {id: F056, source: "CRuby YJIT", name: "Native JIT compilation of hot YARV DSL paths", status: VERIFIED_SLICE_S1}
       - {id: F057, source: "Claude Code/Codex", name: "Prompt prefix cache alignment & parallel tool batching", status: VERIFIED_SLICE_S1}
-      - {id: F058, source: "DeepSeek/Qwen", name: "MoE sparse expert activation & MLA/GQA KV compression", status: SPEC}
+      - {id: F058, source: "DeepSeek/Qwen", name: "MoE sparse expert activation & MLA/GQA KV compression", status: VERIFIED_SLICE_V06}
       - {id: F059, source: "vLLM/llama.cpp", name: "Paged KV-cache block table & quantized GGUF kernels", status: VERIFIED_SLICE_V05}
       - {id: F060, source: "INIT-Agent", name: "Root-metered signed model catalog & spend ledger", status: VERIFIED_SLICE_S1}
 
@@ -249,7 +250,7 @@ pillars:
       - {id: P064, name: "Mutations break pre-trained forward passes immediately", status: VERIFIED_SLICE_S1}
       - {id: P065, name: "Cannot combine SSM, Liquid ODE, Ternary & Equivariant blocks", status: VERIFIED_SLICE_S1}
       - {id: P066, name: "No natural-gradient manifold optimization (Euclidean stalls)", status: VERIFIED_SLICE_S1}
-      - {id: P067, name: "No symbolic exact differentiation of mutated activations", status: SPEC}
+      - {id: P067, name: "No symbolic exact differentiation of mutated activations", status: VERIFIED_SLICE_V06}
       - {id: P068, name: "No physics/symmetry constraints in learned layers", status: VERIFIED_SLICE_V04}
       - {id: P069, name: "Vendor lock-in to one model provider", status: VERIFIED_SLICE_S1}
       - {id: P070, name: "No bit-level genetic neural architecture search on silicon", status: VERIFIED_SLICE_S1}
@@ -267,7 +268,7 @@ pillars:
     features:
       - {id: F061, source: "Zig Chimera", name: "6 Insert-Network mutation operators on live DAG+Cycle", status: VERIFIED_SLICE_S1}
       - {id: F062, source: "QGTL", name: "Fubini-Study metric & Berry curvature O(e^2) protection", status: VERIFIED_SLICE_S1}
-      - {id: F063, source: "Eshkol", name: "Compiler-primitive exact forward/reverse/symbolic AD", status: SPEC}
+      - {id: F063, source: "Eshkol", name: "Compiler-primitive exact forward/reverse/symbolic AD", status: VERIFIED_SLICE_V06}
       - {id: F064, source: "Noetic sLTC", name: "Adaptive continuous-time liquid cortex ODE neurons", status: VERIFIED_SLICE_S1}
       - {id: F065, source: "tsotchke/libirrep", name: "SO(3)/SU(2)/SE(3) equivariant neural layers", status: VERIFIED_SLICE_V04}
       - {id: F066, source: "tsotchke/PINN", name: "Physics-Informed Neural Network C kernels", status: VERIFIED_SLICE_V04}
@@ -335,17 +336,17 @@ pillars:
       - {id: W085, name: "NonHuman bounded compact tool output truncation", status: VERIFIED_SLICE_S1}
       - {id: W086, name: "100% offline-capable local core execution", status: VERIFIED_SLICE_S1}
       - {id: W087, name: "Direct C-ABI plugin loader (Fiddle/libloading)", status: VERIFIED_SLICE_S1}
-      - {id: W088, name: "MCP server/client interoperability", status: SPEC}
+      - {id: W088, name: "MCP server/client interoperability", status: VERIFIED_SLICE_V06}
       - {id: W089, name: "Compiler Explorer / LLVM / Lean / QEMU toolchains", status: VERIFIED_SLICE_S1}
       - {id: W090, name: "Auto-generated llms.txt & self-map parity (G1)", status: VERIFIED_SLICE_S1}
     features:
       - {id: F081, source: "omniplugin", name: "One-core omni-platform skill packaging", status: VERIFIED_SLICE_S1}
       - {id: F082, source: "Rosette-Wire", name: "Capability-bounded typed tool contracts", status: VERIFIED_SLICE_S1}
-      - {id: F083, source: "MCP", name: "Standardized external tool & resource bus", status: SPEC}
+      - {id: F083, source: "MCP", name: "Standardized external tool & resource bus", status: VERIFIED_SLICE_V06}
       - {id: F084, source: "INIT-Agent", name: "T1 hot-loaded tool modules & self-map regeneration", status: VERIFIED_SLICE_S1}
       - {id: F085, source: "CRuby/Prism", name: "Live AST-verified dynamic skill synthesis", status: VERIFIED_SLICE_S1}
       - {id: F086, source: "OpenAlex/arXiv", name: "Public scientific literature API registry", status: VERIFIED_SLICE_S1}
-      - {id: F087, source: "Godbolt/LLVM", name: "Compiler/disassembly inspection tool integration", status: SPEC}
+      - {id: F087, source: "Godbolt/LLVM", name: "Compiler/disassembly inspection tool integration", status: VERIFIED_SLICE_V06}
       - {id: F088, source: "GitHub CLI", name: "Native repo/API/release introspection", status: VERIFIED_SLICE_S1}
       - {id: F089, source: "OSV/crates.io/HF", name: "Open package, model & vulnerability API registry", status: VERIFIED_SLICE_S1}
       - {id: F090, source: "Antigravity/Claude", name: "Parallel batch tool execution discipline", status: VERIFIED_SLICE_S1}
@@ -384,5 +385,5 @@ pillars:
       - {id: F096, source: "TEMM1E", name: "Inspectable mathematical equations & execution records", status: VERIFIED_SLICE_S1}
       - {id: F097, source: "Build Standard A34/B26", name: "Honest benchmarks & observability baseline", status: VERIFIED_SLICE_S1}
       - {id: F098, source: "Cellular Omega", name: "Live binary-to-Lean-4 trace receipt export", status: VERIFIED_SLICE_S1}
-      - {id: F099, source: "Eshkol", name: "Zero-finite-diff exact gradient instrumentation", status: SPEC}
+      - {id: F099, source: "Eshkol", name: "Zero-finite-diff exact gradient instrumentation", status: VERIFIED_SLICE_V06}
       - {id: F100, source: "Rosette-Wire", name: "Cryptographic end-to-end verification certificates", status: VERIFIED_SLICE_S1}

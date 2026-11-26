@@ -47,4 +47,14 @@
 'BeastProofs.B47_ecosystem_11_dll_unity' does not depend on any axioms
 'BeastProofs.B48_total_planted_mutants_30' does not depend on any axioms
 'BeastProofs.B49_trinity_forge_receipt_count' does not depend on any axioms
-'BeastProofs.B50_live_v050_matrix_singularity_receipt' does not depend on any axioms
+'BeastProofs.B50_aes256_fips197_dimensions' does not depend on any axioms
+'BeastProofs.B51_mla_4x_kv_compression' does not depend on any axioms
+'BeastProofs.B52_moe_top2_gate_partition' does not depend on any axioms
+'BeastProofs.B53_pinned_vram_paging_bytes' does not depend on any axioms
+'BeastProofs.B54_dual_leibniz_comm' depends on axioms: [propext]
+'BeastProofs.B55_dual_add_comm' depends on axioms: [propext]
+'BeastProofs.B56_church_rosser_xor_confluence' depends on axioms: [propext, Quot.sound]
+'BeastProofs.B57_ecosystem_12_dll_unity' does not depend on any axioms
+'BeastProofs.B58_total_planted_mutants_35' does not depend on any axioms
+'BeastProofs.B59_matrix_296_of_300_partition' does not depend on any axioms
+'BeastProofs.B60_live_v060_omniscient_hyper_colony_receipt' does not depend on any axioms

@@ -1,9 +1,11 @@
-// Bare-metal PTX 7.8 / sm_80 forward-compatible 3-Kernel GPU Suite
+// Bare-metal PTX 7.8 / sm_80 forward-compatible 5-Kernel GPU Suite
 // JIT-compiled directly by nvcuda.dll onto NVIDIA RTX 5070 Ti (Blackwell sm_120) — ZERO nvcc / ZERO MSVC!
 //
-// Kernel 1: `beast_b158_rowdot`         — 5-trit/byte packed b1.58 ternary matrix-vector dot (3^5 = 243 <= 256)
+// Kernel 1: `beast_b158_rowdot`         — 5-trit/byte packed b1.58 ternary matrix-vector dot (int64 exact)
 // Kernel 2: `beast_nvfp4_rowdot`        — Blackwell OCP FP4 E2M1 (2 nibbles/byte) matrix-vector dot (f32)
 // Kernel 3: `beast_c2c_augment_scores`  — MIT Augment-Cache parallel Q * [K_self; K_peer]^T / sqrt(dim) scoring
+// Kernel 4: `beast_mla_latent_compress` — DeepSeek/Qwen MLA low-rank KV latent compression (d_in -> d_latent)
+// Kernel 5: `beast_moe_swiglu_sparse`   — Sparse Mixture-of-Experts Top-2 Gated SwiGLU FFN activation
 
 .version 7.8
 .target sm_80
@@ -91,7 +93,6 @@ K1_DONE:
 
 // ============================================================================
 // KERNEL 2: OCP Blackwell NVFP4 E2M1 (2 nibbles/byte) Matrix-Vector Dot (f32)
-// Uses 16-entry FP4 LUT passed in global/const memory `p_lut16` for exact parity.
 // ============================================================================
 .visible .entry beast_nvfp4_rowdot(
     .param .u64 p_packed_w,
@@ -137,10 +138,9 @@ K2_LOOP:
     add.u64 %rd7, %rd5, %rd6;
     ld.global.u8 %r7, [%rd7];
 
-    and.b32 %r8, %r7, 15;      // lo nibble
-    shr.u32 %r9, %r7, 4;       // hi nibble
+    and.b32 %r8, %r7, 15;
+    shr.u32 %r9, %r7, 4;
 
-    // lut[lo], lut[hi]
     mul.wide.u32 %rd8, %r8, 4;
     add.u64 %rd9, %rd2, %rd8;
     ld.global.f32 %f0, [%rd9];
@@ -149,7 +149,6 @@ K2_LOOP:
     add.u64 %rd9, %rd2, %rd8;
     ld.global.f32 %f1, [%rd9];
 
-    // x[2*b], x[2*b + 1]
     shl.b32 %r10, %r6, 1;
     mul.wide.u32 %rd10, %r10, 4;
     add.u64 %rd11, %rd1, %rd10;
@@ -179,7 +178,6 @@ K2_DONE:
 
 // ============================================================================
 // KERNEL 3: MIT Augment-Cache Parallel KV Attention Scoring
-// Computes `scores[t] = (Q . K_aug[t]) * inv_sqrt_d` over concatenated `[K_self; K_peer]`
 // ============================================================================
 .visible .entry beast_c2c_augment_scores(
     .param .u64 p_q,
@@ -200,11 +198,11 @@ K2_DONE:
     mov.u32 %r0, %ctaid.x;
     mov.u32 %r1, %ntid.x;
     mov.u32 %r2, %tid.x;
-    mad.lo.u32 %r3, %r0, %r1, %r2; // token index t
+    mad.lo.u32 %r3, %r0, %r1, %r2;
 
     ld.param.u32 %r4, [p_len_self];
     ld.param.u32 %r5, [p_len_peer];
-    add.u32 %r6, %r4, %r5;         // total_len = len_self + len_peer
+    add.u32 %r6, %r4, %r5;
     setp.ge.u32 %p0, %r3, %r6;
     @%p0 bra K3_DONE;
 
@@ -215,7 +213,6 @@ K2_DONE:
     ld.param.u32 %r7, [p_dim];
     ld.param.f32 %f0, [p_inv_sqrt_d];
 
-    // Select K_self[t] if t < len_self else K_peer[t - len_self]
     setp.lt.u32 %p1, %r3, %r4;
     @%p1 bra K3_USE_SELF;
 
@@ -255,5 +252,155 @@ K3_STORE:
     st.global.f32 [%rd10], %f1;
 
 K3_DONE:
+    ret;
+}
+
+// ============================================================================
+// KERNEL 4: DeepSeek/Qwen Multi-Head Latent Attention (MLA) KV Compression
+// Computes `latent[t, c] = sum_{d=0..d_in-1} H[t, d] * W_dkv[c, d]` (4x KV compression!)
+// 1 thread per output `(t, c)` element (`tid_total = t * d_lat + c`).
+// ============================================================================
+.visible .entry beast_mla_latent_compress(
+    .param .u64 p_h,
+    .param .u64 p_w_dkv,
+    .param .u64 p_out,
+    .param .u32 p_seq_len,
+    .param .u32 p_d_in,
+    .param .u32 p_d_lat
+)
+{
+    .reg .pred %p<4>;
+    .reg .u32 %r<16>;
+    .reg .u64 %rd<12>;
+    .reg .f32 %f<6>;
+
+    mov.u32 %r0, %ctaid.x;
+    mov.u32 %r1, %ntid.x;
+    mov.u32 %r2, %tid.x;
+    mad.lo.u32 %r3, %r0, %r1, %r2; // idx = t * d_lat + c
+
+    ld.param.u32 %r4, [p_seq_len];
+    ld.param.u32 %r5, [p_d_in];
+    ld.param.u32 %r6, [p_d_lat];
+    mul.lo.u32 %r7, %r4, %r6;
+    setp.ge.u32 %p0, %r3, %r7;
+    @%p0 bra K4_DONE;
+
+    div.u32 %r8, %r3, %r6; // t
+    rem.u32 %r9, %r3, %r6; // c
+
+    ld.param.u64 %rd0, [p_h];
+    ld.param.u64 %rd1, [p_w_dkv];
+    ld.param.u64 %rd2, [p_out];
+
+    mul.wide.u32 %rd3, %r8, %r5;
+    shl.b64 %rd3, %rd3, 2;
+    add.u64 %rd4, %rd0, %rd3; // &H[t, 0]
+
+    mul.wide.u32 %rd5, %r9, %r5;
+    shl.b64 %rd5, %rd5, 2;
+    add.u64 %rd6, %rd1, %rd5; // &W_dkv[c, 0]
+
+    mov.f32 %f0, 0f00000000;
+    mov.u32 %r10, 0;
+
+K4_LOOP:
+    setp.ge.u32 %p1, %r10, %r5;
+    @%p1 bra K4_STORE;
+
+    mul.wide.u32 %rd7, %r10, 4;
+    add.u64 %rd8, %rd4, %rd7;
+    add.u64 %rd9, %rd6, %rd7;
+    ld.global.f32 %f1, [%rd8];
+    ld.global.f32 %f2, [%rd9];
+    fma.rn.f32 %f0, %f1, %f2, %f0;
+
+    add.u32 %r10, %r10, 1;
+    bra K4_LOOP;
+
+K4_STORE:
+    mul.wide.u32 %rd10, %r3, 4;
+    add.u64 %rd11, %rd2, %rd10;
+    st.global.f32 [%rd11], %f0;
+
+K4_DONE:
+    ret;
+}
+
+// ============================================================================
+// KERNEL 5: Sparse Mixture-of-Experts (MoE) Top-2 Gated SwiGLU FFN Activation
+// Computes `out[i] = w0 * silu(g0[i]) * u0[i] + w1 * silu(g1[i]) * u1[i]`
+// where `silu(x) = x / (1 + 2^(-x * log2(e)))` via native Blackwell SFU `ex2.approx.f32`!
+// ============================================================================
+.visible .entry beast_moe_swiglu_sparse(
+    .param .u64 p_g0,
+    .param .u64 p_u0,
+    .param .u64 p_g1,
+    .param .u64 p_u1,
+    .param .u64 p_out,
+    .param .f32 p_w0,
+    .param .f32 p_w1,
+    .param .u32 p_n
+)
+{
+    .reg .pred %p<2>;
+    .reg .u32 %r<6>;
+    .reg .u64 %rd<12>;
+    .reg .f32 %f<18>;
+
+    mov.u32 %r0, %ctaid.x;
+    mov.u32 %r1, %ntid.x;
+    mov.u32 %r2, %tid.x;
+    mad.lo.u32 %r3, %r0, %r1, %r2;
+
+    ld.param.u32 %r4, [p_n];
+    setp.ge.u32 %p0, %r3, %r4;
+    @%p0 bra K5_DONE;
+
+    ld.param.u64 %rd0, [p_g0];
+    ld.param.u64 %rd1, [p_u0];
+    ld.param.u64 %rd2, [p_g1];
+    ld.param.u64 %rd3, [p_u1];
+    ld.param.u64 %rd4, [p_out];
+    ld.param.f32 %f14, [p_w0];
+    ld.param.f32 %f15, [p_w1];
+
+    mul.wide.u32 %rd5, %r3, 4;
+    add.u64 %rd6, %rd0, %rd5;
+    add.u64 %rd7, %rd1, %rd5;
+    add.u64 %rd8, %rd2, %rd5;
+    add.u64 %rd9, %rd3, %rd5;
+    add.u64 %rd10, %rd4, %rd5;
+
+    ld.global.f32 %f0, [%rd6]; // g0
+    ld.global.f32 %f1, [%rd7]; // u0
+    ld.global.f32 %f2, [%rd8]; // g1
+    ld.global.f32 %f3, [%rd9]; // u1
+
+    // -log2(e) = -1.4426950408889634 = 0fBFB8AA3B, 1.0 = 0f3F800000
+    mov.f32 %f16, 0fBFB8AA3B;
+    mov.f32 %f17, 0f3F800000;
+
+    // Expert 0: silu(g0) * u0 * w0
+    mul.rn.f32 %f4, %f0, %f16;
+    ex2.approx.f32 %f5, %f4;
+    add.rn.f32 %f6, %f17, %f5;
+    rcp.rn.f32 %f7, %f6;
+    mul.rn.f32 %f8, %f0, %f7;
+    mul.rn.f32 %f8, %f8, %f1;
+    mul.rn.f32 %f8, %f8, %f14;
+
+    // Expert 1: silu(g1) * u1 * w1
+    mul.rn.f32 %f9, %f2, %f16;
+    ex2.approx.f32 %f10, %f9;
+    add.rn.f32 %f11, %f17, %f10;
+    rcp.rn.f32 %f12, %f11;
+    mul.rn.f32 %f13, %f2, %f12;
+    mul.rn.f32 %f13, %f13, %f3;
+    fma.rn.f32 %f8, %f13, %f15, %f8;
+
+    st.global.f32 [%rd10], %f8;
+
+K5_DONE:
     ret;
 }
