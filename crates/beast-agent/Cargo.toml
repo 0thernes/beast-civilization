@@ -1,0 +1,13 @@
+[package]
+name = "beast-agent"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Autonomous Matrix Forge, Merkle AST Repo-Map, QEMU Ring-0 Boot Verifier, and INITxNonHumanxEngramxTEMM1E Agent Loop"
+
+[dependencies]
+beast-wire = { path = "../beast-wire" }
+beast-root = { path = "../beast-root" }
+beast-c2c = { path = "../beast-c2c" }
+beast-colony = { path = "../beast-colony" }
+beast-model = { path = "../beast-model" }

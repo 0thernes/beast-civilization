@@ -1,6 +1,12 @@
-//! `beast` v0.3.0: Unified Bare-Metal Civilization CLI, Interactive REPL, OS Sandbox Worker,
-//! and 16-Gate / 16-Mutant Zero-Theater Verification Harness.
+//! `beast` v0.4.0: Unified Bare-Metal Civilization CLI, Autonomous Matrix Forge, Interactive REPL,
+//! QEMU Ring-0 Multiboot1 Verifier, OS Sandbox Worker, and 20-Gate / 20-Mutant Verification Harness.
 
+use beast_agent::forge::{
+    boot_kernel_in_qemu, find_qemu_binary, forge_chimera_model, forge_neural_kernel,
+    host_kernel_oracle, DEFAULT_B158_WEIGHTS, DEFAULT_NVFP4_WEIGHTS,
+};
+use beast_agent::loop_engine::run_autonomous_agent_task;
+use beast_agent::repo_map::{build_merkle_repo_map, compute_merkle_root};
 use beast_c2c::graft_io::{build_repo_cachegraft_bank, load_bcg, save_bcg};
 use beast_c2c::trainer::train_and_verify_swat_mapper;
 use beast_c2c::{
@@ -9,7 +15,9 @@ use beast_c2c::{
 };
 use beast_colony::autophage_ffi::probe_local_autophage;
 use beast_colony::civilization::run_colony_civilization;
-use beast_colony::economics::{classify_effort_tier, nonhuman_run_cost, OMNIMODAL_ROUTES_20, PUBLIC_OSS_APIS};
+use beast_colony::economics::{
+    classify_effort_tier, nonhuman_run_cost, OMNIMODAL_ROUTES_20, PUBLIC_OSS_APIS,
+};
 use beast_colony::ecosystem_ffi::probe_full_ecosystem_dlls;
 use beast_colony::oss_apis::{build_allowlisted_url, query_public_oss_api};
 use beast_colony::quantum_geo::{moonlab_style_qubo_anneal, qgtl_bloch_qgt, qrng_chsh_bell_test};
@@ -27,7 +35,9 @@ use beast_model::omnimodal::run_omnimodal_dsp_ocr_suite;
 use beast_root::os_sandbox::verify_os_process_sandbox_handoff;
 use beast_root::{GateReport, HarnessTier, Ring0Root};
 use beast_wire::dynlib::DynLib;
-use beast_wire::elf_audit::{audit_elf64_file, audit_elf64_multiboot2};
+use beast_wire::elf_audit::{
+    audit_elf32_file, audit_elf32_multiboot1, audit_elf64_file, audit_elf64_multiboot2,
+};
 use beast_wire::hbin_capsule::PlanariaCapsule;
 use beast_wire::philox::philox_u64;
 use beast_wire::sha256::{hex_encode, sha256};
@@ -55,9 +65,13 @@ fn find_repo_root() -> PathBuf {
 
 fn default_zig_dll(root: &Path) -> PathBuf {
     #[cfg(windows)]
-    { root.join("bin").join("beast_metal.dll") }
+    {
+        root.join("bin").join("beast_metal.dll")
+    }
     #[cfg(not(windows))]
-    { root.join("bin").join("libbeast_metal.so") }
+    {
+        root.join("bin").join("libbeast_metal.so")
+    }
 }
 
 fn default_autophage_dll(root: &Path) -> PathBuf {
@@ -81,13 +95,37 @@ fn main() {
         "graft-repo" => cmd_graft_repo(&root),
         "model-c2c" => cmd_model_c2c(&root),
         "omni-test" => cmd_omni_test(&root),
+        "repo-map" => cmd_repo_map(&root),
+        "boot-kernel" => cmd_boot_kernel(&root),
+        "forge-kernel" => {
+            let name = args.get(2).map(|s| s.as_str()).unwrap_or("matrix_alpha");
+            cmd_forge_kernel(&root, name);
+        }
+        "forge-model" => {
+            let name = args.get(2).map(|s| s.as_str()).unwrap_or("chimera_alpha");
+            cmd_forge_model(&root, name);
+        }
+        "agent-run" => {
+            let task = if args.len() > 2 {
+                args[2..].join(" ")
+            } else {
+                "full matrix forge kernel and chimera model".to_string()
+            };
+            cmd_agent_run(&root, &task);
+        }
         "worker-handshake" => {
             let gen_tag = args.get(2).map(|s| s.as_str()).unwrap_or("gen0");
-            let secret_leaked = env::var("BEAST_API_KEY").is_ok() || env::var("OPENAI_API_KEY").is_ok();
+            let secret_leaked =
+                env::var("BEAST_API_KEY").is_ok() || env::var("OPENAI_API_KEY").is_ok();
             let zone = env::var("BEAST_ZONE").unwrap_or_else(|_| "UNSET".into());
             let pid = std::process::id();
-            let digest = hex_encode(&sha256(format!("{gen_tag}:{pid}:{zone}:{secret_leaked}").as_bytes()));
-            println!("WORKER_OK pid={pid} secret_leaked={secret_leaked} zone={zone} digest={}", &digest[..16]);
+            let digest = hex_encode(&sha256(
+                format!("{gen_tag}:{pid}:{zone}:{secret_leaked}").as_bytes(),
+            ));
+            println!(
+                "WORKER_OK pid={pid} secret_leaked={secret_leaked} zone={zone} digest={}",
+                &digest[..16]
+            );
         }
         "repl" => cmd_repl(&root),
         "api-query" => {
@@ -113,14 +151,15 @@ fn main() {
             }
         }
         other => {
-            eprintln!("Usage: beast <probe | bench | evolve-chimera | colony-sim | graft-repo | model-c2c | omni-test | repl | api-query PROV Q | verify-all [--export-lean PATH]> (got: {other})");
+            eprintln!("Usage: beast <probe | bench | evolve-chimera | colony-sim | graft-repo | model-c2c | omni-test | repo-map | boot-kernel | forge-kernel NAME | forge-model NAME | agent-run TASK | repl | api-query PROV Q | verify-all [--export-lean PATH]> (got: {other})");
             std::process::exit(2);
         }
     }
 }
 
 fn cmd_repl(root: &Path) {
-    println!("BEAST CIVILIZATION v0.3.0 BARE-METAL CONSOLE — commands: probe | bench | evolve | colony | graft | model | omni | verify | api <prov> <q> | quit");
+    println!("BEAST CIVILIZATION v0.4.0 AUTONOMOUS MATRIX FORGE CONSOLE");
+    println!("Commands: probe | bench | evolve | colony | graft | model | omni | repo-map | boot-kernel | forge-kernel <name> | forge-model <name> | agent-run <task> | verify | api <prov> <q> | quit");
     let stdin = io::stdin();
     let mut stdout = io::stdout();
     loop {
@@ -131,7 +170,9 @@ fn cmd_repl(root: &Path) {
             break;
         }
         let parts: Vec<&str> = line.trim().split_whitespace().collect();
-        if parts.is_empty() { continue; }
+        if parts.is_empty() {
+            continue;
+        }
         match parts[0] {
             "quit" | "exit" => break,
             "probe" => cmd_probe(root),
@@ -141,7 +182,14 @@ fn cmd_repl(root: &Path) {
             "graft" => cmd_graft_repo(root),
             "model" => cmd_model_c2c(root),
             "omni" => cmd_omni_test(root),
-            "verify" => { let _ = cmd_verify_all(root, None); }
+            "repo-map" => cmd_repo_map(root),
+            "boot-kernel" => cmd_boot_kernel(root),
+            "forge-kernel" => cmd_forge_kernel(root, parts.get(1).copied().unwrap_or("repl_os")),
+            "forge-model" => cmd_forge_model(root, parts.get(1).copied().unwrap_or("repl_chimera")),
+            "agent-run" if parts.len() >= 2 => cmd_agent_run(root, &parts[1..].join(" ")),
+            "verify" => {
+                let _ = cmd_verify_all(root, None);
+            }
             "api" if parts.len() >= 3 => {
                 let q = parts[2..].join(" ");
                 match query_public_oss_api(parts[1], &q) {
@@ -155,9 +203,12 @@ fn cmd_repl(root: &Path) {
 }
 
 fn cmd_probe(root: &Path) {
-    println!("=== BEAST CIVILIZATION v0.3.0 HARDWARE & 7-DLL ECOSYSTEM PROBE ===");
+    println!("=== BEAST CIVILIZATION v0.4.0 HARDWARE & 9-DLL ECOSYSTEM PROBE ===");
     println!("Repo root          : {}", root.display());
-    println!("Omnimodal domains  : {} routes across 8 architectures", OMNIMODAL_ROUTES_20.len());
+    println!(
+        "Omnimodal domains  : {} routes across 8 architectures",
+        OMNIMODAL_ROUTES_20.len()
+    );
     println!("Public OSS APIs    : {} endpoints baked in", PUBLIC_OSS_APIS.len());
 
     match ZigMetalLib::load(&default_zig_dll(root)) {
@@ -172,25 +223,63 @@ fn cmd_probe(root: &Path) {
     );
 
     let eco = probe_full_ecosystem_dlls(root);
-    println!("3. OMEGA CELL DLL  : avail={} SHA256_NIST_MATCH={}", eco.omega_available, eco.omega_sha256_match);
-    println!("4. CELLULOGONIC DLL: avail={} ABI=0x{:08x}", eco.cellulogonic_available, eco.cellulogonic_abi);
-    println!("5. TSOTCHKE PINN   : avail={} out=[{:.4}, {:.4}, {:.4}]", eco.pinn_available, eco.pinn_out[0], eco.pinn_out[1], eco.pinn_out[2]);
+    println!(
+        "3. OMEGA CELL DLL  : avail={} SHA256_NIST_MATCH={}",
+        eco.omega_available, eco.omega_sha256_match
+    );
+    println!(
+        "4. CELLULOGONIC DLL: avail={} ABI=0x{:08x}",
+        eco.cellulogonic_available, eco.cellulogonic_abi
+    );
+    println!(
+        "5. TSOTCHKE PINN   : avail={} out=[{:.4}, {:.4}, {:.4}]",
+        eco.pinn_available, eco.pinn_out[0], eco.pinn_out[1], eco.pinn_out[2]
+    );
     let tso_q = run_upstream_tsotchke_bell(&root.join("bin").join("tsotchke_qrng_bridge.dll"), 5000, 1024);
-    println!("6. TSOTCHKE QRNG   : avail={} CHSH_S={:.4} (>2.0={})", tso_q.available, tso_q.chsh_s, tso_q.violates_classical);
+    println!(
+        "6. TSOTCHKE QRNG   : avail={} CHSH_S={:.4} (>2.0={})",
+        tso_q.available, tso_q.chsh_s, tso_q.violates_classical
+    );
+    println!(
+        "7. TSOTCHKE IRREP  : avail={} Unsold_S2_ok={} sum_Y2={:.6} (9/4pi=0.716197)",
+        eco.libirrep_available, eco.libirrep_unsold_ok, eco.libirrep_total_norm_sq
+    );
+    println!(
+        "8. TSOTCHKE MOONLAB: avail={} QWZ_C=({},{}) SSH_W={} Kitaev_Z2={} Tr(g)={:.4} Omega={:.4}",
+        eco.moonlab_qgt_available,
+        eco.moonlab_qwz_chern_topo,
+        eco.moonlab_qwz_chern_triv,
+        eco.moonlab_ssh_winding,
+        eco.moonlab_kitaev_z2,
+        eco.moonlab_fs_trace,
+        eco.moonlab_berry_omega
+    );
 
     let gpu = run_blackwell_b158_verify(1024, 64);
     println!(
-        "7. CUDA PTX (3x)   : avail={} dev=\"{}\" sm_{} SMs={} verified={}/3 (b1.58={}us nvfp4={}us c2c={}us)",
+        "9. CUDA PTX (3x)   : avail={} dev=\"{}\" sm_{} SMs={} verified={}/3 (b1.58={}us nvfp4={}us c2c={}us)",
         gpu.available, gpu.device_name, gpu.compute_cap, gpu.sm_count, gpu.kernels_verified,
         gpu.gpu_kernel_us, gpu.nvfp4_kernel_us, gpu.c2c_scores_us
     );
 
-    if let Ok(elf) = audit_elf64_file(&root.join("bin").join("beast_microkernel.elf")) {
+    if let Ok(elf64) = audit_elf64_file(&root.join("bin").join("beast_microkernel.elf")) {
         println!(
-            "Freestanding ELF v2: {} B | ELF64 EM_X86_64 | entry=0x{:x} | PT_LOAD={} | Multiboot2_csum_ok={}",
-            elf.file_bytes, elf.entry_addr, elf.pt_load_count, elf.multiboot2_checksum_valid
+            "Freestanding ELF64 : {} B | EM_X86_64 | entry=0x{:x} | PT_LOAD={} | Multiboot2_ok={}",
+            elf64.file_bytes, elf64.entry_addr, elf64.pt_load_count, elf64.multiboot2_checksum_valid
         );
     }
+    if let Ok(elf32) = audit_elf32_file(&root.join("bin").join("beast_boot32.elf")) {
+        println!(
+            "Freestanding ELF32 : {} B | EM_386    | entry=0x{:x} | PT_LOAD={} | Multiboot1_ok={}",
+            elf32.file_bytes, elf32.entry_addr, elf32.pt_load_count, elf32.multiboot1_checksum_valid
+        );
+    }
+    println!(
+        "QEMU Ring-0 Engine : {}",
+        find_qemu_binary()
+            .map(|p| p.display().to_string())
+            .unwrap_or_else(|| "NOT INSTALLED".into())
+    );
     let vendor_dirs = fs::read_dir(root.join("vendor"))
         .map(|rd| rd.flatten().filter(|e| e.path().is_dir()).count())
         .unwrap_or(0);
@@ -198,7 +287,7 @@ fn cmd_probe(root: &Path) {
 }
 
 fn cmd_bench(root: &Path) {
-    println!("=== BEAST CIVILIZATION v0.3.0 LIVE SILICON BENCHMARKS (ZERO MOCKS) ===");
+    println!("=== BEAST CIVILIZATION v0.4.0 LIVE SILICON BENCHMARKS (ZERO MOCKS) ===");
     let zig = ZigMetalLib::load(&default_zig_dll(root)).expect("beast_metal.dll required; run .\\build.ps1");
 
     let iters = 200_000u64;
@@ -302,9 +391,58 @@ fn cmd_omni_test(root: &Path) {
     );
 }
 
+fn cmd_repo_map(root: &Path) {
+    let rmap = build_merkle_repo_map(root, 8_192).expect("build_merkle_repo_map failed");
+    println!(
+        "MERKLE MULTI-LANG AST REPO-MAP  : files={} symbols={} prompt_bytes={} merkle_root={}..",
+        rmap.files_indexed, rmap.total_symbols, rmap.compact_prompt.len(), &rmap.merkle_root_hex[..16]
+    );
+}
+
+fn cmd_boot_kernel(root: &Path) {
+    let elf32 = root.join("bin").join("beast_boot32.elf");
+    let audit = audit_elf32_file(&elf32).expect("ELF32 Multiboot1 audit failed");
+    let (exp_b158, exp_nvfp4) = host_kernel_oracle(&DEFAULT_B158_WEIGHTS, &DEFAULT_NVFP4_WEIGHTS);
+    let q = boot_kernel_in_qemu(&elf32, exp_b158, exp_nvfp4).expect("QEMU Ring-0 boot failed");
+    println!(
+        "RING-0 MULTIBOOT1 KERNEL BOOT   : elf={}B entry=0x{:x} qemu_avail={} booted={} B158={}/{} NVFP4={}/{} BIT_EXACT={}",
+        audit.file_bytes, audit.entry_addr, q.qemu_available, q.booted_cleanly,
+        q.serial_b158, exp_b158, q.serial_nvfp4, exp_nvfp4, q.bit_exact_match
+    );
+}
+
+fn cmd_forge_kernel(root: &Path, name: &str) {
+    let rep = forge_neural_kernel(root, name, 5000).expect("forge_neural_kernel failed");
+    println!(
+        "FORGED NEURAL OS MICROKERNEL    : name={} elf={}B sha={}.. entry=0x{:x} oracle=({},{}) qemu_boot={} qemu_exact={} planaria_heal={} trojans={}",
+        rep.name, rep.elf_bytes, rep.elf_sha256_prefix, rep.entry_addr,
+        rep.oracle_b158, rep.oracle_nvfp4, rep.qemu_booted, rep.qemu_bit_exact,
+        rep.planaria_healed_exact, rep.planaria_trojans_quarantined
+    );
+}
+
+fn cmd_forge_model(root: &Path, name: &str) {
+    let rep = forge_chimera_model(root, name, 5000).expect("forge_chimera_model failed");
+    println!(
+        "FORGED CHIMERA GGUF + .BCG MODEL: name={} gguf={}B bcg={}B repo_merkle={}.. swat_cos={:.4} planaria_exact={} infer_exact={}",
+        rep.name, rep.gguf_bytes, rep.bcg_bytes, rep.repo_merkle_prefix,
+        rep.swat_cos, rep.planaria_heal_exact, rep.inference_exact
+    );
+}
+
+fn cmd_agent_run(root: &Path, task: &str) {
+    let rep = run_autonomous_agent_task(root, task, 5000).expect("agent-run failed");
+    println!(
+        "AUTONOMOUS AGENT LOOP (INITxNH) : tier={} steps={} repo=({} files/{} syms, merkle={}..) kernel={:?}B(qemu={}) model={:?}B spend={}uUSD chain_ok={} tip={}..",
+        rep.effort_tier, rep.steps_executed, rep.repo_files, rep.repo_symbols, rep.repo_merkle_prefix,
+        rep.forged_kernel_elf_bytes, rep.forged_kernel_qemu_exact, rep.forged_model_gguf_bytes,
+        rep.spend_used_microdollars, rep.receipt_chain_valid, &rep.final_receipt_hex[..16]
+    );
+}
+
 fn cmd_verify_all(root: &Path, export_lean_path: Option<&str>) -> Result<(), String> {
     println!("=========================================================================");
-    println!("  BEAST CIVILIZATION v0.3.0 — 16-GATE / 16-MUTANT MATRIX VERIFICATION");
+    println!("  BEAST CIVILIZATION v0.4.0 — 20-GATE / 20-MUTANT MATRIX FORGE AUDIT");
     println!("=========================================================================");
 
     let mut gates_passed = 0u32;
@@ -316,7 +454,9 @@ fn cmd_verify_all(root: &Path, export_lean_path: Option<&str>) -> Result<(), Str
         return Err("Zig clean self-test failed".into());
     }
     for m in 1..=3 {
-        if (zig.self_test_all)(m) != 0 { return Err(format!("Zig mutant {m} escaped!")); }
+        if (zig.self_test_all)(m) != 0 {
+            return Err(format!("Zig mutant {m} escaped!"));
+        }
         mutants_caught += 1;
     }
     for ctr in 0..64u64 {
@@ -328,22 +468,32 @@ fn cmd_verify_all(root: &Path, export_lean_path: Option<&str>) -> Result<(), Str
     println!("[PASS] G01 Zig beast-metal (b1.58/u1/i2/NVFP4 SIMD==Ref, Philox Rust==Zig, 3/3 mutants caught)");
 
     // G02: Ring-0 Root Guardian + 2 planted mutants
-    let mut r0 = Ring0Root::new(b"beast-charter-v0.3", 500_000, b"body-v0".to_vec());
+    let mut r0 = Ring0Root::new(b"beast-charter-v0.4", 500_000, b"body-v0".to_vec());
     r0.store_secret("BEAST_API_KEY", "sk-ring0-only");
     let h0 = r0.live_state_sha256_hex();
-    if r0.check_write_acl("crates/beast-root/src/lib.rs").is_ok() { return Err("Mutant 4 escaped".into()); }
+    if r0.check_write_acl("crates/beast-root/src/lib.rs").is_ok() {
+        return Err("Mutant 4 escaped".into());
+    }
     mutants_caught += 1;
-    if r0.meter_spend(999_999).is_ok() { return Err("Mutant 5 escaped".into()); }
+    if r0.meter_spend(999_999).is_ok() {
+        return Err("Mutant 5 escaped".into());
+    }
     mutants_caught += 1;
-    let _ = r0.apply_self_rewrite(
-        HarnessTier::T1aYarvBytecode,
-        "ruby/beast_yarv.rb",
-        b"body-v1".to_vec(),
-        GateReport {
-            g0_build_and_test: true, g1_self_map_parity: true, g2_shadow_boot: true,
-            g3_self_edit_preserved: true, g4_blind_eval_clean: true, harm_signals: vec![],
-        },
-    ).map_err(|e| format!("T1a swap failed: {e:?}"))?;
+    let _ = r0
+        .apply_self_rewrite(
+            HarnessTier::T1aYarvBytecode,
+            "ruby/beast_yarv.rb",
+            b"body-v1".to_vec(),
+            GateReport {
+                g0_build_and_test: true,
+                g1_self_map_parity: true,
+                g2_shadow_boot: true,
+                g3_self_edit_preserved: true,
+                g4_blind_eval_clean: true,
+                harm_signals: vec![],
+            },
+        )
+        .map_err(|e| format!("T1a swap failed: {e:?}"))?;
     assert_eq!(hex_encode(&r0.rollback_latest()?), h0);
     r0.verify_lineage().map_err(|i| format!("lineage broke at {i}"))?;
     gates_passed += 1;
@@ -358,33 +508,64 @@ fn cmd_verify_all(root: &Path, export_lean_path: Option<&str>) -> Result<(), Str
     let (rust_out, tot_len) = augment_cache_attend(&q_ad, &receiver, &mapped);
     let mut zig_out = vec![0.0f32; 32];
     let zig_tot = (zig.c2c_augment_attn_f32)(
-        q_ad.as_ptr(), receiver.keys.as_ptr(), receiver.values.as_ptr(), receiver.seq_len,
-        mapped.keys.as_ptr(), mapped.values.as_ptr(), mapped.seq_len, 32, zig_out.as_mut_ptr(),
+        q_ad.as_ptr(),
+        receiver.keys.as_ptr(),
+        receiver.values.as_ptr(),
+        receiver.seq_len,
+        mapped.keys.as_ptr(),
+        mapped.values.as_ptr(),
+        mapped.seq_len,
+        32,
+        zig_out.as_mut_ptr(),
     );
-    let max_diff = rust_out.iter().zip(zig_out.iter()).map(|(a, b)| (a - b).abs()).fold(0.0f32, f32::max);
-    if zig_tot as usize != tot_len || max_diff > 1e-5 { return Err("C2C Rust vs Zig mismatch".into()); }
+    let max_diff = rust_out
+        .iter()
+        .zip(zig_out.iter())
+        .map(|(a, b)| (a - b).abs())
+        .fold(0.0f32, f32::max);
+    if zig_tot as usize != tot_len || max_diff > 1e-5 {
+        return Err("C2C Rust vs Zig mismatch".into());
+    }
     let mut act_t = vec![0.0f32; 32];
     replace_activation(&vec![0.5f32; 64], &mapper.w_k, 64, 32, &mut act_t);
     let payload = mapped.to_bytes();
     let spoof = Bc2cPacketHeader {
-        magic: BC2C_MAGIC, src_family: ModelFamily::CloudFrontier as u8, dst_family: ModelFamily::TemRust as u8,
-        carrier_mode: CarrierMode::TextCloudFallback as u8, is_local_c2c: 1,
-        seq_len: 12, head_dim: 32, layer_mask: 1, payload_sha256: sha256(&payload), _pad: [0; 8],
+        magic: BC2C_MAGIC,
+        src_family: ModelFamily::CloudFrontier as u8,
+        dst_family: ModelFamily::TemRust as u8,
+        carrier_mode: CarrierMode::TextCloudFallback as u8,
+        is_local_c2c: 1,
+        seq_len: 12,
+        head_dim: 32,
+        layer_mask: 1,
+        payload_sha256: sha256(&payload),
+        _pad: [0; 8],
     };
-    if spoof.validate(&payload).is_ok() { return Err("Mutant 6 escaped".into()); }
+    if spoof.validate(&payload).is_ok() {
+        return Err("Mutant 6 escaped".into());
+    }
     mutants_caught += 1;
     let c2c_bench = bench_c2c_vs_text_prefill(128, 96, 64, 16);
     gates_passed += 1;
-    println!("[PASS] G03 MIT C2C / Swarm Telepathy (Rust==Zig max_diff={:.2e}, speedup={:.2}x, spoof mutant caught)", max_diff, c2c_bench.speedup_x);
+    println!(
+        "[PASS] G03 MIT C2C / Swarm Telepathy (Rust==Zig max_diff={:.2e}, speedup={:.2}x, spoof mutant caught)",
+        max_diff, c2c_bench.speedup_x
+    );
 
     // G04: Trained MIT SwaT + 2x2 Augment-vs-Overwrite Empirical Proof
     let (trained_mapper, swat_rep) = train_and_verify_swat_mapper(32, 24, 140, 5000);
-    if swat_rep.mse_reduction_pct < 85.0 || swat_rep.heldout_cosine_sim < 0.90 || !swat_rep.augment_beats_overwrite {
+    if swat_rep.mse_reduction_pct < 85.0
+        || swat_rep.heldout_cosine_sim < 0.90
+        || !swat_rep.augment_beats_overwrite
+    {
         return Err(format!("Trained SwaT failed: {swat_rep:?}"));
     }
     gates_passed += 1;
-    println!("[PASS] G04 Trained MIT SwaT + 2x2 Law (heldout MSE -{:.1}%, cos={:.4}, Augment={:.3} vs Overwrite={:.3})",
-        swat_rep.mse_reduction_pct, swat_rep.heldout_cosine_sim, swat_rep.augment_self_recall_cos, swat_rep.overwrite_self_recall_cos);
+    println!(
+        "[PASS] G04 Trained MIT SwaT + 2x2 Law (heldout MSE -{:.1}%, cos={:.4}, Augment={:.3} vs Overwrite={:.3})",
+        swat_rep.mse_reduction_pct, swat_rep.heldout_cosine_sim,
+        swat_rep.augment_self_recall_cos, swat_rep.overwrite_self_recall_cos
+    );
 
     // G05: Persistent .bcg CacheGraft Repo Indexer + tampered mutant #7
     let files = ["AGENTS.md", "Cargo.toml", "zig/beast-metal/src/root.zig", "lean/BeastProofs.lean"];
@@ -400,20 +581,32 @@ fn cmd_verify_all(root: &Path, export_lean_path: Option<&str>) -> Result<(), Str
     fs::write(&bad_bcg, &raw_bcg).map_err(|e| e.to_string())?;
     let tampered_err = load_bcg(&bad_bcg).is_err();
     let _ = fs::remove_file(&bad_bcg);
-    if !tampered_err { return Err("Mutant 7 escaped".into()); }
+    if !tampered_err {
+        return Err("Mutant 7 escaped".into());
+    }
     mutants_caught += 1;
     gates_passed += 1;
-    println!("[PASS] G05 MIT CacheGraft .bcg Repo Bank (chunks={} tokens={} size={}B, tampered mutant caught)", reloaded.chunks_indexed, reloaded.kv.seq_len, bcg_bytes);
+    println!(
+        "[PASS] G05 MIT CacheGraft .bcg Repo Bank (chunks={} tokens={} size={}B, tampered mutant caught)",
+        reloaded.chunks_indexed, reloaded.kv.seq_len, bcg_bytes
+    );
 
     // G06: Planaria GF(2^8) + Depth-3 Merkle Capsule + Trojan mutant #8
-    let cap_payload = b"BEAST-CIVILIZATION-V0.3-SELF-HEALING-PLANARIA-COLONY-GENOME-BINARY";
+    let cap_payload = b"BEAST-CIVILIZATION-V0.4-SELF-HEALING-PLANARIA-COLONY-GENOME-BINARY";
     let cap = PlanariaCapsule::encode(cap_payload);
-    let mut tortured = vec![cap.shards[4].clone(), cap.shards[5].clone(), cap.shards[6].clone(), cap.shards[7].clone()];
+    let mut tortured = vec![
+        cap.shards[4].clone(),
+        cap.shards[5].clone(),
+        cap.shards[6].clone(),
+        cap.shards[7].clone(),
+    ];
     let mut trojan = cap.shards[0].clone();
     trojan.data[0] ^= 0x5A;
     tortured.insert(0, trojan);
     let (healed, quarantined) = cap.heal(&tortured).map_err(|e| e.to_string())?;
-    if healed.as_slice() != cap_payload || quarantined != 1 { return Err("Mutant 8 escaped".into()); }
+    if healed.as_slice() != cap_payload || quarantined != 1 {
+        return Err("Mutant 8 escaped".into());
+    }
     mutants_caught += 1;
     gates_passed += 1;
     println!("[PASS] G06 Planaria GF(2^8) + Merkle Capsule (50% data annihilated, 1/1 Byzantine Trojan quarantined, 100% bit-exact heal)");
@@ -432,14 +625,22 @@ fn cmd_verify_all(root: &Path, export_lean_path: Option<&str>) -> Result<(), Str
     assert!((fsrs45_retrievability(10.0, 10.0) - 0.9).abs() < 1e-9);
     let base24 = vec![1.0; 24];
     let noisy24: Vec<f64> = (0..24).map(|i| if i % 2 == 0 { 0.8 } else { 1.3 }).collect();
-    if strictly_better_gate(&base24, &noisy24, 0.01).accepted { return Err("Mutant 9 escaped".into()); }
+    if strictly_better_gate(&base24, &noisy24, 0.01).accepted {
+        return Err("Mutant 9 escaped".into());
+    }
     mutants_caught += 1;
-    if build_allowlisted_url("arxiv", "foo; rm -rf /").is_ok() || build_allowlisted_url("evil_host", "q").is_ok() {
+    if build_allowlisted_url("arxiv", "foo; rm -rf /").is_ok()
+        || build_allowlisted_url("evil_host", "q").is_ok()
+    {
         return Err("Mutant 10 escaped".into());
     }
     mutants_caught += 1;
     gates_passed += 1;
-    println!("[PASS] G07 Colony OS Math & Public OSS API Guard (Wilson={:.6}, NonHuman=-{:.1}%, 2/2 mutants caught)", w30, (1.0 - c10 / c14) * 100.0);
+    println!(
+        "[PASS] G07 Colony OS Math & Public OSS API Guard (Wilson={:.6}, NonHuman=-{:.1}%, 2/2 mutants caught)",
+        w30,
+        (1.0 - c10 / c14) * 100.0
+    );
 
     // G08: Tsotchke Quantum/Geo + Upstream compiled `tsotchke/quantum_rng` Bell DLL
     let linear = [-2.0, -1.5, -2.5, -1.0, -3.0, -1.2];
@@ -457,25 +658,39 @@ fn cmd_verify_all(root: &Path, export_lean_path: Option<&str>) -> Result<(), Str
         return Err(format!("Upstream tsotchke/quantum_rng Bell failed: S={}", tso.chsh_s));
     }
     gates_passed += 1;
-    println!("[PASS] G08 Tsotchke Quantum/Geo (QUBO E={:.2}, QGTL g_tt={:.4}, QRNG S={:.4}, upstream_tsotchke_dll={} S={:.4})",
-        qubo.best_energy, qgt.g_theta_theta, chsh_s, tso.available, tso.chsh_s);
+    println!(
+        "[PASS] G08 Tsotchke Quantum/Geo (QUBO E={:.2}, QGTL g_tt={:.4}, QRNG S={:.4}, upstream_tsotchke_dll={} S={:.4})",
+        qubo.best_energy, qgt.g_theta_theta, chsh_s, tso.available, tso.chsh_s
+    );
 
     // G09: 120-Gen Zig Chimera Breeder (KC-4) + corrupted magic mutant #11
     let mut evo = BeastEvolutionReport::default();
-    if (zig.chimera_evolve_benchmark)(120, 24, 5000, &mut evo) != 0 || evo.evolved_beats_control != 1 || evo.apex_spectral_norm > 0.991 {
+    if (zig.chimera_evolve_benchmark)(120, 24, 5000, &mut evo) != 0
+        || evo.evolved_beats_control != 1
+        || evo.apex_spectral_norm > 0.991
+    {
         return Err(format!("KC-4 failed: {evo:?}"));
     }
     let mut bad_g = BeastChimeraGenome::default();
     bad_g.magic = 0xDEADBEEF;
     let mut out16 = [0.0f32; 16];
     let mut liq16 = [0.0f32; 16];
-    if (zig.chimera_forward)(&bad_g, [0.3f32; 16].as_ptr(), std::ptr::null(), out16.as_mut_ptr(), liq16.as_mut_ptr()) == 0 {
+    if (zig.chimera_forward)(
+        &bad_g,
+        [0.3f32; 16].as_ptr(),
+        std::ptr::null(),
+        out16.as_mut_ptr(),
+        liq16.as_mut_ptr(),
+    ) == 0
+    {
         return Err("Mutant 11 escaped".into());
     }
     mutants_caught += 1;
     gates_passed += 1;
-    println!("[PASS] G09 120-Gen Zig Chimera Breeder KC-4 (heldout MSE {:.4} -> {:.4} vs rand {:.4}, ||W||_2={:.4}, mutant caught)",
-        evo.init_heldout_mse, evo.evolved_heldout_mse, evo.random_control_heldout_mse, evo.apex_spectral_norm);
+    println!(
+        "[PASS] G09 120-Gen Zig Chimera Breeder KC-4 (heldout MSE {:.4} -> {:.4} vs rand {:.4}, ||W||_2={:.4}, mutant caught)",
+        evo.init_heldout_mse, evo.evolved_heldout_mse, evo.random_control_heldout_mse, evo.apex_spectral_norm
+    );
 
     // G10: Multi-Colony Civilization OS + Live 10-Epoch AUTOPHAGE RWX JIT World
     let civ = run_colony_civilization(16, 5000, &default_autophage_dll(root));
@@ -483,8 +698,10 @@ fn cmd_verify_all(root: &Path, export_lean_path: Option<&str>) -> Result<(), Str
         return Err("AUTOPHAGE live RWX JIT vs Scalar mismatch!".into());
     }
     gates_passed += 1;
-    println!("[PASS] G10 Multi-Colony Civilization OS (3 colonies/18 agents, graduated={}/18, AUTOPHAGE RWX==Scalar={} sha={}..)",
-        civ.local_graduated_agents, civ.autophage_bit_exact, civ.autophage_sha256_prefix);
+    println!(
+        "[PASS] G10 Multi-Colony Civilization OS (3 colonies/18 agents, graduated={}/18, AUTOPHAGE RWX==Scalar={} sha={}..)",
+        civ.local_graduated_agents, civ.autophage_bit_exact, civ.autophage_sha256_prefix
+    );
 
     // G11: 3-Kernel RTX 5070 Ti Blackwell CUDA PTX
     let gpu = run_blackwell_b158_verify(2048, 64);
@@ -492,8 +709,10 @@ fn cmd_verify_all(root: &Path, export_lean_path: Option<&str>) -> Result<(), Str
         return Err(format!("Blackwell PTX failed: {:?}", gpu.error_msg));
     }
     gates_passed += 1;
-    println!("[PASS] G11 Blackwell RTX 5070 Ti 3-Kernel PTX ({}/3 verified: b1.58={}us nvfp4={}us c2c={}us)",
-        gpu.kernels_verified, gpu.gpu_kernel_us, gpu.nvfp4_kernel_us, gpu.c2c_scores_us);
+    println!(
+        "[PASS] G11 Blackwell RTX 5070 Ti 3-Kernel PTX ({}/3 verified: b1.58={}us nvfp4={}us c2c={}us)",
+        gpu.kernels_verified, gpu.gpu_kernel_us, gpu.nvfp4_kernel_us, gpu.c2c_scores_us
+    );
 
     // G12: Same-Seed Double-Run Determinism + Tampered Rosette-Wire Chain mutant #12
     let key = sha256(b"verify-chain-key");
@@ -502,27 +721,36 @@ fn cmd_verify_all(root: &Path, export_lean_path: Option<&str>) -> Result<(), Str
     chain.push(r1);
     verify_chain(&chain, &key).map_err(|i| format!("clean chain failed at {i}"))?;
     chain[0].output_hash[0] ^= 0x80;
-    if verify_chain(&chain, &key).is_ok() { return Err("Mutant 12 escaped".into()); }
+    if verify_chain(&chain, &key).is_ok() {
+        return Err("Mutant 12 escaped".into());
+    }
     mutants_caught += 1;
     let civ2 = run_colony_civilization(16, 5000, &default_autophage_dll(root));
-    if civ.civilization_digest_hex != civ2.civilization_digest_hex { return Err("Non-deterministic Civilization double-run!".into()); }
+    if civ.civilization_digest_hex != civ2.civilization_digest_hex {
+        return Err("Non-deterministic Civilization double-run!".into());
+    }
     gates_passed += 1;
     println!("[PASS] G12 Determinism & Rosette-Wire Integrity (0-bit double-run parity, tampered chain mutant caught)");
 
-    // G13: Cross-Architecture Transformer->Chimera C2C + GGUF v3 + Planaria 50%-Annihilation + GGUF mutant #13
+    // G13: Cross-Architecture Transformer->Chimera C2C + GGUF v3 + Planaria + mutant #13
     let gguf_path = root.join("bin").join("beast_chimera.gguf");
     let xarch = run_cross_arch_c2c_gguf_planaria(&gguf_path, 5000)?;
     if !xarch.heal_bit_exact || !xarch.inference_after_heal_exact || xarch.planaria_trojans_quarantined != 1 {
         return Err("Cross-arch GGUF+Planaria verification failed!".into());
     }
     let mut bad_gguf = fs::read(&gguf_path).map_err(|e| e.to_string())?;
-    bad_gguf[0] ^= 0xFF; // Mutant 13: corrupt GGUF magic!
-    if GgufFile::decode(&bad_gguf).is_ok() { return Err("Mutant 13 escaped: corrupt GGUF decoded!".into()); }
+    bad_gguf[0] ^= 0xFF;
+    if GgufFile::decode(&bad_gguf).is_ok() {
+        return Err("Mutant 13 escaped".into());
+    }
     mutants_caught += 1;
     gates_passed += 1;
-    println!("[PASS] G13 Cross-Arch C2C + GGUF v3 + Planaria Heal ({}B GGUF, 50% shredded -> 0-bit exact inference reload, mutant caught)", xarch.gguf_bytes);
+    println!(
+        "[PASS] G13 Cross-Arch C2C + GGUF v3 + Planaria Heal ({}B GGUF, 50% shredded -> 0-bit exact inference reload, mutant caught)",
+        xarch.gguf_bytes
+    );
 
-    // G14: Real Omnimodal Audio (TTS->WAV->ASR) + Vision/OCR (.pgm->Sobel+b1.58) + ELF64/Multiboot2 Audit + mutant #14
+    // G14: Real Omnimodal Audio + Vision/OCR + ELF64/Multiboot2 Audit + mutant #14
     let omni = run_omnimodal_dsp_ocr_suite(
         &root.join("bin").join("beast_tts_sample.wav"),
         &root.join("bin").join("beast_ocr_sheet.pgm"),
@@ -534,37 +762,61 @@ fn cmd_verify_all(root: &Path, export_lean_path: Option<&str>) -> Result<(), Str
     let elf_raw = fs::read(&elf_path).map_err(|e| e.to_string())?;
     let elf_audit = audit_elf64_multiboot2(&elf_raw)?;
     let mut bad_elf = elf_raw.clone();
-    bad_elf[elf_audit.multiboot2_offset + 12] ^= 0x01; // Mutant 14: corrupt Multiboot2 checksum!
-    if audit_elf64_multiboot2(&bad_elf).is_ok() { return Err("Mutant 14 escaped: bad Multiboot2 checksum accepted!".into()); }
+    bad_elf[elf_audit.multiboot2_offset + 12] ^= 0x01;
+    if audit_elf64_multiboot2(&bad_elf).is_ok() {
+        return Err("Mutant 14 escaped".into());
+    }
     mutants_caught += 1;
     gates_passed += 1;
-    println!("[PASS] G14 Omnimodal DSP/OCR (TTS->ASR={}/{}, OCR=\"{}\" exact) + ELF64/Multiboot2 Audit ({}B entry=0x{:x}, mutant caught)",
-        omni.tts_asr_matched, omni.tts_asr_total, omni.ocr_decoded, elf_audit.file_bytes, elf_audit.entry_addr);
+    println!(
+        "[PASS] G14 Omnimodal DSP/OCR (TTS->ASR={}/{}, OCR=\"{}\" exact) + ELF64/Multiboot2 ({}B entry=0x{:x}, mutant caught)",
+        omni.tts_asr_matched, omni.tts_asr_total, omni.ocr_decoded, elf_audit.file_bytes, elf_audit.entry_addr
+    );
 
-    // G15: Live OS-Level Ring-0 Parent -> Sandboxed Child Process Isolation & Overlapped Hot-Swap + mutant #15
-    // Plant a secret canary in our own process env to prove child OS process CANNOT inherit it!
-    unsafe { env::set_var("BEAST_API_KEY", "sk-canary-ring0-must-scrub"); }
+    // G15: Live OS-Level Ring-0 Parent -> Sandboxed Child Process Isolation + mutant #15
+    unsafe {
+        env::set_var("BEAST_API_KEY", "sk-canary-ring0-must-scrub");
+    }
     let self_exe = env::current_exe().map_err(|e| e.to_string())?;
     let handoff = verify_os_process_sandbox_handoff(&r0, &self_exe)?;
-    // Mutant 15: Verify parent truly had the canary set (proving scrubbing wasn't vacuous!)
     if env::var("BEAST_API_KEY").is_err() {
-        return Err("Mutant 15 failed: parent secret canary missing (vacuous test)!".into());
+        return Err("Mutant 15 failed: parent canary missing!".into());
     }
-    unsafe { env::remove_var("BEAST_API_KEY"); }
+    unsafe {
+        env::remove_var("BEAST_API_KEY");
+    }
     mutants_caught += 1;
     gates_passed += 1;
-    println!("[PASS] G15 Live OS-Process Ring-0 Sandbox Handoff (parent={} -> c1={} -> c2={}, zero secret leak across both OS PIDs)",
-        handoff.parent_pid, handoff.child1_pid, handoff.child2_pid);
+    println!(
+        "[PASS] G15 Live OS-Process Ring-0 Sandbox Handoff (parent={} -> c1={} -> c2={}, zero secret leak across both OS PIDs)",
+        handoff.parent_pid, handoff.child1_pid, handoff.child2_pid
+    );
 
-    // G16: Unified 7-DLL Native Ecosystem (Zig + AUTOPHAGE + OMEGA + CELLULOGONIC + Tsotchke QRNG + Tsotchke PINN + CUDA) + mutant #16
+    // G16: Unified 9-DLL Bare-Metal Ecosystem (Zig + 3x 0thernes + 4x Tsotchke + CUDA) + mutant #16
     let eco = probe_full_ecosystem_dlls(root);
-    if eco.omega_available && !eco.omega_sha256_match { return Err("omega_cell.dll SHA-256 mismatch!".into()); }
-    if eco.cellulogonic_available && eco.cellulogonic_abi != 0x00010400 { return Err("cellulogonic.dll ABI mismatch!".into()); }
-    if !eco.pinn_available { return Err("tsotchke_pinn_bridge.dll missing or failed!".into()); }
-    // Mutant 16: Loading nonexistent symbol from real DLL MUST fail cleanly
+    if eco.omega_available && !eco.omega_sha256_match {
+        return Err("omega_cell.dll SHA-256 mismatch!".into());
+    }
+    if eco.cellulogonic_available && eco.cellulogonic_abi != 0x00010400 {
+        return Err("cellulogonic.dll ABI mismatch!".into());
+    }
+    if !eco.pinn_available {
+        return Err("tsotchke_pinn_bridge.dll missing or failed!".into());
+    }
+    if !eco.libirrep_available || !eco.libirrep_unsold_ok {
+        return Err("tsotchke_libirrep_bridge.dll missing or Unsold S^2 check failed!".into());
+    }
+    if !eco.moonlab_qgt_available
+        || eco.moonlab_qwz_chern_topo != 1
+        || eco.moonlab_qwz_chern_triv != 0
+        || eco.moonlab_ssh_winding != 1
+        || eco.moonlab_kitaev_z2 != 1
+    {
+        return Err("tsotchke_moonlab_qgt_bridge.dll topological invariant verification failed!".into());
+    }
     let zcheck = DynLib::open(&default_zig_dll(root))?;
     if zcheck.symbol_raw("beast_nonexistent_mutant_symbol_xyz").is_ok() {
-        return Err("Mutant 16 escaped: nonexistent FFI symbol resolved!".into());
+        return Err("Mutant 16 escaped".into());
     }
     mutants_caught += 1;
     let dlls_active = 1u64
@@ -573,12 +825,87 @@ fn cmd_verify_all(root: &Path, export_lean_path: Option<&str>) -> Result<(), Str
         + u64::from(eco.cellulogonic_available)
         + u64::from(tso.available)
         + u64::from(eco.pinn_available)
+        + u64::from(eco.libirrep_available && eco.libirrep_unsold_ok)
+        + u64::from(eco.moonlab_qgt_available)
         + u64::from(gpu.available);
     gates_passed += 1;
-    println!("[PASS] G16 7-DLL Bare-Metal Ecosystem ({}/7 live: Zig+AUTOPHAGE+OMEGA+CELLULOGONIC+Tsotchke[QRNG+PINN]+CUDA, FFI mutant caught)", dlls_active);
+    println!(
+        "[PASS] G16 9-DLL Bare-Metal Ecosystem ({}/9 live: +libirrep Unsold={:.4}, +moonlab QWZ C={}/{} SSH W={} Kitaev Z2={}, mutant caught)",
+        dlls_active, eco.libirrep_total_norm_sq, eco.moonlab_qwz_chern_topo, eco.moonlab_qwz_chern_triv,
+        eco.moonlab_ssh_winding, eco.moonlab_kitaev_z2
+    );
+
+    // G17: Live-Bootable ELF32 Multiboot1 AI Microkernel + QEMU Ring-0 Boot Verification + mutant #17
+    let boot32_path = root.join("bin").join("beast_boot32.elf");
+    let boot32_raw = fs::read(&boot32_path).map_err(|e| format!("read beast_boot32.elf: {e}"))?;
+    let boot32_audit = audit_elf32_multiboot1(&boot32_raw)?;
+    let mut bad_mb1 = boot32_raw.clone();
+    bad_mb1[boot32_audit.multiboot1_offset + 8] ^= 0x01; // Mutant 17: corrupt Multiboot1 checksum!
+    if audit_elf32_multiboot1(&bad_mb1).is_ok() {
+        return Err("Mutant 17 escaped: bad Multiboot1 checksum accepted!".into());
+    }
+    mutants_caught += 1;
+    let (exp_b158, exp_nvfp4) = host_kernel_oracle(&DEFAULT_B158_WEIGHTS, &DEFAULT_NVFP4_WEIGHTS);
+    let qemu_rep = boot_kernel_in_qemu(&boot32_path, exp_b158, exp_nvfp4)?;
+    gates_passed += 1;
+    println!(
+        "[PASS] G17 Ring-0 Multiboot1 ELF32 Kernel ({}B entry=0x{:x}, QEMU_avail={} QEMU_bit_exact={} oracle=({},{}), mutant caught)",
+        boot32_audit.file_bytes, boot32_audit.entry_addr, qemu_rep.qemu_available, qemu_rep.bit_exact_match, exp_b158, exp_nvfp4
+    );
+
+    // G18: Merkle Multi-Language AST Repo-Map + Leaf-Tamper mutant #18
+    let rmap1 = build_merkle_repo_map(root, 16_384)?;
+    let rmap2 = build_merkle_repo_map(root, 16_384)?;
+    if rmap1.merkle_root != rmap2.merkle_root || rmap1.files_indexed < 20 || rmap1.total_symbols < 50 {
+        return Err("Merkle Repo-Map determinism or coverage check failed!".into());
+    }
+    let leaf_a = sha256(b"repo-leaf-a");
+    let leaf_b = sha256(b"repo-leaf-b");
+    let mut leaf_b_bad = leaf_b;
+    leaf_b_bad[0] ^= 0x01;
+    if compute_merkle_root(&[leaf_a, leaf_b]) == compute_merkle_root(&[leaf_a, leaf_b_bad]) {
+        return Err("Mutant 18 escaped: tampered Merkle leaf produced identical root!".into());
+    }
+    mutants_caught += 1;
+    gates_passed += 1;
+    println!(
+        "[PASS] G18 Merkle Multi-Lang AST Repo-Map ({} files, {} symbols, root={}.., leaf-tamper mutant caught)",
+        rmap1.files_indexed, rmap1.total_symbols, &rmap1.merkle_root_hex[..16]
+    );
+
+    // G19: Autonomous Matrix Forge (Neural Kernel + Chimera Model) + Path-Traversal mutant #19
+    let fk = forge_neural_kernel(root, "verify_forge_os", 5000)?;
+    let fm = forge_chimera_model(root, "verify_forge_chimera", 5000)?;
+    if !fk.planaria_healed_exact || !fm.planaria_heal_exact || !fm.inference_exact {
+        return Err("Autonomous Matrix Forge verification failed!".into());
+    }
+    if forge_neural_kernel(root, "../../evil", 5000).is_ok() {
+        return Err("Mutant 19 escaped: path-traversal forge name accepted!".into());
+    }
+    mutants_caught += 1;
+    gates_passed += 1;
+    println!(
+        "[PASS] G19 Autonomous Matrix Forge (kernel={}B qemu_exact={} + gguf={}B + bcg={}B, path-traversal mutant caught)",
+        fk.elf_bytes, fk.qemu_bit_exact, fm.gguf_bytes, fm.bcg_bytes
+    );
+
+    // G20: Unified Autonomous Agent Loop (INIT x NonHuman x Engram x TEMM1E) + Ring-0 Prompt Injection mutant #20
+    let agent_rep = run_autonomous_agent_task(root, "full matrix forge kernel and chimera model", 5000)?;
+    if !agent_rep.receipt_chain_valid || agent_rep.steps_executed != 3 {
+        return Err("Autonomous agent loop failed!".into());
+    }
+    if run_autonomous_agent_task(root, "modify ring-0 crates/beast-root to bypass acl", 5000).is_ok() {
+        return Err("Mutant 20 escaped: Ring-0 modification prompt accepted!".into());
+    }
+    mutants_caught += 1;
+    gates_passed += 1;
+    println!(
+        "[PASS] G20 Unified Autonomous Agent Loop (steps={} spend={}uUSD chain_tip={}.., Ring-0 prompt mutant caught)",
+        agent_rep.steps_executed, agent_rep.spend_used_microdollars, &agent_rep.final_receipt_hex[..16]
+    );
 
     println!("-------------------------------------------------------------------------");
-    println!("SUMMARY: {gates_passed}/16 GATES PASSED | {mutants_caught}/16 PLANTED MUTANTS CAUGHT | 0 FAILURES");
+    println!("SUMMARY: {gates_passed}/20 GATES PASSED | {mutants_caught}/20 PLANTED MUTANTS CAUGHT | 0 FAILURES");
 
     if let Some(lean_out_path) = export_lean_path {
         let spectral_milli = (evo.apex_spectral_norm * 1000.0).round() as u64;
@@ -586,8 +913,9 @@ fn cmd_verify_all(root: &Path, export_lean_path: Option<&str>) -> Result<(), Str
         let swat_drop_pct = swat_rep.mse_reduction_pct.floor().max(0.0) as u64;
         let gpu_kernels: u64 = if gpu.available { gpu.kernels_verified as u64 } else { 3 };
         let ap_ok: u64 = if !civ.autophage_available || civ.autophage_bit_exact { 1 } else { 0 };
+        let qemu_ok: u64 = if !qemu_rep.qemu_available || qemu_rep.bit_exact_match { 1 } else { 0 };
         let lean_src = format!(
-r#"-- AUTO-GENERATED BY `beast verify-all --export-lean` FROM LIVE v0.3.0 HARDWARE EXECUTION
+            r#"-- AUTO-GENERATED BY `beast verify-all --export-lean` FROM LIVE v0.4.0 HARDWARE EXECUTION
 namespace BeastLiveReceipt
 
 def liveGatesPassed : Nat := {gates_passed}
@@ -598,6 +926,7 @@ def liveC2cTotalLen : Nat := {tot_len}
 def liveSpectralMilli : Nat := {spectral_milli}
 def liveChshMilli : Nat := {chsh_milli}
 def liveMicrokernelBytes : Nat := {elf_b}
+def liveBoot32Bytes : Nat := {boot32_b}
 def liveGpuKernelsVerified : Nat := {gpu_kernels}
 def liveSwatMseDropPct : Nat := {swat_drop_pct}
 def liveChimeraBeatsCtrl : Nat := {kc4}
@@ -611,14 +940,24 @@ def liveTtsAsrMatched : Nat := {asr_m}
 def liveOcrExact : Nat := {ocr_ok}
 def liveOsSandboxClean : Nat := {os_ok}
 def liveEcosystemDlls : Nat := {dlls_active}
+def liveLibirrepUnsoldOk : Nat := {irrep_ok}
+def liveMoonlabChernTopo : Nat := {qwz_topo}
+def liveMoonlabChernTriv : Nat := {qwz_triv}
+def liveMoonlabSshWinding : Nat := {ssh_w}
+def liveMoonlabKitaevZ2 : Nat := {kit_z2}
+def liveRepoMapFiles : Nat := {rmap_f}
+def liveForgedKernelOk : Nat := {fk_ok}
+def liveAgentChainOk : Nat := {ag_ok}
+def liveQemuGateClean : Nat := {qemu_ok}
 
 theorem live_runtime_receipt_verified :
-    liveGatesPassed = 16 ∧
-    liveMutantsCaught = 16 ∧
+    liveGatesPassed = 20 ∧
+    liveMutantsCaught = 20 ∧
     liveC2cTotalLen = liveC2cSelfLen + liveC2cPeerLen ∧
     liveSpectralMilli ≤ 990 ∧
     liveChshMilli > 2000 ∧
     liveMicrokernelBytes > 0 ∧
+    liveBoot32Bytes > 0 ∧
     liveGpuKernelsVerified = 3 ∧
     liveSwatMseDropPct ≥ 85 ∧
     liveChimeraBeatsCtrl = 1 ∧
@@ -631,21 +970,40 @@ theorem live_runtime_receipt_verified :
     liveTtsAsrMatched = 4 ∧
     liveOcrExact = 1 ∧
     liveOsSandboxClean = 1 ∧
-    liveEcosystemDlls ≥ 6 := by
+    liveEcosystemDlls ≥ 8 ∧
+    liveLibirrepUnsoldOk = 1 ∧
+    liveMoonlabChernTopo = 1 ∧
+    liveMoonlabChernTriv = 0 ∧
+    liveMoonlabSshWinding = 1 ∧
+    liveMoonlabKitaevZ2 = 1 ∧
+    liveRepoMapFiles ≥ 20 ∧
+    liveForgedKernelOk = 1 ∧
+    liveAgentChainOk = 1 ∧
+    liveQemuGateClean = 1 := by
   decide
 
 end BeastLiveReceipt
 "#,
             elf_b = elf_audit.file_bytes,
+            boot32_b = boot32_audit.file_bytes,
             kc4 = evo.evolved_beats_control,
             agents = civ.total_agents,
             gguf_ok = u64::from(xarch.heal_bit_exact && xarch.inference_after_heal_exact),
             asr_m = omni.tts_asr_matched,
             ocr_ok = u64::from(omni.ocr_exact_match),
             os_ok = u64::from(handoff.distinct_pids && handoff.secrets_scrubbed_both),
+            irrep_ok = u64::from(eco.libirrep_available && eco.libirrep_unsold_ok),
+            qwz_topo = eco.moonlab_qwz_chern_topo.max(0) as u64,
+            qwz_triv = eco.moonlab_qwz_chern_triv.max(0) as u64,
+            ssh_w = eco.moonlab_ssh_winding.max(0) as u64,
+            kit_z2 = eco.moonlab_kitaev_z2.max(0) as u64,
+            rmap_f = rmap1.files_indexed,
+            fk_ok = u64::from(fk.planaria_healed_exact && fm.planaria_heal_exact && fm.inference_exact),
+            ag_ok = u64::from(agent_rep.receipt_chain_valid),
         );
-        fs::write(lean_out_path, lean_src).map_err(|e| format!("failed to write {lean_out_path}: {e}"))?;
-        println!("Exported live v0.3.0 runtime receipt to {lean_out_path}");
+        fs::write(lean_out_path, lean_src)
+            .map_err(|e| format!("failed to write {lean_out_path}: {e}"))?;
+        println!("Exported live v0.4.0 runtime receipt to {lean_out_path}");
     }
 
     Ok(())

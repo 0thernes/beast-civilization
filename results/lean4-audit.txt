@@ -29,4 +29,12 @@
 'BeastProofs.B29_ecosystem_7_dll_unity' does not depend on any axioms
 'BeastProofs.B30_cross_arch_c2c_dim_bridge' does not depend on any axioms
 'BeastProofs.B31_wav_header_and_frame_bytes' does not depend on any axioms
-'BeastProofs.B32_live_v030_matrix_receipt' does not depend on any axioms
+'BeastProofs.B32_multiboot1_checksum_zero_mod32' does not depend on any axioms
+'BeastProofs.B33_libirrep_sph_harm_dimension' does not depend on any axioms
+'BeastProofs.B34_moonlab_qgt_topological_invariants' does not depend on any axioms
+'BeastProofs.B35_quantum_geometric_bound_psd' depends on axioms: [propext, Quot.sound]
+'BeastProofs.B36_ecosystem_9_dll_unity' does not depend on any axioms
+'BeastProofs.B37_merkle_tree_capacity_doubling' does not depend on any axioms
+'BeastProofs.B38_forge_name_sanitization_bounds' depends on axioms: [propext, Classical.choice, Quot.sound]
+'BeastProofs.B39_total_planted_mutants_25' does not depend on any axioms
+'BeastProofs.B40_live_v040_matrix_forge_receipt' does not depend on any axioms

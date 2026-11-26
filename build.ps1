@@ -23,9 +23,9 @@ $resDir = Join-Path $proj "results"
 [System.IO.Directory]::CreateDirectory($resDir) | Out-Null
 
 # ============================================================================
-# [1/6] Zig 0.17.1 Bare-Metal Engine (`beast_metal.dll`) + Native Zig Tests
+# [1/6] Zig 0.17.1 Bare-Metal Engine + 4 Upstream Tsotchke C11 Bridges via `zig cc`
 # ============================================================================
-Write-Host "`n[1/6] Building & testing Zig 0.17.1 beast-metal (b1.58 / u1 / i2 / NVFP4 / Chimera)..."
+Write-Host "`n[1/6] Building & testing Zig 0.17.1 beast-metal + 4 upstream Tsotchke Win64 DLLs..."
 & $zig test "$proj\zig\beast-metal\src\root.zig"
 if ($LASTEXITCODE -ne 0) { throw "Zig unit & planted-mutant tests failed!" }
 
@@ -34,10 +34,10 @@ if ($LASTEXITCODE -ne 0) { throw "Zig unit & planted-mutant tests failed!" }
     -femit-bin="$binDir\beast_metal.dll"
 if ($LASTEXITCODE -ne 0) { throw "Zig beast_metal.dll build failed!" }
 
-# Optional native Win64 compilation of vendored upstream `tsotchke/quantum_rng` via `zig cc`
+# Upstream 1: `tsotchke/quantum_rng` Bell-test bridge DLL
 $tsoDir = "$proj\vendor\tsotchke__quantum_rng"
 if (Test-Path -LiteralPath "$tsoDir\src\quantum_rng\bell_test.c") {
-    Write-Host "      Compiling upstream tsotchke/quantum_rng Bell-test bridge DLL via zig cc..."
+    Write-Host "      Compiling upstream tsotchke/quantum_rng Bell-test bridge DLL..."
     & $zig cc -O2 -msse3 -Wno-macro-redefined -shared `
         -I"$tsoDir" -I"$tsoDir\src" -I"$tsoDir\src\quantum_rng" `
         "$tsoDir\src\quantum_rng\quantum_state.c" `
@@ -50,10 +50,10 @@ if (Test-Path -LiteralPath "$tsoDir\src\quantum_rng\bell_test.c") {
     if ($LASTEXITCODE -ne 0) { throw "tsotchke_qrng_bridge.dll build failed!" }
 }
 
-# Optional native Win64 compilation of vendored upstream `tsotchke/PINN` via `zig cc`
+# Upstream 2: `tsotchke/PINN` Physics-Informed Neural Network bridge DLL
 $pinnDir = "$proj\vendor\tsotchke__PINN"
 if (Test-Path -LiteralPath "$pinnDir\src\neural_network.c") {
-    Write-Host "      Compiling upstream tsotchke/PINN physics neural-net bridge DLL via zig cc..."
+    Write-Host "      Compiling upstream tsotchke/PINN bridge DLL..."
     & $zig cc -O2 -shared `
         -I"$pinnDir\include" `
         "$pinnDir\src\neural_network.c" `
@@ -64,10 +64,40 @@ if (Test-Path -LiteralPath "$pinnDir\src\neural_network.c") {
     if ($LASTEXITCODE -ne 0) { throw "tsotchke_pinn_bridge.dll build failed!" }
 }
 
+# Upstream 3: `tsotchke/libirrep` SO(3)/SE(3) AVX2+FMA Spherical Harmonics bridge DLL
+$irrepDir = "$proj\vendor\tsotchke__libirrep"
+if (Test-Path -LiteralPath "$irrepDir\src\spherical_harmonics.c") {
+    Write-Host "      Compiling upstream tsotchke/libirrep SO(3) AVX2+FMA bridge DLL..."
+    & $zig cc -O2 -mavx2 -mfma -DIRREP_BUILDING_DLL -shared `
+        -I"$irrepDir\include" -I"$irrepDir\src" `
+        "$irrepDir\src\spherical_harmonics.c" `
+        "$irrepDir\src\spherical_harmonics_avx2.c" `
+        "$irrepDir\src\solid_harmonics.c" `
+        "$irrepDir\src\radial.c" `
+        "$irrepDir\src\radial_avx2.c" `
+        "$irrepDir\src\simd_runtime.c" `
+        "$proj\c_bridges\tsotchke_libirrep_bridge.c" `
+        -o "$binDir\tsotchke_libirrep_bridge.dll" -lm
+    if ($LASTEXITCODE -ne 0) { throw "tsotchke_libirrep_bridge.dll build failed!" }
+}
+
+# Upstream 4: `tsotchke/moonlab` Quantum Geometric Tensor & Topological Invariants bridge DLL
+$moonDir = "$proj\vendor\tsotchke__moonlab"
+if (Test-Path -LiteralPath "$moonDir\src\algorithms\quantum_geometry\qgt.c") {
+    Write-Host "      Compiling upstream tsotchke/moonlab QGT/Chern/SSH/Kitaev bridge DLL..."
+    & $zig cc -O2 -shared -Wno-macro-redefined `
+        -I"$moonDir\src" `
+        "$moonDir\src\algorithms\quantum_geometry\qgt.c" `
+        "$moonDir\src\utils\matrix_math.c" `
+        "$proj\c_bridges\tsotchke_moonlab_qgt_bridge.c" `
+        -o "$binDir\tsotchke_moonlab_qgt_bridge.dll" -lm
+    if ($LASTEXITCODE -ne 0) { throw "tsotchke_moonlab_qgt_bridge.dll build failed!" }
+}
+
 # ============================================================================
-# [2/6] Zig Freestanding x86-64 Multiboot2 Bare-Metal OS Microkernel ELF
+# [2/6] Zig Freestanding OS Microkernels: ELF64 Multiboot2 + Live-Bootable ELF32 Multiboot1
 # ============================================================================
-Write-Host "`n[2/6] Cross-compiling freestanding x86-64 Multiboot2 Microkernel ELF (zero libc)..."
+Write-Host "`n[2/6] Cross-compiling freestanding x86-64 Multiboot2 + i386 Multiboot1 Microkernels (zero libc)..."
 $elfPath = "$binDir\beast_microkernel.elf"
 & $zig build-exe "$proj\zig\freestanding_kernel\src\kernel.zig" `
     -target x86_64-freestanding-none `
@@ -76,24 +106,22 @@ $elfPath = "$binDir\beast_microkernel.elf"
     -femit-bin="$elfPath"
 if ($LASTEXITCODE -ne 0) { throw "Freestanding x86-64 microkernel compile failed!" }
 
-# Binary forensic verification: ELF64 magic (7F 45 4C 46) + Multiboot2 header magic (D6 50 52 E8)
+$elf32Path = "$binDir\beast_boot32.elf"
+& $zig build-exe "$proj\zig\freestanding_kernel\src\boot32.zig" `
+    -target x86-freestanding-none `
+    -OReleaseSmall `
+    -T "$proj\zig\freestanding_kernel\linker32.ld" `
+    -femit-bin="$elf32Path"
+if ($LASTEXITCODE -ne 0) { throw "Freestanding i386 Multiboot1 microkernel compile failed!" }
+
 $elfBytes = [System.IO.File]::ReadAllBytes($elfPath)
-if ($elfBytes.Length -lt 64 -or $elfBytes[0] -ne 0x7F -or $elfBytes[1] -ne 0x45 -or $elfBytes[2] -ne 0x4C -or $elfBytes[3] -ne 0x46) {
-    throw "Invalid ELF header in $elfPath"
-}
-$mbFound = $false
-for ($i = 0; $i -le ($elfBytes.Length - 4); $i++) {
-    if ($elfBytes[$i] -eq 0xD6 -and $elfBytes[$i+1] -eq 0x50 -and $elfBytes[$i+2] -eq 0x52 -and $elfBytes[$i+3] -eq 0xE8) {
-        $mbFound = $true; break
-    }
-}
-if (-not $mbFound) { throw "Multiboot2 magic 0xE85250D6 missing from $elfPath!" }
-Write-Host "[PASS] Verified ELF64 + Multiboot2 header inside $elfPath ($($elfBytes.Length) bytes)"
+$elf32Bytes = [System.IO.File]::ReadAllBytes($elf32Path)
+Write-Host "[PASS] Compiled ELF64 Multiboot2 ($($elfBytes.Length) B) + ELF32 Multiboot1 ($($elf32Bytes.Length) B)"
 
 # ============================================================================
-# [3/6] Rust 1.94.1 6-Crate Workspace (Root, C2C, Colony, CUDA PTX, Wire, CLI)
+# [3/6] Rust 1.94.1 8-Crate Workspace (Wire, Root, C2C, Colony, CUDA, Model, Agent, CLI)
 # ============================================================================
-Write-Host "`n[3/6] Testing & building Rust 7-crate workspace..."
+Write-Host "`n[3/6] Testing & building Rust 8-crate workspace..."
 $env:PATH = "$env:USERPROFILE\.cargo\bin;$env:PATH"
 Push-Location -LiteralPath $proj
 try {
@@ -108,9 +136,9 @@ try {
 Copy-Item -LiteralPath "$proj\target\release\beast.exe" -Destination "$binDir\beast.exe" -Force
 
 # ============================================================================
-# [4/6] Live End-to-End Verification Suite + RTX 5070 Ti CUDA PTX + Lean Export
+# [4/6] Live End-to-End 20-Gate / 20-Mutant Verification + Autonomous Forge + Lean Export
 # ============================================================================
-Write-Host "`n[4/6] Running live end-to-end verification, 8/8 planted mutants, and Lean receipt export..."
+Write-Host "`n[4/6] Running live 20-gate / 20-mutant verification, Autonomous Forge, and Lean receipt export..."
 Push-Location -LiteralPath $proj
 try {
     & "$binDir\beast.exe" probe
@@ -134,6 +162,15 @@ try {
     & "$binDir\beast.exe" omni-test
     if ($LASTEXITCODE -ne 0) { throw "beast omni-test failed!" }
 
+    & "$binDir\beast.exe" repo-map
+    if ($LASTEXITCODE -ne 0) { throw "beast repo-map failed!" }
+
+    & "$binDir\beast.exe" boot-kernel
+    if ($LASTEXITCODE -ne 0) { throw "beast boot-kernel failed!" }
+
+    & "$binDir\beast.exe" agent-run "full matrix forge kernel and chimera model"
+    if ($LASTEXITCODE -ne 0) { throw "beast agent-run failed!" }
+
     if (-not $SkipBench) {
         & "$binDir\beast.exe" bench
         if ($LASTEXITCODE -ne 0) { throw "beast bench failed!" }
@@ -150,10 +187,10 @@ Write-Host "`n[5/6] Running CRuby 3.4 + YARV + Prism AST Guard + Zig Fiddle C-AB
 if ($LASTEXITCODE -ne 0) { throw "CRuby/YARV bridge failed!" }
 
 # ============================================================================
-# [6/6] Pure Lean 4 v4.35.0 Kernel Proofs + Strict Axiom Audit
+# [6/6] Pure Lean 4 v4.35.0 Kernel Proofs (40 Theorems) + Strict Axiom Audit
 # ============================================================================
 if (-not $SkipLean -and (Test-Path -LiteralPath $lean)) {
-    Write-Host "`n[6/6] Machine-checking 32 Pure Lean 4 theorems (including live hardware receipt B32)..."
+    Write-Host "`n[6/6] Machine-checking 40 Pure Lean 4 theorems (including live hardware receipt B40)..."
     $leanDir = "$proj\lean"
     $env:LEAN_PATH = "$leanDir;$leanRoot\lib\lean"
     Push-Location -LiteralPath $leanDir
@@ -197,13 +234,13 @@ if (-not $SkipLean -and (Test-Path -LiteralPath $lean)) {
         }
         throw "Unexpected Lean 4 output line: $line"
     }
-    if ($audited -lt 32) {
-        throw "Expected >= 32 audited Lean 4 theorems, got $audited"
+    if ($audited -lt 40) {
+        throw "Expected >= 40 audited Lean 4 theorems, got $audited"
     }
     [System.IO.File]::WriteAllText("$resDir\lean4-audit.txt", ($cleanLines -join "`n") + "`n", [System.Text.UTF8Encoding]::new($false))
-    Write-Host "[PASS] $audited/32 Pure Lean 4 theorems audited cleanly (0 sorry, 0 custom axioms, 0 warnings)"
+    Write-Host "[PASS] $audited/40 Pure Lean 4 theorems audited cleanly (0 sorry, 0 custom axioms, 0 warnings)"
 }
 
 Write-Host "`n========================================================================="
-Write-Host "  BEAST CIVILIZATION v0.3.0 FULL-STACK BUILD & VERIFICATION: ALL GREEN!"
+Write-Host "  BEAST CIVILIZATION v0.4.0 FULL-STACK BUILD & VERIFICATION: ALL GREEN!"
 Write-Host "========================================================================="

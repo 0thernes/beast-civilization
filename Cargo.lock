@@ -3,16 +3,28 @@
 version = 4
 
 [[package]]
+name = "beast-agent"
+version = "0.4.0"
+dependencies = [
+ "beast-c2c",
+ "beast-colony",
+ "beast-model",
+ "beast-root",
+ "beast-wire",
+]
+
+[[package]]
 name = "beast-c2c"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "beast-wire",
 ]
 
 [[package]]
 name = "beast-cli"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
+ "beast-agent",
  "beast-c2c",
  "beast-colony",
  "beast-cuda",
@@ -23,7 +35,7 @@ dependencies = [
 
 [[package]]
 name = "beast-colony"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "beast-c2c",
  "beast-root",
@@ -32,14 +44,14 @@ dependencies = [
 
 [[package]]
 name = "beast-cuda"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "beast-wire",
 ]
 
 [[package]]
 name = "beast-model"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "beast-c2c",
  "beast-wire",
@@ -47,11 +59,11 @@ dependencies = [
 
 [[package]]
 name = "beast-root"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "beast-wire",
 ]
 
 [[package]]
 name = "beast-wire"
-version = "0.3.0"
+version = "0.4.0"
