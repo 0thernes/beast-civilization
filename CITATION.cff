@@ -1,7 +1,7 @@
 cff-version: 1.2.0
 message: "If you use beast-civilization or cite the accompanying white paper and Lean 4 proof suite, please cite it using the metadata below."
 type: software
-title: "BEAST CIVILIZATION: Bare-Metal Polyglot Multi-Colony AI Architecture, MIT Cache-to-Cache Telepathy, Blackwell PTX Kernels, and 65 Machine-Checked Pure Lean 4.35.0 Proofs"
+title: "BEAST CIVILIZATION: Bare-Metal Polyglot Multi-Colony AI Architecture, Cross-Architecture KV-Cache (Cache-to-Cache) Transfer, Blackwell PTX Kernels, and a 65-Theorem Lean 4.35.0 Invariant Suite"
 version: "0.7.0"
 date-released: "2026-11-26"
 authors:

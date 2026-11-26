@@ -1,5 +1,12 @@
 # Changelog (`A07`)
 
+## [Unreleased] - 2026-11-26 — Statement audit corrections (documentation only)
+### Changed
+- README, CLAIMS, LIMITATIONS and CITATION.cff now describe the Lean suite as `65` kernel-checked theorems of spec arithmetic and small reference models (`45` axiom-free, `20` using only `propext`/`Classical.choice`/`Quot.sound`; `39` closed literal statements), not linked to the Zig/Rust/PTX code.
+- `B60`/`B65` are described as consistency checks of constants committed in `lean/LiveReceipt.lean`, not evidence of a run.
+- CLAIMS C11 no longer cites `B54`/`B55` as support for tri-mode AD agreement; they prove commutativity only. C01 states the `B02` round trip instead of "bijective".
+- Added `ERRATA.md` with corrections to the paper (axiom split `43/22` -> `45/20`, receipt bridge, scope wording) and known issues in the Lean sources. No code, proof or paper source was changed. Audit log: <https://github.com/0thernes/0thernes-research-archive/blob/main/docs/reviews/2026-11-26-statement-audit.md>.
+
 ## [0.7.0] - 2026-11-26 — OPENAI/GGUF LIVE SERVER, AMS-LATEX WHITE PAPER & ARCHIVE RELEASE
 ### Added
 - **Standard `llama.cpp` GGUF v3 `Q4_0` / `F16` / Full-Metadata Codec** (`crates/beast-model/src/gguf.rs`, `beast inspect-gguf`, `G31`): exact IEEE-754 `binary16` conversion, 18-byte `Q4_0` block quantization/dequantization (`64/9×` compression vs `F32`, `max_err=0.1261`), full GGUF v3 metadata type decoding.

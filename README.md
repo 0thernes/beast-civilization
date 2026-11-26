@@ -4,7 +4,9 @@
 [![ORCID](https://img.shields.io/badge/ORCID-0009--0006--8168--9648-A6CE39.svg)](https://orcid.org/0009-0006-8168-9648)
 [![Lean 4.35.0](https://img.shields.io/badge/Lean_4.35.0-65_Theorems_%7C_0_sorry-2ea44f.svg)](lean/VerifyAxioms.lean)
 
-**Bare-metal, post-quantum, self-rewriting, multi-colony AI civilization, live OpenAI/GGUF HTTP/1.1 inference server (`beast serve`), Trinity Autonomous Forge (OS Microkernels + 4-Layer Chimera LLMs + Bare-Metal A-Life Worlds), MCP JSON-RPC 2.0 Server, and evolutionary compute substrate unifying `12 / 12` live native DLLs (`Zig 0.17.1` + `AUTOPHAGE` + `OMEGA CELL` + `CELLULOGONIC` + `7` compiled upstream Tsotchke engines + `NVIDIA RTX 5070 Ti sm_12.0` 5-Kernel PTX + `20.21 GB/s` Pinned Async VRAM Paging), `8` zero-dependency Rust `1.94.1` crates, live QEMU `11.1.0` Ring-0 booted AI microkernels, Win32 OS Kernel Job Objects, standard `llama.cpp` GGUF v3 (`Q4_0`/`F16`/`F32`) codec, Eshkol Tri-Mode Exact AD (`0.00e0` err), `CRuby 3.4.9`/Prism/YARV bytecode evolution, a clean-room Python exact-arithmetic oracle, an AMS-LaTeX white paper (`dist/Donahue_2026_beast_civilization.pdf`), and `65 / 65` Pure Lean 4 `v4.35.0` formal proofs (`lean/VerifyAxioms.lean`).**
+**Bare-metal, post-quantum, self-rewriting, multi-colony AI civilization, live OpenAI/GGUF HTTP/1.1 inference server (`beast serve`), Trinity Autonomous Forge (OS Microkernels + 4-Layer Chimera LLMs + Bare-Metal A-Life Worlds), MCP JSON-RPC 2.0 Server, and evolutionary compute substrate unifying `12 / 12` live native DLLs (`Zig 0.17.1` + `AUTOPHAGE` + `OMEGA CELL` + `CELLULOGONIC` + `7` compiled upstream Tsotchke engines + `NVIDIA RTX 5070 Ti sm_12.0` 5-Kernel PTX + `20.21 GB/s` Pinned Async VRAM Paging), `8` zero-dependency Rust `1.94.1` crates, live QEMU `11.1.0` Ring-0 booted AI microkernels, Win32 OS Kernel Job Objects, standard `llama.cpp` GGUF v3 (`Q4_0`/`F16`/`F32`) codec, Eshkol Tri-Mode Exact AD (`0.00e0` err), `CRuby 3.4.9`/Prism/YARV bytecode evolution, a clean-room Python exact-arithmetic oracle, an AMS-LaTeX white paper (`dist/Donahue_2026_beast_civilization.pdf`), and a `65`-theorem Lean 4 `v4.35.0` invariant suite (`lean/VerifyAxioms.lean`) covering spec arithmetic and small reference models.**
+
+"Colony" and "civilization" are metaphors for a multi-agent software system; the project makes no claim of sentience or consciousness and retires `0 / 1,900` Mega-Atlas open problems.
 
 > **Author:** Alexander Stephen Donahue (Independent Researcher, Spokane, WA, USA · `0_0@0thernes.art` · ORCID [`0009-0006-8168-9648`](https://orcid.org/0009-0006-8168-9648))  
 > **Target Profiles:** `T13` (OS kernel / bare-metal) · `T07` (AI/LLM systems) · `T05` (Library/SDK) · `T04` (CLI) — **Zero SaaS / Zero PWA / Zero External Cargo Crates or Ruby Gems.**  
@@ -26,15 +28,29 @@ Every metric below was recorded verbatim from `.\build.ps1` in [`results/verify_
 | **Cross-Repo ABI Graph + Confluent Worktrees + MCP + Disasm (`G28`–`G30`)** | `3` repos / `71` ABI symbols / `10` edges, `12`-task Church-Rosser confluence (`fwd==rev`), isolated worktrees, MCP JSON-RPC 2.0 stdio bus, Zig/LLVM x86-64 disassembly (**`691,622 B`, `9,936` instructions, `74` symbols**) | `crates/beast-agent/src/{hyper_graph,mcp_server}.rs` |
 | **Autonomous Trinity Forge + 4-Layer C2C LLM + Win32 Jobs (`G17`–`G25`)** | QEMU Ring-0 ELF32 (`12,692 B`, `B158=7/7`, `NVFP4=59/59`), 4-layer GQA→Chimera C2C (`swat_cos=0.9998`, `142,496 B` GGUF v3), Win32 Kernel Job Object (`128 MiB`, `KILL_ON_JOB_CLOSE`), Forged Zig A-Life `.exe` (`862,208 B`, `residual=0`, P9 exact) | `crates/beast-agent/src/{forge,alife_forge,loop_engine}.rs` |
 | **Zig `0.17.1` SIMD + Chimera + SwaT + Omnimodal + CRuby/YARV** | Zig `b1.58` **`3.42×`** (`6.68 ns` FFI), `120`-gen Chimera (`100 ms`, `0.0277 → 0.0095` vs `0.0313` ctrl), MIT `SwaT` **`4.34×`** (`Augment=1.000` vs `Overwrite=-0.311`), TTS→ASR **`4/4`**, OCR **`16/16`**, CRuby/YARV (`fit 3.8078 → 4.4078`) | `zig/`, `crates/beast-c2c/`, `ruby/beast_yarv.rb` |
-| **Pure Lean 4 `v4.35.0` Formal Proofs + Python Exact Oracle** | **`65 / 65` theorems PROVEN** via [`lean/VerifyAxioms.lean`](lean/VerifyAxioms.lean) strictly within `{propext, Classical.choice, Quot.sound}` (`0 sorry`, `0` custom axioms, `0` warnings) + clean-room Python oracle (`243/243` `b1.58`, `65,536` $\mathrm{GF}(2^8)$, `6/6` oracle mutants) | `lean/BeastProofs.lean`, `results/lean4-audit.txt`, `scripts/verify_independent_oracle.py` |
+| **Pure Lean 4 `v4.35.0` Invariant Suite + Python Exact Oracle** | **`65 / 65` theorems kernel-checked** by Lean via [`lean/VerifyAxioms.lean`](lean/VerifyAxioms.lean): `45` depend on no axioms and `20` use only `{propext, Classical.choice, Quot.sound}` (`0 sorry`, `0` custom axioms, `0` warnings). `39` of the `65` are closed literal statements (spec sizes, checksums, bookkeeping sums, receipt constants). The Lean definitions are standalone models and are not linked to the Zig/Rust/PTX code. Clean-room Python oracle: `243/243` `b1.58`, `65,536` $\mathrm{GF}(2^8)$, `6/6` oracle mutants | `lean/BeastProofs.lean`, `results/lean4-audit.txt`, `scripts/verify_independent_oracle.py` |
 | **Total Verification & Anti-LARP Mutants** | **`33 / 33` Gates PASS · `38 / 38` Planted Mutants Caught (`3` Zig + `33` Rust/CLI + `2` CRuby/Prism) · `21 / 21` Rust Unit Tests PASS · `0` Warnings** | `results/verify_win64.txt` |
+
+---
+
+## Scope of the Formal Results
+
+What Lean proves, and what it does not:
+
+- **Kernel-checked by Lean (`lake build`, `VerifyAxioms.lean`):** `65` theorems `B01`–`B65` (`45` axiom-free, `20` using only the three standard axioms). They state spec size and checksum identities (FIPS-203/197, Multiboot1/2, GGUF `Q4_0`), bookkeeping sums (DLL counts, planted-mutant totals, matrix and MoE splits), a round trip for five base-3 digits (`pack < 243` and unpack after pack is the identity on all `243` tuples; surjectivity is not stated), ceil-division alignment bounds, BitVec XOR identities, commutativity of dual-number addition and multiplication, small Bool/Nat models of the rewrite, spend-cap and loopback rules, and equalities of receipt constants. `39` of the `65` are closed literal statements.
+- **Not linked to the shipped code:** no Lean file imports, extracts or refers to the Zig, Rust, C or PTX sources. The Lean models are written separately. The `B09`/`B10` "Ring-0" theorems model a userland root-policy rewrite guard, not CPU ring 0.
+- **Receipt theorems `B60`/`B65`:** they check constants committed in `lean/LiveReceipt.lean`. CI compiles the committed file and does not regenerate or diff it, and the exporter writes passing default values when the GPU, QEMU or Job Object backend is absent. They are consistency checks, not evidence that a run took place.
+- **`B54`/`B55`:** they prove only commutativity of dual-number multiplication and addition. They do not prove the product rule or the agreement of forward, reverse and symbolic AD; that agreement (`G27`) is an empirical test.
+- **Empirical, outside Lean:** timings, GPU kernels, DLL results, QEMU boots, the HTTP server and all gate and mutant counts rest on the unit tests, planted mutants and CI recorded in `results/verify_win64.txt`.
+
+Corrections from the 2026-11-26 statement audit are listed in [`ERRATA.md`](ERRATA.md); the audit log is at <https://github.com/0thernes/0thernes-research-archive/blob/main/docs/reviews/2026-11-26-statement-audit.md>.
 
 ---
 
 ## Quickstart (`A03`)
 
 ```powershell
-# Full 6-layer build, 12-DLL probe, 5-kernel GPU + Pinned Paging, QEMU Ring-0 boot, OpenAI/GGUF loop, and 65 Lean 4 proofs:
+# Full 6-layer build, 12-DLL probe, 5-kernel GPU + Pinned Paging, QEMU Ring-0 boot, OpenAI/GGUF loop, and the 65-theorem Lean 4 suite:
 .\build.ps1
 
 # Independent clean-room Python 3 exact-arithmetic oracle:
