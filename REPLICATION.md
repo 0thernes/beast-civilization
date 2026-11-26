@@ -1,4 +1,4 @@
-# Clean-Clone Replication Protocol (`B01`, `B43` — `v0.6.0`)
+# Clean-Clone Replication Protocol (`B01`, `B43` — `v0.7.0`)
 
 ## Pinned Toolchains (`B02`)
 - **Zig:** `0.17.1` (`C:\tools\zig\zig.exe`, SHA-256 `b03f477a1943673e02aca0f570e8030dffd536ce1f45cbc4d3326ec31159562e`) — builds `beast_metal.dll`, both freestanding ELFs, forged A-Life `.exe`, x86-64 `-femit-asm` disassembly, and all 7 upstream Tsotchke C11 DLLs via `zig cc`.
@@ -20,27 +20,31 @@ Set-Location -LiteralPath 'Z:\[Vibe Coded (AI)]\ANTIGRAVITY\beast-civilization'
 # 1. Zig unit tests + 3 planted mutants
 C:\tools\zig\zig.exe test zig\beast-metal\src\root.zig
 
-# 2. Rust 8-crate unit & mutant test suite (19/19 tests)
+# 2. Rust 8-crate unit & mutant test suite (21/21 tests)
 cargo test --workspace
 
-# 3. Live 12-DLL probe, 30-gate/30-mutant audit, 5-kernel GPU, Eshkol AD, Cross-Repo, MCP, Disasm & Trinity Forge
+# 3. Live 12-DLL probe, 33-gate/33-mutant audit, 5-kernel GPU, OpenAI/GGUF loop & Trinity Forge
 .\bin\beast.exe probe
 .\bin\beast.exe verify-all --export-lean lean\LiveReceipt.lean
-.\bin\beast.exe ad-test
-.\bin\beast.exe cross-repo
-.\bin\beast.exe inspect-asm
-.\bin\beast.exe llm-c2c
-.\bin\beast.exe boot-kernel
-.\bin\beast.exe forge-alife matrix_life
-.\bin\beast.exe agent-run "full matrix forge kernel model and alife"
+.\bin\beast.exe inspect-gguf bin\beast_4layer_chimera.gguf
+.\bin\beast.exe repl --script "mission colony model audit;quit"
 .\bin\beast.exe bench
 
 # 4. CRuby 3.4 + YARV 10-Gen Breeder + Prism AST guard + Zig Fiddle C-ABI
 C:\tools\ruby34\bin\ruby.exe ruby\beast_yarv.rb
 
-# 5. Pure Lean 4 kernel proofs (60/60 theorems) & strict axiom audit
+# 5. Clean-room Python 3 exact-arithmetic oracle
+python scripts\verify_independent_oracle.py
+
+# 6. Pure Lean 4 kernel proofs (65/65 theorems) via VerifyAxioms.lean
 Push-Location -LiteralPath 'lean'
 & "$env:USERPROFILE\.elan\toolchains\leanprover--lean4---v4.35.0\bin\lean.exe" -R . -o LiveReceipt.olean LiveReceipt.lean
-& "$env:USERPROFILE\.elan\toolchains\leanprover--lean4---v4.35.0\bin\lean.exe" -R . BeastProofs.lean
+& "$env:USERPROFILE\.elan\toolchains\leanprover--lean4---v4.35.0\bin\lean.exe" -R . -o BeastProofs.olean BeastProofs.lean
+& "$env:USERPROFILE\.elan\toolchains\leanprover--lean4---v4.35.0\bin\lean.exe" -R . VerifyAxioms.lean
+Pop-Location
+
+# 7. AMS-LaTeX white paper PDF compilation (Tectonic)
+Push-Location -LiteralPath 'paper'
+tectonic -X compile main.tex --outdir build --keep-intermediates
 Pop-Location
 ```

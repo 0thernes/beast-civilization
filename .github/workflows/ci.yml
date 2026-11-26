@@ -1,26 +1,126 @@
-# Informational CI only (R1-R3: never gates or blocks commits/pushes)
-name: beast-ci-informational
+# Reproducible Linux Verification CI (Informational — Build Standard v1.2.0 R1-R3: no blocking hooks/branch protection)
+name: beast-ci-verification
 on:
   push:
     branches: [main]
+    tags: ["v*"]
+  workflow_dispatch:
+
 jobs:
-  verify-linux:
+  zig-rust-ruby-oracle:
+    name: Zig 0.17.1 + Rust 8-Crate + CRuby + Python Exact Oracle
     runs-on: ubuntu-latest
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
-      - name: Install Rust
+      - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
       - name: Install Zig 0.17.1
         run: |
           curl -fsSL https://ziglang.org/download/0.17.1/zig-x86_64-linux-0.17.1.tar.xz -o zig.tar.xz
           tar -xf zig.tar.xz && sudo mv zig-x86_64-linux-0.17.1 /usr/local/zig
-          echo "/usr/local/zig" >> $GITHUB_PATH
-      - name: Zig tests & freestanding kernel
+          echo "/usr/local/zig" >> "$GITHUB_PATH"
+          /usr/local/zig/zig version
+      - name: Zig unit & 3 planted-mutant tests + libbeast_metal.so + freestanding ELF64/ELF32 microkernels
         run: |
-          cd zig/beast-metal && zig build test
-          cd ../freestanding_kernel && zig build
-      - name: Rust workspace build & tests
-        run: cargo test --workspace
-      - name: Ruby YARV bridge test
-        run: ruby ruby/beast_yarv.rb --selftest
+          mkdir -p bin
+          zig test zig/beast-metal/src/root.zig
+          zig build-lib zig/beast-metal/src/root.zig -dynamic -OReleaseFast -femit-bin=bin/libbeast_metal.so
+          zig build-exe zig/freestanding_kernel/src/kernel.zig -target x86_64-freestanding-none -OReleaseSmall -T zig/freestanding_kernel/linker.ld -femit-bin=bin/beast_microkernel.elf
+          zig build-exe zig/freestanding_kernel/src/boot32.zig -target x86-freestanding-none -OReleaseSmall -T zig/freestanding_kernel/linker32.ld -femit-bin=bin/beast_boot32.elf
+          ls -la bin/
+      - name: Rust 8-crate workspace unit & integration tests (zero external crates)
+        run: |
+          cargo test --workspace
+          cargo build --release --bin beast
+          cp target/release/beast bin/beast
+      - name: Portable Linux CLI live execution (C2C LLM, GGUF Q4_0, Eshkol AD, Omnimodal, REPL)
+        run: |
+          ./bin/beast ad-test
+          ./bin/beast llm-c2c
+          ./bin/beast inspect-gguf bin/beast_4layer_chimera.gguf
+          ./bin/beast model-c2c
+          ./bin/beast omni-test
+          ./bin/beast repo-map
+          ./bin/beast repl --script "ad-test;repo-map;quit"
+      - name: Clean-room Python 3 exact-arithmetic oracle & 300-matrix audit
+        run: python3 scripts/verify_independent_oracle.py
+
+  lean4-proofs:
+    name: Pure Lean 4.35.0 Kernel Proofs (65 Theorems + Live Negative Rejection)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install elan & Lean 4.35.0
+        run: |
+          curl -sSf https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y --default-toolchain leanprover/lean4:v4.35.0
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+          "$HOME/.elan/bin/lean" --version
+      - name: Machine-check 65 Pure Lean 4 theorems via VerifyAxioms.lean + strict axiom allowlist
+        run: |
+          cd lean
+          lean -R . -o LiveReceipt.olean LiveReceipt.lean
+          lean -R . -o BeastProofs.olean BeastProofs.lean
+          lean -R . VerifyAxioms.lean > /tmp/lean_ci_audit.txt 2>&1
+          cat /tmp/lean_ci_audit.txt
+          python3 - <<'PY'
+          import re, sys
+          allowed = {"propext", "Classical.choice", "Quot.sound"}
+          lines = [ln.strip() for ln in open("/tmp/lean_ci_audit.txt", encoding="utf-8") if ln.strip()]
+          audited = 0
+          for ln in lines:
+              for bad in ("warning", "error", "sorryAx", "sorry", "native_decide", "bv_decide", "ofReduceBool", "trustCompiler"):
+                  if re.search(rf"\b{bad}\b", ln, re.I):
+                      sys.exit(f"FAIL forbidden token {bad}: {ln}")
+              m0 = re.match(r"^'([^']+)' does not depend on any axioms$", ln)
+              m1 = re.match(r"^'([^']+)' depends on axioms: \[([^\]]*)\]$", ln)
+              if not (m0 or m1):
+                  sys.exit(f"FAIL unexpected line: {ln}")
+              if m1:
+                  axs = {a.strip() for a in m1.group(2).split(",") if a.strip()}
+                  if not axs.issubset(allowed):
+                      sys.exit(f"FAIL forbidden axioms {axs - allowed} in {ln}")
+              audited += 1
+          assert audited == 65, f"Expected 65 audited theorems, got {audited}"
+          print(f"[PASS] CI Lean 4.35.0 verified {audited}/65 theorems cleanly!")
+          PY
+      - name: Live negative tamper rejection test (custom axiom must be rejected)
+        run: |
+          cat > /tmp/TamperTest.lean <<'EOF'
+          axiom fakeCustomAxiom : False
+          theorem bad : False := fakeCustomAxiom
+          #print axioms bad
+          EOF
+          lean /tmp/TamperTest.lean > /tmp/tamper_out.txt 2>&1
+          grep -q "fakeCustomAxiom" /tmp/tamper_out.txt
+          echo "[PASS] Live negative tamper audit confirmed custom axiom detection!"
+
+  ams-latex-pdf:
+    name: Tectonic AMS-LaTeX White Paper & Clean-Room arXiv Tarball
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Tectonic 0.17.0
+        run: |
+          curl -fsSL https://github.com/tectonic-typesetting/tectonic/releases/download/tectonic%400.15.0/tectonic-0.15.0-x86_64-unknown-linux-gnu.tar.gz -o tectonic.tar.gz
+          tar -xzf tectonic.tar.gz && sudo mv tectonic /usr/local/bin/tectonic
+          tectonic --version
+      - name: Compile paper/main.tex with zero warnings/overfull hboxes
+        run: |
+          cd paper
+          mkdir -p build
+          tectonic -X compile main.tex --outdir build --keep-intermediates --keep-logs > /tmp/tectonic.log 2>&1 || (cat /tmp/tectonic.log && exit 1)
+          cat /tmp/tectonic.log
+          if grep -E "Overfull \\\\hbox|Underfull \\\\hbox|Undefined control sequence|Citation .* undefined|Reference .* undefined" build/main.log; then
+            echo "FAIL: LaTeX layout/reference warning detected!"
+            exit 1
+          fi
+          test -s build/main.pdf
+          echo "[PASS] Tectonic AMS-LaTeX PDF built cleanly!"
+      - name: Clean-room arXiv tarball extraction & standalone compilation
+        run: |
+          mkdir -p /tmp/arxiv_verify/out
+          tar -xzf dist/arxiv_submission.tar.gz -C /tmp/arxiv_verify
+          cd /tmp/arxiv_verify
+          tectonic -X compile main.tex --outdir out
+          test -s out/main.pdf
+          echo "[PASS] Standalone arXiv tarball compiled cleanly!"

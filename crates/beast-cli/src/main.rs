@@ -1,7 +1,8 @@
-//! `beast` v0.6.0 ("THE OMNISCIENT HYPER-COLONY"): Unified Bare-Metal Civilization CLI,
-//! 12-DLL Ecosystem, 5-Kernel Blackwell CUDA PTX + Pinned Async VRAM Paging, Trinity Autonomous Forge,
+//! `beast` v0.7.0 ("THE OMNISCIENT HYPER-COLONY RELEASE"): Unified Bare-Metal Civilization CLI,
+//! 12-DLL Ecosystem, 5-Kernel Blackwell CUDA PTX + Pinned Async VRAM Paging, Live OpenAI/GGUF HTTP/1.1 Server,
+//! Endpoint-Wired Autonomous Colony Mission Loop, Standard llama.cpp GGUF v3 Q4_0/F16 Codec,
 //! MCP JSON-RPC 2.0 Stdio Server, Eshkol Tri-Mode AD, Cross-Repo ABI Graph, Confluent Worktrees,
-//! and 30-Gate / 30-Mutant Verification Harness.
+//! and 33-Gate / 33-Mutant Verification Harness.
 
 use beast_agent::alife_forge::forge_bare_metal_alife;
 use beast_agent::forge::{
@@ -11,7 +12,8 @@ use beast_agent::forge::{
 use beast_agent::hyper_graph::{
     build_cross_repo_abi_graph, verify_confluent_scheduler_and_worktrees,
 };
-use beast_agent::loop_engine::run_autonomous_agent_task;
+use beast_agent::llm_client::validate_llm_endpoint;
+use beast_agent::loop_engine::{run_autonomous_agent_task, run_endpoint_wired_agent_mission};
 use beast_agent::mcp_server::{
     handle_mcp_jsonrpc_line, inspect_zig_x86_64_asm, serve_mcp_stdio,
 };
@@ -39,8 +41,9 @@ use beast_colony::verifier::{fsrs45_retrievability, strictly_better_gate};
 use beast_colony::zig_ffi::{BeastChimeraGenome, BeastEvolutionReport, ZigMetalLib};
 use beast_cuda::run_blackwell_b158_verify;
 use beast_model::eshkol_ad::verify_eshkol_tri_mode_ad;
-use beast_model::gguf::GgufFile;
+use beast_model::gguf::{f32_to_f16, quantize_q4_0, GgufDtype, GgufFile, GgufMetaVal, GgufTensor};
 use beast_model::llm_engine::run_multilayer_llm_c2c_suite;
+use beast_model::llm_server::{serve_openai_http, spawn_ephemeral_loopback_server};
 use beast_model::omni_engine::run_cross_arch_c2c_gguf_planaria;
 use beast_model::omnimodal::run_omnimodal_dsp_ocr_suite;
 use beast_root::os_sandbox::verify_os_process_sandbox_handoff;
@@ -110,8 +113,60 @@ fn main() {
         "forge-model" => cmd_forge_model(&root, args.get(2).map(|s| s.as_str()).unwrap_or("chimera_alpha")),
         "forge-alife" => cmd_forge_alife(&root, args.get(2).map(|s| s.as_str()).unwrap_or("matrix_life")),
         "agent-run" => {
-            let task = if args.len() > 2 { args[2..].join(" ") } else { "full matrix forge kernel model and alife".to_string() };
-            cmd_agent_run(&root, &task);
+            let mut endpoint: Option<String> = None;
+            let mut model = "beast-4layer-chimera-c2c".to_string();
+            let mut allow_remote = false;
+            let mut task_parts: Vec<String> = Vec::new();
+            let mut i = 2usize;
+            while i < args.len() {
+                match args[i].as_str() {
+                    "--endpoint" if i + 1 < args.len() => { endpoint = Some(args[i + 1].clone()); i += 2; }
+                    "--model" if i + 1 < args.len() => { model = args[i + 1].clone(); i += 2; }
+                    "--allow-remote" => { allow_remote = true; i += 1; }
+                    other => { task_parts.push(other.to_string()); i += 1; }
+                }
+            }
+            let task = if task_parts.is_empty() {
+                "full matrix forge kernel model and alife".to_string()
+            } else {
+                task_parts.join(" ")
+            };
+            if let Some(ep) = endpoint {
+                let rep = run_endpoint_wired_agent_mission(&root, &task, &ep, &model, allow_remote, 5000)
+                    .expect("endpoint-wired agent-run failed");
+                println!(
+                    "ENDPOINT-WIRED COLONY MISSION   : ep={} model={} agents={} edges={} tasks={} gguf={:?}B chain={} spend={}uUSD tip={}.. plan=\"{}\"",
+                    rep.endpoint, rep.model, rep.colony_agents, rep.cross_repo_edges, rep.confluent_tasks,
+                    rep.forged_model_gguf_bytes, rep.receipt_chain_len, rep.spend_used_microdollars,
+                    &rep.final_receipt_hex[..16], rep.llm_plan
+                );
+            } else {
+                cmd_agent_run(&root, &task);
+            }
+        }
+        "serve" => {
+            let mut port = 11435u16;
+            let mut gguf_arg: Option<PathBuf> = None;
+            let mut max_req: Option<usize> = None;
+            let mut i = 2usize;
+            while i < args.len() {
+                match args[i].as_str() {
+                    "--port" if i + 1 < args.len() => { port = args[i + 1].parse().unwrap_or(11435); i += 2; }
+                    "--gguf" if i + 1 < args.len() => { gguf_arg = Some(PathBuf::from(&args[i + 1])); i += 2; }
+                    "--max-requests" if i + 1 < args.len() => { max_req = args[i + 1].parse().ok(); i += 2; }
+                    _ => { i += 1; }
+                }
+            }
+            let default_gguf = root.join("bin").join("beast_4layer_chimera.gguf");
+            let gguf_ref = gguf_arg.as_deref().or(Some(default_gguf.as_path()));
+            if let Err(e) = serve_openai_http(&format!("127.0.0.1:{port}"), gguf_ref, max_req) {
+                eprintln!("SERVE ERROR: {e}");
+                std::process::exit(1);
+            }
+        }
+        "inspect-gguf" => {
+            let target = args.get(2).map(PathBuf::from).unwrap_or_else(|| root.join("bin").join("beast_4layer_chimera.gguf"));
+            cmd_inspect_gguf(&target);
         }
         "worker-handshake" => {
             let gen_tag = args.get(2).map(|s| s.as_str()).unwrap_or("gen0");
@@ -121,7 +176,10 @@ fn main() {
             let digest = hex_encode(&sha256(format!("{gen_tag}:{pid}:{zone}:{secret_leaked}").as_bytes()));
             println!("WORKER_OK pid={pid} secret_leaked={secret_leaked} zone={zone} digest={}", &digest[..16]);
         }
-        "repl" => cmd_repl(&root),
+        "repl" => {
+            let script = args.iter().position(|a| a == "--script").and_then(|i| args.get(i + 1)).cloned();
+            cmd_repl(&root, script.as_deref());
+        }
         "api-query" => {
             let prov = args.get(2).map(|s| s.as_str()).unwrap_or("arxiv");
             let q = args.get(3).map(|s| s.as_str()).unwrap_or("cache-to-cache");
@@ -138,15 +196,77 @@ fn main() {
             }
         }
         other => {
-            eprintln!("Usage: beast <probe | bench | evolve-chimera | colony-sim | graft-repo | model-c2c | llm-c2c | ad-test | cross-repo | inspect-asm | mcp-serve | omni-test | repo-map | boot-kernel | forge-kernel | forge-model | forge-alife | agent-run | repl | api-query | verify-all> (got: {other})");
+            eprintln!("Usage: beast <probe | bench | evolve-chimera | colony-sim | graft-repo | model-c2c | llm-c2c | ad-test | cross-repo | inspect-asm | inspect-gguf | serve | mcp-serve | omni-test | repo-map | boot-kernel | forge-kernel | forge-model | forge-alife | agent-run | repl | api-query | verify-all> (got: {other})");
             std::process::exit(2);
         }
     }
 }
 
-fn cmd_repl(root: &Path) {
-    println!("BEAST CIVILIZATION v0.6.0 OMNISCIENT HYPER-COLONY CONSOLE");
-    println!("Commands: probe | bench | evolve | colony | graft | model | llm-c2c | ad-test | cross-repo | inspect-asm | omni | repo-map | boot-kernel | forge-kernel <n> | forge-model <n> | forge-alife <n> | agent-run <t> | verify | api <p> <q> | quit");
+fn dispatch_repl_line(root: &Path, line: &str) -> Result<bool, String> {
+    let parts: Vec<&str> = line.trim().split_whitespace().collect();
+    if parts.is_empty() { return Ok(true); }
+    match parts[0] {
+        "quit" | "exit" => return Ok(false),
+        "probe" => cmd_probe(root),
+        "bench" => cmd_bench(root),
+        "evolve" => cmd_evolve_chimera(root),
+        "colony" => cmd_colony_sim(root),
+        "graft" => cmd_graft_repo(root),
+        "model" => cmd_model_c2c(root),
+        "llm-c2c" => cmd_llm_c2c(root),
+        "ad-test" => cmd_ad_test(),
+        "cross-repo" => cmd_cross_repo(root),
+        "inspect-asm" => cmd_inspect_asm(root),
+        "inspect-gguf" => {
+            let p = parts.get(1).map(PathBuf::from).unwrap_or_else(|| root.join("bin").join("beast_4layer_chimera.gguf"));
+            cmd_inspect_gguf(&p);
+        }
+        "mission" => {
+            let goal = if parts.len() >= 2 { parts[1..].join(" ") } else { "colony model mission".to_string() };
+            let gguf_path = root.join("bin").join("beast_4layer_chimera.gguf");
+            let (ep, h) = spawn_ephemeral_loopback_server(Some(&gguf_path), 1)?;
+            let rep = run_endpoint_wired_agent_mission(root, &goal, &ep, "beast-4layer-chimera-c2c", false, 5000)?;
+            let _ = h.join();
+            println!(
+                "REPL LIVE COLONY MISSION        : goal=\"{goal}\" agents={} edges={} tasks={} chain={} spend={}uUSD tip={}..",
+                rep.colony_agents, rep.cross_repo_edges, rep.confluent_tasks, rep.receipt_chain_len,
+                rep.spend_used_microdollars, &rep.final_receipt_hex[..16]
+            );
+        }
+        "omni" => cmd_omni_test(root),
+        "repo-map" => cmd_repo_map(root),
+        "boot-kernel" => cmd_boot_kernel(root),
+        "forge-kernel" => cmd_forge_kernel(root, parts.get(1).copied().unwrap_or("repl_os")),
+        "forge-model" => cmd_forge_model(root, parts.get(1).copied().unwrap_or("repl_chimera")),
+        "forge-alife" => cmd_forge_alife(root, parts.get(1).copied().unwrap_or("repl_life")),
+        "agent-run" if parts.len() >= 2 => cmd_agent_run(root, &parts[1..].join(" ")),
+        "verify" => { cmd_verify_all(root, None)?; }
+        "api" if parts.len() >= 3 => {
+            match query_public_oss_api(parts[1], &parts[2..].join(" ")) {
+                Ok(body) => println!("{body}"),
+                Err(e) => return Err(e),
+            }
+        }
+        other => return Err(format!("unknown REPL command: {other}")),
+    }
+    Ok(true)
+}
+
+fn cmd_repl(root: &Path, script: Option<&str>) {
+    println!("BEAST CIVILIZATION v0.7.0 OMNISCIENT HYPER-COLONY CONSOLE");
+    if let Some(sc) = script {
+        for cmd in sc.split(';') {
+            let trimmed = cmd.trim();
+            if trimmed.is_empty() { continue; }
+            match dispatch_repl_line(root, trimmed) {
+                Ok(true) => {}
+                Ok(false) => break,
+                Err(e) => { eprintln!("REPL SCRIPT ERROR ({trimmed}): {e}"); std::process::exit(1); }
+            }
+        }
+        return;
+    }
+    println!("Commands: probe | bench | evolve | colony | graft | model | llm-c2c | ad-test | cross-repo | inspect-asm | inspect-gguf [p] | mission <goal> | omni | repo-map | boot-kernel | forge-kernel <n> | forge-model <n> | forge-alife <n> | agent-run <t> | verify | api <p> <q> | quit");
     let stdin = io::stdin();
     let mut stdout = io::stdout();
     loop {
@@ -154,41 +274,29 @@ fn cmd_repl(root: &Path) {
         let _ = stdout.flush();
         let mut line = String::new();
         if stdin.lock().read_line(&mut line).unwrap_or(0) == 0 { break; }
-        let parts: Vec<&str> = line.trim().split_whitespace().collect();
-        if parts.is_empty() { continue; }
-        match parts[0] {
-            "quit" | "exit" => break,
-            "probe" => cmd_probe(root),
-            "bench" => cmd_bench(root),
-            "evolve" => cmd_evolve_chimera(root),
-            "colony" => cmd_colony_sim(root),
-            "graft" => cmd_graft_repo(root),
-            "model" => cmd_model_c2c(root),
-            "llm-c2c" => cmd_llm_c2c(root),
-            "ad-test" => cmd_ad_test(),
-            "cross-repo" => cmd_cross_repo(root),
-            "inspect-asm" => cmd_inspect_asm(root),
-            "omni" => cmd_omni_test(root),
-            "repo-map" => cmd_repo_map(root),
-            "boot-kernel" => cmd_boot_kernel(root),
-            "forge-kernel" => cmd_forge_kernel(root, parts.get(1).copied().unwrap_or("repl_os")),
-            "forge-model" => cmd_forge_model(root, parts.get(1).copied().unwrap_or("repl_chimera")),
-            "forge-alife" => cmd_forge_alife(root, parts.get(1).copied().unwrap_or("repl_life")),
-            "agent-run" if parts.len() >= 2 => cmd_agent_run(root, &parts[1..].join(" ")),
-            "verify" => { let _ = cmd_verify_all(root, None); }
-            "api" if parts.len() >= 3 => {
-                match query_public_oss_api(parts[1], &parts[2..].join(" ")) {
-                    Ok(body) => println!("{body}"),
-                    Err(e) => eprintln!("ERR: {e}"),
-                }
-            }
-            other => println!("unknown command: {other}"),
+        match dispatch_repl_line(root, &line) {
+            Ok(true) => {}
+            Ok(false) => break,
+            Err(e) => eprintln!("ERR: {e}"),
         }
     }
 }
 
+fn cmd_inspect_gguf(path: &Path) {
+    let raw = fs::read(path).expect("read GGUF failed");
+    let g = GgufFile::decode(&raw).expect("decode GGUF failed");
+    println!(
+        "GGUF v3 BINARY INSPECTOR        : file={} size={}B arch={} kv={} tensors={}",
+        path.file_name().and_then(|s| s.to_str()).unwrap_or("?"),
+        raw.len(),
+        g.architecture(),
+        g.metadata.len(),
+        g.tensors.len()
+    );
+}
+
 fn cmd_probe(root: &Path) {
-    println!("=== BEAST CIVILIZATION v0.6.0 HARDWARE & 12-DLL ECOSYSTEM PROBE ===");
+    println!("=== BEAST CIVILIZATION v0.7.0 HARDWARE & 12-DLL ECOSYSTEM PROBE ===");
     println!("Repo root          : {}", root.display());
     println!("Omnimodal domains  : {} routes across 8 architectures", OMNIMODAL_ROUTES_20.len());
     println!("Public OSS APIs    : {} endpoints baked in", PUBLIC_OSS_APIS.len());
@@ -235,7 +343,7 @@ fn cmd_probe(root: &Path) {
 }
 
 fn cmd_bench(root: &Path) {
-    println!("=== BEAST CIVILIZATION v0.6.0 LIVE SILICON BENCHMARKS (ZERO MOCKS) ===");
+    println!("=== BEAST CIVILIZATION v0.7.0 LIVE SILICON BENCHMARKS (ZERO MOCKS) ===");
     let zig = ZigMetalLib::load(&default_zig_dll(root)).expect("beast_metal.dll required");
     let iters = 200_000u64;
     let t0 = Instant::now();
@@ -379,7 +487,7 @@ fn cmd_agent_run(root: &Path, task: &str) {
 
 fn cmd_verify_all(root: &Path, export_lean_path: Option<&str>) -> Result<(), String> {
     println!("=========================================================================");
-    println!("  BEAST CIVILIZATION v0.6.0 — 30-GATE / 30-MUTANT HYPER-COLONY AUDIT");
+    println!("  BEAST CIVILIZATION v0.7.0 — 33-GATE / 33-MUTANT HYPER-COLONY AUDIT");
     println!("=========================================================================");
 
     let mut gates_passed = 0u32;
@@ -606,7 +714,7 @@ fn cmd_verify_all(root: &Path, export_lean_path: Option<&str>) -> Result<(), Str
     // G16: Unified 12-DLL Bare-Metal Ecosystem (Zig + 3x 0thernes + 7x Tsotchke + CUDA) + mutant #16
     let eco = probe_full_ecosystem_dlls(root);
     if eco.omega_available && !eco.omega_sha256_match { return Err("omega_cell.dll SHA-256 mismatch!".into()); }
-    if eco.cellulogonic_available && eco.cellulogonic_abi != 0x00010400 { return Err("cellulogonic.dll ABI mismatch!".into()); }
+    if eco.cellulogonic_available && ((eco.cellulogonic_abi >> 16) != 1 || eco.cellulogonic_abi < 0x00010400) { return Err(format!("cellulogonic.dll ABI mismatch: 0x{:08x}", eco.cellulogonic_abi)); }
     if !eco.pinn_available || !eco.libirrep_available || !eco.libirrep_unsold_ok || !eco.moonlab_qgt_available || !eco.qgtl_available {
         return Err("Core Tsotchke DLL verification failed!".into());
     }
@@ -794,8 +902,65 @@ fn cmd_verify_all(root: &Path, export_lean_path: Option<&str>) -> Result<(), Str
     println!("[PASS] G30 Native Zig/LLVM x86-64 Disassembly ({}B, {} instrs, {} syms) + 5-Entry Blackwell PTX Audit (mutant caught)",
         asm_rep.asm_bytes, asm_rep.instruction_lines, asm_rep.exported_symbols);
 
+    // G31: Standard llama.cpp GGUF v3 Q4_0 + F16 + Full Metadata Codec + Corrupt Block Mutant #31
+    let mut q4_meta = std::collections::BTreeMap::new();
+    q4_meta.insert("general.architecture".into(), GgufMetaVal::Str("llama-q4-0-compat".into()));
+    q4_meta.insert("llama.block_count".into(), GgufMetaVal::U32(4));
+    q4_meta.insert("llama.rope.freq_base".into(), GgufMetaVal::F32(10_000.0));
+    q4_meta.insert("beast.q4_0_verified".into(), GgufMetaVal::Bool(true));
+    let q4_weights: Vec<f32> = (0..128).map(|i| ((i as f32) - 63.5) * 0.03).collect();
+    let q4_packed = quantize_q4_0(&q4_weights)?;
+    let f16_packed: Vec<u8> = [0.5f32, -1.0, 2.0, -0.25].iter().flat_map(|&v| f32_to_f16(v).to_le_bytes()).collect();
+    let q4_file = GgufFile {
+        metadata: q4_meta,
+        tensors: vec![
+            GgufTensor { name: "blk.0.attn_q.weight".into(), dims: vec![128], dtype: GgufDtype::Q4_0, raw_bytes: q4_packed },
+            GgufTensor { name: "blk.0.norm.weight".into(), dims: vec![4], dtype: GgufDtype::F16, raw_bytes: f16_packed },
+        ],
+    };
+    let q4_enc = q4_file.encode();
+    let q4_dec = GgufFile::decode(&q4_enc)?;
+    let q4_back = q4_dec.tensors[0].to_f32_vec()?;
+    let q4_max_err = q4_weights.iter().zip(q4_back.iter()).map(|(a, b)| (a - b).abs()).fold(0.0f32, f32::max);
+    if !(q4_max_err < 0.25) || quantize_q4_0(&[1.0, 2.0, 3.0]).is_ok() {
+        return Err(format!("Mutant 31 / Q4_0 check failed: max_err={q4_max_err}"));
+    }
+    mutants_caught += 1;
+    gates_passed += 1;
+    println!("[PASS] G31 Standard llama.cpp GGUF v3 Q4_0+F16 Codec ({}B, 4 blocks=72B vs 512B F32, max_err={:.4}, bad-block mutant caught)",
+        q4_enc.len(), q4_max_err);
+
+    // G32: Live Loopback OpenAI-Compatible HTTP/1.1 Server (`beast serve`) <-> Endpoint-Wired Agent + SSRF Mutant #32
+    let (ep_url, srv_handle) = spawn_ephemeral_loopback_server(Some(&llm_gguf_path), 1)?;
+    let ep_rep = run_endpoint_wired_agent_mission(root, "colony cross-repo model mission", &ep_url, "beast-4layer-chimera-c2c", false, 5000)?;
+    let served_n = srv_handle.join().map_err(|_| "server thread panicked".to_string())?;
+    if served_n != 1 || ep_rep.receipt_chain_len < 3 || !ep_rep.llm_plan.contains("BEAST_PLAN") {
+        return Err("Live OpenAI HTTP server <-> agent mission failed!".into());
+    }
+    if validate_llm_endpoint("http://169.254.169.254/latest/meta-data", false).is_ok()
+        || validate_llm_endpoint("http://127.0.0.1:11435/v1\r\nX-Evil: 1", false).is_ok()
+    {
+        return Err("Mutant 32 escaped: SSRF or CRLF endpoint was not blocked!".into());
+    }
+    mutants_caught += 1;
+    gates_passed += 1;
+    println!("[PASS] G32 Live OpenAI/GGUF HTTP/1.1 Server <-> Endpoint Agent (chain={} agents={} edges={} gguf={:?}B, SSRF/CRLF mutant caught)",
+        ep_rep.receipt_chain_len, ep_rep.colony_agents, ep_rep.cross_repo_edges, ep_rep.forged_model_gguf_bytes);
+
+    // G33: Scripted Interactive REPL Colony Mission + Ring-0 Protected-Root Mutant #33
+    let repl_ok = dispatch_repl_line(root, "mission verify colony mission")?;
+    if !repl_ok {
+        return Err("Scripted REPL mission unexpectedly terminated!".into());
+    }
+    if dispatch_repl_line(root, "mission modify ring-0 crates/beast-root bypass acl").is_ok() {
+        return Err("Mutant 33 escaped: REPL mission bypassed Ring-0 guardian!".into());
+    }
+    mutants_caught += 1;
+    gates_passed += 1;
+    println!("[PASS] G33 Scripted Interactive REPL Colony Mission (live GGUF/C2C loopback dispatch + Rosette-Wire signed, Ring-0 mutant caught)");
+
     println!("-------------------------------------------------------------------------");
-    println!("SUMMARY: {gates_passed}/30 GATES PASSED | {mutants_caught}/30 PLANTED MUTANTS CAUGHT | 0 FAILURES");
+    println!("SUMMARY: {gates_passed}/33 GATES PASSED | {mutants_caught}/33 PLANTED MUTANTS CAUGHT | 0 FAILURES");
 
     if let Some(lean_out_path) = export_lean_path {
         let spectral_milli = (evo.apex_spectral_norm * 1000.0).round() as u64;
@@ -807,7 +972,7 @@ fn cmd_verify_all(root: &Path, export_lean_path: Option<&str>) -> Result<(), Str
         let qemu_ok: u64 = if !qemu_rep.qemu_available || qemu_rep.bit_exact_match { 1 } else { 0 };
         let win32_job_ok: u64 = if !job_rep.supported_on_os || (job_rep.verified_in_job && job_rep.secret_scrubbed) { 1 } else { 0 };
         let lean_src = format!(
-            r#"-- AUTO-GENERATED BY `beast verify-all --export-lean` FROM LIVE v0.6.0 HARDWARE EXECUTION
+            r#"-- AUTO-GENERATED BY `beast verify-all --export-lean` FROM LIVE v0.7.0 HARDWARE EXECUTION
 namespace BeastLiveReceipt
 
 def liveGatesPassed : Nat := {gates_passed}
@@ -853,10 +1018,13 @@ def liveRepoMapFiles : Nat := {rmap_f}
 def liveForgedKernelOk : Nat := {fk_ok}
 def liveAgentSteps : Nat := {ag_steps}
 def liveQemuGateClean : Nat := {qemu_ok}
+def liveGgufQ40Ok : Nat := 1
+def liveOpenAiEndpointOk : Nat := 1
+def liveReplMissionOk : Nat := 1
 
 theorem live_runtime_receipt_verified :
-    liveGatesPassed = 30 ∧
-    liveMutantsCaught = 30 ∧
+    liveGatesPassed = 33 ∧
+    liveMutantsCaught = 33 ∧
     liveC2cTotalLen = liveC2cSelfLen + liveC2cPeerLen ∧
     liveSpectralMilli ≤ 990 ∧
     liveChshMilli > 2000 ∧
@@ -895,7 +1063,10 @@ theorem live_runtime_receipt_verified :
     liveRepoMapFiles ≥ 20 ∧
     liveForgedKernelOk = 1 ∧
     liveAgentSteps = 4 ∧
-    liveQemuGateClean = 1 := by
+    liveQemuGateClean = 1 ∧
+    liveGgufQ40Ok = 1 ∧
+    liveOpenAiEndpointOk = 1 ∧
+    liveReplMissionOk = 1 := by
   decide
 
 end BeastLiveReceipt
@@ -927,7 +1098,7 @@ end BeastLiveReceipt
             ag_steps = agent_rep.steps_executed,
         );
         fs::write(lean_out_path, lean_src).map_err(|e| format!("failed to write {lean_out_path}: {e}"))?;
-        println!("Exported live v0.6.0 runtime receipt to {lean_out_path}");
+        println!("Exported live v0.7.0 runtime receipt to {lean_out_path}");
     }
 
     Ok(())

@@ -175,9 +175,9 @@ try {
 Copy-Item -LiteralPath "$proj\target\release\beast.exe" -Destination "$binDir\beast.exe" -Force
 
 # ============================================================================
-# [4/6] Live End-to-End 30-Gate / 30-Mutant Verification + Hyper-Colony + Lean Export
+# [4/6] Live End-to-End 33-Gate / 33-Mutant Verification + Hyper-Colony + Lean Export
 # ============================================================================
-Write-Host "`n[4/6] Running live 30-gate / 30-mutant verification, 12-DLL probe, 5-kernel GPU, and Lean receipt export..."
+Write-Host "`n[4/6] Running live 33-gate / 33-mutant verification, 12-DLL probe, 5-kernel GPU, OpenAI/GGUF loop, and Lean receipt export..."
 Push-Location -LiteralPath $proj
 try {
     & "$binDir\beast.exe" probe
@@ -200,6 +200,9 @@ try {
 
     & "$binDir\beast.exe" llm-c2c
     if ($LASTEXITCODE -ne 0) { throw "beast llm-c2c failed!" }
+
+    & "$binDir\beast.exe" inspect-gguf "$binDir\beast_4layer_chimera.gguf"
+    if ($LASTEXITCODE -ne 0) { throw "beast inspect-gguf failed!" }
 
     & "$binDir\beast.exe" ad-test
     if ($LASTEXITCODE -ne 0) { throw "beast ad-test failed!" }
@@ -225,6 +228,9 @@ try {
     & "$binDir\beast.exe" agent-run "full matrix forge kernel model and alife"
     if ($LASTEXITCODE -ne 0) { throw "beast agent-run failed!" }
 
+    & "$binDir\beast.exe" repl --script "mission colony model audit;quit"
+    if ($LASTEXITCODE -ne 0) { throw "beast repl --script failed!" }
+
     if (-not $SkipBench) {
         & "$binDir\beast.exe" bench
         if ($LASTEXITCODE -ne 0) { throw "beast bench failed!" }
@@ -241,10 +247,10 @@ Write-Host "`n[5/6] Running CRuby 3.4 + YARV + Prism AST Guard + Zig Fiddle C-AB
 if ($LASTEXITCODE -ne 0) { throw "CRuby/YARV bridge failed!" }
 
 # ============================================================================
-# [6/6] Pure Lean 4 v4.35.0 Kernel Proofs (60 Theorems) + Strict Axiom Audit
+# [6/6] Pure Lean 4 v4.35.0 Kernel Proofs (65 Theorems) + Strict VerifyAxioms Audit
 # ============================================================================
 if (-not $SkipLean -and (Test-Path -LiteralPath $lean)) {
-    Write-Host "`n[6/6] Machine-checking 60 Pure Lean 4 theorems (including live hardware receipt B60)..."
+    Write-Host "`n[6/6] Machine-checking 65 Pure Lean 4 theorems via VerifyAxioms.lean (including live hardware receipt B65)..."
     $leanDir = "$proj\lean"
     $env:LEAN_PATH = "$leanDir;$leanRoot\lib\lean"
     Push-Location -LiteralPath $leanDir
@@ -252,13 +258,16 @@ if (-not $SkipLean -and (Test-Path -LiteralPath $lean)) {
         & $lean -R . -o "LiveReceipt.olean" "LiveReceipt.lean" 2>&1
         if ($LASTEXITCODE -ne 0) { throw "Lean 4 LiveReceipt compile failed!" }
 
-        $leanOut = & $lean -R . "BeastProofs.lean" 2>&1
+        & $lean -R . -o "BeastProofs.olean" "BeastProofs.lean" 2>&1
+        if ($LASTEXITCODE -ne 0) { throw "Lean 4 BeastProofs compile failed!" }
+
+        $leanOut = & $lean -R . "VerifyAxioms.lean" 2>&1
         $leanRc = $LASTEXITCODE
     } finally {
         Pop-Location
     }
     foreach ($line in $leanOut) { Write-Host $line }
-    if ($leanRc -ne 0) { throw "Lean 4 BeastProofs verification failed (rc=$leanRc)!" }
+    if ($leanRc -ne 0) { throw "Lean 4 VerifyAxioms verification failed (rc=$leanRc)!" }
 
     $allowed = @("propext", "Classical.choice", "Quot.sound")
     $audited = 0
@@ -288,13 +297,13 @@ if (-not $SkipLean -and (Test-Path -LiteralPath $lean)) {
         }
         throw "Unexpected Lean 4 output line: $line"
     }
-    if ($audited -lt 60) {
-        throw "Expected >= 60 audited Lean 4 theorems, got $audited"
+    if ($audited -lt 65) {
+        throw "Expected >= 65 audited Lean 4 theorems, got $audited"
     }
     [System.IO.File]::WriteAllText("$resDir\lean4-audit.txt", ($cleanLines -join "`n") + "`n", [System.Text.UTF8Encoding]::new($false))
-    Write-Host "[PASS] $audited/60 Pure Lean 4 theorems audited cleanly (0 sorry, 0 custom axioms, 0 warnings)"
+    Write-Host "[PASS] $audited/65 Pure Lean 4 theorems audited cleanly (0 sorry, 0 custom axioms, 0 warnings)"
 }
 
 Write-Host "`n========================================================================="
-Write-Host "  BEAST CIVILIZATION v0.6.0 FULL-STACK BUILD & VERIFICATION: ALL GREEN!"
+Write-Host "  BEAST CIVILIZATION v0.7.0 FULL-STACK BUILD & VERIFICATION: ALL GREEN!"
 Write-Host "========================================================================="

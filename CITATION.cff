@@ -1,0 +1,26 @@
+cff-version: 1.2.0
+message: "If you use beast-civilization or cite the accompanying white paper and Lean 4 proof suite, please cite it using the metadata below."
+type: software
+title: "BEAST CIVILIZATION: Bare-Metal Polyglot Multi-Colony AI Architecture, MIT Cache-to-Cache Telepathy, Blackwell PTX Kernels, and 65 Machine-Checked Pure Lean 4.35.0 Proofs"
+version: "0.7.0"
+date-released: "2026-11-26"
+authors:
+  - family-names: "Donahue"
+    given-names: "Alexander Stephen"
+    orcid: "https://orcid.org/0009-0006-8168-9648"
+    affiliation: "Independent Researcher, Spokane, WA, USA"
+    email: "0_0@0thernes.art"
+repository-code: "https://github.com/0thernes/beast-civilization"
+url: "https://github.com/0thernes/beast-civilization"
+license: "MIT"
+keywords:
+  - "bare-metal AI"
+  - "cache-to-cache communication"
+  - "BitNet b1.58"
+  - "GGUF"
+  - "Zig"
+  - "Rust"
+  - "CRuby YARV"
+  - "CUDA PTX"
+  - "Lean 4 formal verification"
+  - "multi-colony agent systems"

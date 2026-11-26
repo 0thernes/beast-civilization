@@ -1,7 +1,7 @@
 schema_version: "1.2.0"
 name: "beast-civilization"
-version: "0.6.0"
-owner: "Alexander Stephen Donahue (0thernes LLC)"
+version: "0.7.0"
+owner: "Alexander Stephen Donahue (Independent Researcher)"
 orcid: "0009-0006-8168-9648"
 profiles:
   - T13

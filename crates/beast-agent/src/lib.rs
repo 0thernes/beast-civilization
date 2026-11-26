@@ -10,6 +10,7 @@
 pub mod alife_forge;
 pub mod forge;
 pub mod hyper_graph;
+pub mod llm_client;
 pub mod loop_engine;
 pub mod mcp_server;
 pub mod repo_map;

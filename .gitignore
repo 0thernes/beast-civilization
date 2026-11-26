@@ -1,7 +1,7 @@
 # Build outputs (A24: never commit binaries, build artifacts, or secrets)
 /target/
 /bin/
-/dist/
+/paper/build/
 /zig/beast-metal/zig-out/
 /zig/beast-metal/.zig-cache/
 /zig/freestanding_kernel/zig-out/

@@ -1,5 +1,14 @@
 # Changelog (`A07`)
 
+## [0.7.0] - 2026-11-26 — OPENAI/GGUF LIVE SERVER, AMS-LATEX WHITE PAPER & ARCHIVE RELEASE
+### Added
+- **Standard `llama.cpp` GGUF v3 `Q4_0` / `F16` / Full-Metadata Codec** (`crates/beast-model/src/gguf.rs`, `beast inspect-gguf`, `G31`): exact IEEE-754 `binary16` conversion, 18-byte `Q4_0` block quantization/dequantization (`64/9×` compression vs `F32`, `max_err=0.1261`), full GGUF v3 metadata type decoding.
+- **Zero-Crate OpenAI-Compatible Local HTTP/1.1 Inference Server (`beast serve`) & SSRF-Guarded LLM Client (`beast agent-run --endpoint`)** (`crates/beast-model/src/llm_server.rs`, `crates/beast-agent/src/llm_client.rs`, `G32`): live TCP `GET /health`, `GET /v1/models`, and `POST /v1/chat/completions` backed by 4-layer GQA→Chimera C2C inference, wired directly into Ring-0 metered agent missions with strict loopback SSRF + CRLF injection blocking.
+- **Scripted & Interactive Colony Mission Console (`beast repl --script`, `mission <goal>`)** (`G33`): end-to-end live GGUF/C2C loopback mission dispatch signed into Rosette-Wire chains with Ring-0 protected-root refusal.
+- **65 Pure Lean 4.35.0 Theorems + Dedicated `lean/VerifyAxioms.lean` + `lean/lean-toolchain` + `lean/lakefile.toml`**: added `B61`–`B65`, strictly within `{propext, Classical.choice, Quot.sound}` (`0 sorry`, `0` custom axioms, `0` warnings).
+- **Clean-Room Python 3 Exact-Arithmetic Oracle** (`scripts/verify_independent_oracle.py`), **Publication-Grade AMS-LaTeX White Paper** (`paper/main.tex` -> `dist/Donahue_2026_beast_civilization.pdf` + clean-room `dist/arxiv_submission.tar.gz`), `CITATION.cff`, `VERIFICATION.md`, and full 3-job Linux GitHub Actions CI (`.github/workflows/ci.yml`).
+- **Forward-Compatible `cellulogonic.dll` ABI Check**: cleanly links upgraded `cellulogonic-mecha v1.6.0` (`ABI=0x00010600`) and `AUTOPHAGE` (`ABI=0x00010400`).
+
 ## [0.6.0] - 2026-11-25 — THE OMNISCIENT HYPER-COLONY
 ### Added
 - **12th Live Native DLL (`tsotchke/quantum_geometric_tensor` QGTL) + FIPS-197 AES-256 KAT & PQC-Sealed C2C**:

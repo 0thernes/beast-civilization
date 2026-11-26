@@ -1,0 +1,431 @@
+\documentclass[11pt,letterpaper]{amsart}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{microtype}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric,fit,calc}
+\usepackage[hidelinks,colorlinks=true,linkcolor=blue!60!black,citecolor=teal!60!black,urlcolor=blue!60!black]{hyperref}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{remark}[theorem]{Remark}
+
+\newcommand{\code}[1]{{\small\texttt{#1}}}
+\newcommand{\GF}{\mathbb{F}}
+\emergencystretch=2em
+
+\title[BEAST CIVILIZATION v0.7.0]{%
+  BEAST CIVILIZATION v0.7.0: A Zero-Dependency Bare-Metal Polyglot\\
+  Multi-Colony AI Architecture, Cross-Architecture Cache-to-Cache\\
+  Telepathy, Blackwell PTX Kernels, and 65 Pure Lean 4.35.0 Proofs%
+}
+
+\author{Alexander Stephen Donahue}
+\address{Independent Researcher, Spokane, WA, USA}
+\email{0\_0@0thernes.art}
+\thanks{ORCID: \href{https://orcid.org/0009-0006-8168-9648}{0009-0006-8168-9648}.
+Source repository: \url{https://github.com/0thernes/beast-civilization}.
+Code licensed under MIT; manuscript and figures licensed under CC BY 4.0.}
+
+\date{November 26, 2026}
+
+\begin{document}
+
+\begin{abstract}
+Modern autonomous coding agents and multi-agent orchestration harnesses rely overwhelmingly
+on high-overhead scripting runtimes, text-only inter-agent prompts, opaque cloud APIs, and
+unverified safety wrappers. We present \textsc{BEAST CIVILIZATION} (\code{v0.7.0}), a
+zero-dependency bare-metal polyglot multi-colony AI engine written in Zig~0.17.1, Rust~1.94.1
+(8 crates, zero external Cargo dependencies), CRuby~3.4.9/YARV with Prism AST gating (zero
+Ruby gems), C11, NVIDIA Blackwell \code{sm\_12.0} CUDA PTX, and Pure Lean~4.35.0 (zero
+Mathlib). The runtime integrates twelve live native dynamic libraries---including Zig SIMD
+quantization kernels (\code{b1.58}, \code{NVFP4}, \code{u1}, \code{i2}), three local
+artificial-life engines (\code{AUTOPHAGE}, \code{omega\_cell}, \code{cellulogonic}), seven
+compiled upstream C11 physics/cryptography bridges (\code{quantum\_rng}, \code{PINN},
+\code{libirrep}, \code{moonlab} QGT, FIPS-203 ML-KEM-768 + FIPS-197 AES-256, Fibonacci
+anyons/spintronic $p$-bits, and \code{QGTL} Bloch fidelity), and the NVIDIA CUDA driver.
+Across Intel Core Ultra 9 275HX and RTX 5070 Ti (\code{sm\_12.0}) hardware, we measure
+$6.68\text{ ns/call}$ Rust--Zig Philox4x32-10 FFI latency, $3.42\times$ bit-exact Zig
+\code{b1.58} SIMD acceleration over 10M trits, $4.34\times$ speedup for trained
+Cache-to-Cache (\code{SwaT} + \code{Augment-Cache}) inference over text prefill with
+$-100.0\%$ held-out MSE reduction and empirical validation of the Augment-over-Overwrite
+dominance law ($1.000$ vs.\ $-0.311$), five verified Blackwell PTX kernels with
+$20.21\text{ GB/s}$ pinned asynchronous VRAM paging, live QEMU Ring-0 execution of a
+freestanding i386 Multiboot1 neural microkernel, Win32 kernel Job Object hard isolation,
+a standard \code{llama.cpp} GGUF v3 (\code{Q4\_0}/\code{F16}/\code{F32}) codec and live
+OpenAI-compatible HTTP/1.1 inference server (\code{beast serve}), Eshkol tri-mode exact
+automatic differentiation ($0.00\times 10^0$ discrepancy across forward, reverse, and
+symbolic modes), and Planaria $\GF(2^8)$+Merkle $50\%$ damage healing with Byzantine Trojan
+quarantine. Verification spans $33/33$ live gates, $38/38$ caught planted mutants across
+three runtimes, $21/21$ Rust unit tests, a clean-room Python exact-arithmetic oracle, and
+$65/65$ machine-checked Pure Lean~4.35.0 theorems audited strictly within standard axioms
+(\code{propext}, \code{Classical.choice}, \code{Quot.sound}). We document explicit
+epistemic boundaries: $296/300$ ($98.7\%$) capability matrix items are live-verified,
+$4/300$ remain honestly marked \code{SPEC}, and zero open mathematical or scientific grand
+problems in the 1,900-problem Mega-Atlas are claimed retired.
+\end{abstract}
+
+\maketitle
+
+\section{Introduction}
+\label{sec:intro}
+
+Autonomous agent harnesses exhibit recurring structural bottlenecks: serial text-token
+re-prefill between coordinating agents, unverified mutation loops that silently corrupt
+repositories or leak credentials across child processes, opaque floating-point drift across
+languages, and bloated dependency trees that resist deterministic auditing.
+\textsc{BEAST CIVILIZATION} (\code{v0.7.0}) investigates an alternative systems design:
+compiling the entire cognitive, cryptographic, evolutionary, and hardware-execution stack
+into an auditable, zero-third-party-dependency polyglot substrate whose core algebraic,
+encoding, isolation, and runtime-receipt invariants are checked directly by the Lean~4
+kernel~\cite{moura2021lean4}.
+
+\subsection{Contributions}
+This paper documents the architecture, mathematical invariants, live-silicon measurements,
+and formal verification boundaries of \code{beast-civilization} (\code{v0.7.0}):
+\begin{enumerate}
+  \item \textbf{Bare-Metal Polyglot Core (Zero Dependencies):} An eight-crate Rust workspace
+  (\code{beast-wire}, \code{beast-root}, \code{beast-c2c}, \code{beast-colony},
+  \code{beast-cuda}, \code{beast-model}, \code{beast-agent}, and \code{beast-cli}), a
+  Zig~0.17.1 SIMD dynamic library (\code{beast\_metal.dll}), freestanding zero-\code{libc}
+  Multiboot1 and Multiboot2 ELF microkernels, a CRuby~3.4.9 + Prism AST + 10-generation
+  YARV bytecode breeder, and five hand-authored Blackwell \code{sm\_12.0} CUDA PTX kernels
+  with pinned host asynchronous VRAM paging.
+  \item \textbf{Cross-Architecture Cache-to-Cache (C2C) Telepathy \& GGUF/OpenAI Serving:}
+  Direct KV-cache projection via trained \code{SwaT} mappers, \code{Augment-Cache}
+  attention that preserves local receiver context while strictly dominating destructive
+  overwrite, Merkle-signed \code{.bcg} repository cache banks, a 4-layer autoregressive
+  GQA~\cite{ainslie2023gqa}/RoPE~\cite{su2024roformer} to hybrid
+  \code{sLTC}~\cite{hasani2021liquid}/\code{b1.58}~\cite{ma2024era} Chimera bridge, a
+  standard \code{llama.cpp} GGUF v3 (\code{Q4\_0}/\code{F16}/\code{F32}) codec, and a
+  zero-crate OpenAI-compatible HTTP/1.1 inference server (\code{beast serve}) wired live
+  into the Ring-0 metered agent loop and scripted REPL console.
+  \item \textbf{Ring-0 Isolation, Quantum-Geometric FFI, \& Autonomous Trinity Forge:}
+  Immutable Ring-0 access control with Win32 Kernel Job Object memory caps
+  ($128\text{ MiB}$, \code{KILL\_ON\_JOB\_CLOSE}) and environment secret scrubbing; twelve
+  live native DLLs spanning FIPS-203 ML-KEM-768~\cite{nist2024fips203}, FIPS-197
+  AES-256~\cite{nist2001fips197}, CHSH Bell tests~\cite{clauser1969proposed}, topological
+  Chern/SSH/Kitaev invariants~\cite{qi2006topological,su1979solitons,kitaev2001unpaired},
+  Fibonacci anyons~\cite{nayak2008nonabelian}, and spintronic
+  $p$-bits~\cite{camsari2017stochastic}; plus autonomous forging and verification of
+  QEMU-booted Ring-0 microkernels, Chimera GGUF models, and standalone Zig A-Life binaries.
+  \item \textbf{Machine-Checked Pure Lean 4.35.0 Suite \& Planted-Mutant Falsification:}
+  $65$ zero-Mathlib Lean~4.35.0 theorems (\code{B01}--\code{B65}) audited by
+  \code{lean/VerifyAxioms.lean} strictly within \code{propext}, \code{Classical.choice},
+  and \code{Quot.sound} with zero \code{sorry} and zero warnings, paired with $33/33$ live
+  hardware gates, $38/38$ caught planted mutants across Zig, Rust, and CRuby, and a
+  clean-room Python exact-arithmetic oracle.
+\end{enumerate}
+
+\section{System Architecture}
+\label{sec:arch}
+
+Figure~\ref{fig:arch} summarizes the layered polyglot execution fabric. All cross-language
+determinism anchors on counter-based Philox4x32-10~\cite{salmon2011parallel} (verified
+bit-identical between Rust and Zig) and NIST FIPS~180-4 SHA-256~\cite{nist2015fips180}
+Rosette-Wire receipt chains.
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[
+  font=\scriptsize,
+  layer/.style={draw=black!75, rounded corners=2pt, fill=blue!5, minimum width=13.2cm, minimum height=0.82cm, align=center},
+  subbox/.style={draw=black!70, rounded corners=2pt, fill=teal!8, minimum width=4.15cm, minimum height=0.86cm, align=center},
+  kern/.style={draw=black!75, rounded corners=2pt, fill=orange!10, minimum width=6.35cm, minimum height=0.82cm, align=center},
+  arr/.style={-{Stealth[length=2.1mm]}, thick, black!70}
+]
+  \node[layer, fill=blue!10] (l4) {\textbf{Layer 4: Autonomous Hyper-Colony, MCP JSON-RPC 2.0 Bus \& OpenAI/GGUF Server}\\
+    \code{beast-cli}, \code{beast-agent} (Merkle Repo-Map, Cross-Repo ABI, Worktrees, Forge, \code{beast serve})};
+
+  \node[subbox, below=0.40cm of l4.south west, anchor=north west] (l3a) {\textbf{MIT C2C \& Models}\\
+    \code{beast-c2c}, \code{beast-model}\\
+    4L GQA$\to$Chimera, \code{Q4\_0}, AD};
+  \node[subbox, below=0.40cm of l4.south, anchor=north] (l3b) {\textbf{Colony OS \& CRuby}\\
+    \code{beast-colony}, \code{beast\_yarv.rb}\\
+    QUBO, Wilson, Prism + YARV};
+  \node[subbox, below=0.40cm of l4.south east, anchor=north east] (l3c) {\textbf{Ring-0 \& Wire Trust}\\
+    \code{beast-root}, \code{beast-wire}\\
+    Win32 Jobs, Planaria, SHA-256};
+
+  \node[kern, below=0.40cm of l3a.south west, anchor=north west] (l2a) {\textbf{Zig 0.17.1 Metal + 10 Native DLLs}\\
+    {\scriptsize\texttt{b1.58}/\texttt{NVFP4}} SIMD, 3$\times$ 0thernes, 7$\times$ Tsotchke};
+  \node[kern, below=0.40cm of l3c.south east, anchor=north east] (l2b) {\textbf{Blackwell {\scriptsize\texttt{sm\_12.0}} PTX + Ring-0 ELF}\\
+    5 CUDA Kernels + $20.21\text{ GB/s}$, QEMU ELF32};
+
+  \node[layer, fill=green!8, below=0.40cm of l2a.south west, anchor=north west] (l1) {\textbf{Formal Verification \& Falsification Plane}\\
+    65 Pure Lean 4.35.0 Theorems (\code{VerifyAxioms.lean}) + 33 Gates / 38 Mutants + Python Oracle};
+
+  \draw[arr] (l4.south) -- (l3b.north);
+  \draw[arr] ($(l4.south)+(-4.4cm,0)$) -- (l3a.north);
+  \draw[arr] ($(l4.south)+(4.4cm,0)$) -- (l3c.north);
+  \draw[arr] (l3a.south) -- ($(l2a.north)+(-1.1cm,0)$);
+  \draw[arr] (l3b.south) -- ($(l2a.north)+(1.9cm,0)$);
+  \draw[arr] (l3c.south) -- ($(l2b.north)+(1.1cm,0)$);
+  \draw[arr] (l2a.south) -- ($(l1.north)+(-3.2cm,0)$);
+  \draw[arr] (l2b.south) -- ($(l1.north)+(3.2cm,0)$);
+\end{tikzpicture}
+\caption{Five-plane bare-metal architecture of \textsc{BEAST CIVILIZATION} (\code{v0.7.0}).}
+\label{fig:arch}
+\end{figure}
+
+\subsection{Quantized Bare-Metal Packing and Blackwell PTX Kernels}
+Ternary BitNet \code{b1.58} weights $t_0,\dots,t_4 \in \{-1,0,+1\}$ are packed five trits
+per unsigned byte using base-$3$ encoding
+\begin{equation}
+\label{eq:b158}
+  \mathrm{pack}(t_0,\dots,t_4) = \sum_{k=0}^{4} 3^k (t_k + 1) \in \{0,1,\dots,242\} \subset [0,255],
+\end{equation}
+achieving $1.60\text{ bits/weight}$ with a bijective inverse checked exhaustively across all
+$3^5 = 243$ states in Lean (\code{B01}, \code{B02}) and Python. Standard \code{llama.cpp}
+GGUF v3 \code{Q4\_0} blocks store one IEEE-754 \code{binary16} scale ($2\text{ B}$) and
+$16$ nibble bytes ($32$ signed 4-bit weights), yielding an exact $18\text{ B}$ vs.\
+$128\text{ B}$ (\code{F32}) compression factor of $64/9 \approx 7.11\times$ (\code{B61},
+\code{B64}).
+
+On the NVIDIA RTX 5070 Ti Laptop GPU (\code{sm\_12.0}, $46\text{ SMs}$), five hand-authored
+PTX entry points in \code{cuda/beast\_blackwell.ptx} execute directly via the Windows CUDA
+driver API (\code{nvcuda.dll}) without the CUDA toolkit runtime:
+\begin{itemize}
+  \item \code{beast\_b158\_rowdot} and \code{beast\_nvfp4\_rowdot}: quantized ternary and
+  4-bit GEMV kernels (\code{B23});
+  \item \code{beast\_c2c\_augment\_scores}: Cache-to-Cache attention score augmentation;
+  \item \code{beast\_mla\_latent\_compress}: $4\times$ MLA latent KV compression (\code{B51});
+  \item \code{beast\_moe\_swiglu\_sparse}: Top-2 sparse MoE SwiGLU routing (\code{B52}).
+\end{itemize}
+Host--device transfers use page-locked pinned host memory (\code{cuMemAllocHost\_v2}) and
+asynchronous CUDA streams (\code{cuMemcpyHtoDAsync\_v2}, \code{cuMemcpyDtoHAsync\_v2}),
+verified bit-exact across $16\text{ MiB}$ round-trips (\code{B53}).
+
+\subsection{Cache-to-Cache Telepathy and the Augment-over-Overwrite Law}
+Let a receiver agent hold local self key--value cache $(K_{\mathrm{self}}, V_{\mathrm{self}})$
+of length $L_s > 0$, and let a heterogeneous sharer (e.g., 4-layer GQA Transformer,
+$d_{\mathrm{kv}}=32$) project and compact its live KV states via a trained cross-family
+\code{SwaT} linear--affine map into $(K_{\mathrm{peer}}, V_{\mathrm{peer}})$ of length
+$L_p > 0$ matching the receiver's hybrid \code{sLTC}/\code{b1.58} Chimera geometry
+($d_{\mathrm{kv}}=24$).
+
+\begin{definition}[Augment-Cache vs.\ Destructive Overwrite]
+Under \emph{Augment-Cache}, the receiver attends over the concatenated cache
+$[K_{\mathrm{self}} \mathbin{\|} K_{\mathrm{peer}}]$ of length $L_s + L_p$, preserving
+$100\%$ of local context while strictly enriching accessible key--value support
+($L_s + L_p > L_s$ and $L_s + L_p > L_p$; Theorems~\code{B06}, \code{B07}, \code{B21}).
+Under \emph{Overwrite}, peer states displace local states, causing catastrophic self-context
+degradation.
+\end{definition}
+
+On live execution (Gate~\code{G04}), trained \code{SwaT} reduces held-out projection MSE by
+$-100.0\%$ (cosine similarity $1.0000$) while \code{Augment-Cache} achieves $1.000$
+context fidelity versus $-0.311$ for destructive overwrite; across the 4-layer autoregressive
+GQA-to-Chimera bridge (\code{G24}), mean layer cosine similarity reaches $0.9998$ with
+receiver self-context preservation $\cos(h_{\mathrm{local}}, h_{\mathrm{c2c}}) = 0.6328$
+and exported GGUF v3 checkpoint size $142{,}496\text{ B}$.
+
+\subsection{Planaria Holographic Healing, Eshkol Tri-Mode AD, and Colony OS}
+Persistent model weights (\code{.gguf}), repository cache banks (\code{.bcg}), and forged
+microkernels are wrapped in Planaria holographic capsules~\cite{reed1960polynomial,merkle1988digital}
+combining $\GF(2^8)$ XOR-parity redundancy (\code{B17}) with SHA-256 Merkle verification
+(\code{B22}). Gate~\code{G06} and Gate~\code{G13} annihilate $50\%$ of payload chunks and
+inject a Byzantine corrupted chunk; the decoder quarantines the Trojan ($1/1$) and restores
+bit-exact inference.
+
+Automatic differentiation in \code{eshkol\_ad.rs} evaluates the non-linear Chimera activation
+\begin{equation}
+  f(x) = \mathrm{SiLU}(1.3x - 0.4)\,\tanh(0.7x) + \sin(x^2)
+\end{equation}
+independently through (i)~forward-mode dual numbers~\cite{baydin2018automatic} (\code{B54},
+\code{B55}), (ii)~a reverse-mode Wengert tape, and (iii)~recursive symbolic AST
+differentiation. At $x = 0.83$, all three modes produce $f(x) = 0.87149060$ and
+$f'(x) = 2.0650160748$ with maximum tri-mode discrepancy $0.00 \times 10^0$ (Gate~\code{G27}),
+corroborated by the independent Python oracle.
+
+Colony governance (\code{beast-colony}) unifies Wilson score lower bounds~\cite{wilson1927probable}
+($0.818891$ for $30/30$ wins), NonHuman call-monotonicity savings ($-25.5\%$ to $-28.8\%$,
+\code{B11}), ReZero loss-neutral Chimera evolution~\cite{bachlechner2021rezero} (\code{B12},
+\code{B20}), spectral-contractive \code{sLTC} dynamics ($\|W\|_2 = 0.0661 \le 0.99$,
+\code{B13}), QUBO simulated annealing ($E = -9.70$, \code{B19}), Church--Rosser confluent
+task reduction (\code{B56}), and a zero-crate OpenAI-compatible HTTP/1.1 server
+(\code{beast serve}) with Ring-0 loopback SSRF enforcement (\code{B62}).
+
+\section{Live Silicon Measurements and Ecosystem Results}
+\label{sec:results}
+
+All measurements in Table~\ref{tab:bench} and Figure~\ref{fig:bench} were recorded verbatim
+in \code{results/verify\_win64.txt} during a single clean \code{build.ps1} execution on
+Windows~11 x86-64 with an Intel Core Ultra~9 275HX ($24\text{C}/24\text{T}$, AVX2/VNNI/GFNI)
+and an NVIDIA GeForce RTX 5070 Ti Laptop GPU ($12{,}227\text{ MiB}$, \code{sm\_12.0},
+$46\text{ SMs}$).
+
+\begin{table}[t]
+\centering
+\caption{Verbatim live-silicon benchmarks and cryptographic/physics bridge receipts from \code{beast-civilization} \code{v0.7.0} (\code{results/verify\_win64.txt}).}
+\label{tab:bench}
+\scriptsize
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Subsystem / Gate} & \textbf{Measured Result (Live Hardware)} & \textbf{Audit / Proof} \\
+\midrule
+Rust$\leftrightarrow$Zig Philox FFI & $6.68\text{ ns/call}$ (target $<50\text{ ns}$) & \code{G01}, bit-exact \\
+Zig \code{b1.58} SIMD (10M trits) & $5{,}551\,\mu\text{s} \to 1{,}624\,\mu\text{s}$ ($3.42\times$) & \code{G01}, \code{B01}--\code{B02} \\
+MIT \code{SwaT} C2C vs.\ Prefill & $2{,}159\,\mu\text{s} \to 498\,\mu\text{s}$ ($4.34\times$, $64/80$ self KV) & \code{G03}--\code{G04}, \code{B06}--\code{B08} \\
+Blackwell PTX (5 kernels) & $411/72/25/19/25\,\mu\text{s}$ (\code{b1.58/nvfp4/c2c/mla/moe}) & \code{G11}, \code{B23}, \code{B51}--\code{B52} \\
+CUDA Pinned Async Paging & $20.21\text{ GB/s}$ ($16\text{ MiB}$, 0-bit exact) & \code{G11}, \code{B53} \\
+Chimera 120-Gen Breeder & $100\text{ ms}$; MSE $0.0277 \to 0.0095$ (ctrl $0.0313$) & \code{G09}, \code{B12}--\code{B13}, \code{B20} \\
+4L GQA$\to$Chimera C2C LLM & $\overline{\cos}_{\mathrm{SwaT}}=0.9998$; GGUF $142{,}496\text{ B}$ & \code{G24}, \code{B44} \\
+GGUF v3 \code{Q4\_0}+\code{F16} Codec & $416\text{ B}$ ($72\text{ B}$ vs.\ $512\text{ B}$ \code{F32}), $\max|\Delta|=0.1261$ & \code{G31}, \code{B61}, \code{B64} \\
+OpenAI HTTP/1.1 + REPL & Live loopback TCP chain $=3$, SSRF/CRLF blocked & \code{G32}--\code{G33}, \code{B62} \\
+QEMU Ring-0 ELF32 Kernel & $12{,}692\text{ B}$, \code{B158}=$7/7$, \code{NVFP4}=$59/59$ & \code{G17}, \code{B32} \\
+Win32 Kernel Job Sandbox & $128\text{ MiB}$ cap, \code{KILL\_ON\_JOB\_CLOSE}, scrubbed & \code{G23}, \code{B28}, \code{B43} \\
+Forged Bare-Metal A-Life & $862{,}208\text{ B}$ Zig exe, residual $=0$, P9 exact & \code{G25}, \code{B45}--\code{B46} \\
+Eshkol Tri-Mode Exact AD & $\max|\Delta| = 0.00 \times 10^0$ ($f'(0.83)=2.0650160748$) & \code{G27}, \code{B54}--\code{B55} \\
+Cross-Repo ABI + Disasm & $3$ repos / $71$ syms / $10$ edges; $9{,}936$ x86-64 instrs & \code{G28}, \code{G30}, \code{B56} \\
+CRuby 3.4.9 + Prism + YARV & Fit $3.8078 \to 4.4078$, $2/2$ AST mutants blocked & \code{beast\_yarv.rb} \\
+12-DLL Ecosystem Bridges & ML-KEM-768+AES-256, CHSH $S{=}2.6875$, QWZ $C{=}(1,0)$, & \code{G16}, \code{G21}--\code{G22}, \code{G26} \\
+& Uns\"old $0.716197$, Fibo $\phi{=}1.618034$, Bloch $0.750000$ & \code{B33}--\code{B35}, \code{B40}--\code{B42} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[font=\footnotesize]
+  % Panel A: Speedup factors
+  \begin{scope}[xshift=0cm]
+    \node[anchor=west] at (0, 2.55) {\textbf{(a) Acceleration \& Compression ($\times$)}};
+    \draw[gray!40] (0,0) grid[xstep=1.0, ystep=0.6] (5.5,2.2);
+    \draw[thick,->] (0,0) -- (5.8,0) node[right] {$\times$};
+    \draw[thick] (0,0) -- (0,2.3);
+    \fill[blue!65!black] (0,1.72) rectangle (4.74,2.04);
+    \node[anchor=west] at (4.80,1.88) {$7.11\times$ \code{Q4\_0}};
+    \fill[teal!70!black] (0,1.22) rectangle (2.89,1.54);
+    \node[anchor=west] at (2.95,1.38) {$4.34\times$ \code{SwaT}};
+    \fill[orange!80!black] (0,0.72) rectangle (2.28,1.04);
+    \node[anchor=west] at (2.34,0.88) {$3.42\times$ \code{b1.58}};
+    \fill[purple!70!black] (0,0.22) rectangle (1.95,0.54);
+    \node[anchor=west] at (2.01,0.38) {$2.92\times$ \code{KC-4}};
+    \foreach \x/\lbl in {0/0, 1.33/2, 2.67/4, 4.0/6, 5.33/8} {
+      \draw (\x,0) -- (\x,-0.08) node[below] {\lbl};
+    }
+  \end{scope}
+
+  % Panel B: Blackwell PTX Kernel Latencies
+  \begin{scope}[xshift=7.4cm]
+    \node[anchor=west] at (0, 2.55) {\textbf{(b) RTX 5070 Ti PTX Kernels ($\mu$s)}};
+    \draw[gray!40] (0,0) grid[xstep=1.0, ystep=0.6] (4.8,2.2);
+    \draw[thick,->] (0,0) -- (5.1,0) node[right] {$\mu$s};
+    \draw[thick] (0,0) -- (0,2.3);
+    \fill[blue!60!black] (0,1.80) rectangle (4.11,2.06);
+    \node[anchor=west] at (4.16,1.93) {$411$ \code{b1.58}};
+    \fill[teal!65!black] (0,1.40) rectangle (0.72,1.66);
+    \node[anchor=west] at (0.78,1.53) {$72$ \code{nvfp4}};
+    \fill[orange!75!black] (0,1.00) rectangle (0.25,1.26);
+    \node[anchor=west] at (0.31,1.13) {$25$ \code{c2c}};
+    \fill[purple!65!black] (0,0.60) rectangle (0.25,0.86);
+    \node[anchor=west] at (0.31,0.73) {$25$ \code{moe}};
+    \fill[green!55!black] (0,0.20) rectangle (0.19,0.46);
+    \node[anchor=west] at (0.25,0.33) {$19$ \code{mla}};
+    \foreach \x/\lbl in {0/0, 1/100, 2/200, 3/300, 4/400} {
+      \draw (\x,0) -- (\x,-0.08) node[below] {\lbl};
+    }
+  \end{scope}
+\end{tikzpicture}
+\caption{Verbatim \code{v0.7.0} live-silicon performance summary: (a)~exact memory compression and measured speedup / held-out MSE improvement ratios; (b)~latency of all five verified Blackwell \code{sm\_12.0} PTX kernels ($4{,}096 \times 128$ dispatch, pinned async paging $20.21\text{ GB/s}$).}
+\label{fig:bench}
+\end{figure}
+
+\section{Formal Verification in Pure Lean 4.35.0}
+\label{sec:lean}
+
+The formal proof suite in \code{lean/} (\code{BeastProofs}, \code{LiveReceipt}, and
+\code{VerifyAxioms}) compiles in Lean~4.35.0 with zero Mathlib dependencies, zero
+\code{sorry}, zero \code{admit}, zero \code{native\_decide}, zero \code{bv\_decide}, and
+zero warnings. Every theorem (\code{B01}--\code{B65}) is mechanically audited via
+\code{\#print axioms} against the strict standard kernel allowlist (\code{propext},
+\code{Classical.choice}, and \code{Quot.sound}). Table~\ref{tab:lean} categorizes all $65$
+machine-checked declarations by domain and axiom footprint.
+
+\begin{table}[t]
+\centering
+\caption{Taxonomy and exact axiom footprint of all $65$ audited Pure Lean 4.35.0 theorems (\code{results/lean4-audit.txt}).}
+\label{tab:lean}
+\scriptsize
+\begin{tabular}{@{} >{\raggedright\arraybackslash}p{4.5cm} >{\raggedright\arraybackslash}p{5.3cm} cc @{}}
+\toprule
+\textbf{Theorem Group} & \textbf{Verified Properties} & \textbf{Count} & \textbf{Axioms Used} \\
+\midrule
+\code{B01}--\code{B05}, \code{B61}, \code{B64} & \code{b1.58}, \code{NVFP4}, \code{u1}/\code{i2}, \code{Q4\_0} packing & 7 & $6$ zero-ax, $1$ \code{[p,Q]} \\
+\code{B06}--\code{B08}, \code{B18}, \code{B21}, \code{B30} & MIT C2C \code{Augment}, \code{SwaT}, spoof guard & 6 & $3$ zero-ax, $3$ \code{[p]} \\
+\code{B09}--\code{B10}, \code{B28}, \code{B38}, \code{B43}, \code{B62} & Ring-0 ACL, spend cap, Win32 Jobs, SSRF & 6 & $1$ zero-ax, $5$ std \\
+\code{B11}--\code{B16}, \code{B19}--\code{B20}, \code{B59} & Colony OS, NonHuman, ReZero, 300-matrix & 9 & $6$ zero-ax, $3$ \code{[p]} \\
+\code{B17}, \code{B22}, \code{B37}, \code{B40}--\code{B41}, \code{B50} & Planaria $\GF(2^8)$, Merkle, ML-KEM, AES & 6 & $3$ zero-ax, $3$ std \\
+\code{B23}--\code{B27}, \code{B31}--\code{B32}, \code{B44}, \code{B51}--\code{B53} & PTX grid, Multiboot1/2, GGUF, DSP, MLA & 11 & $9$ zero-ax, $2$ std \\
+\code{B33}--\code{B35}, \code{B42}, \code{B45}--\code{B46}, \code{B54}--\code{B56} & \code{libirrep}, QGT PSD, Anyons, P9, AD, XOR & 9 & $4$ zero-ax, $5$ std \\
+\code{B29}, \code{B36}, \code{B39}, \code{B47}--\code{B49}, \code{B57}--\code{B58}, \code{B60}, \code{B63}, \code{B65} & Ecosystem DLL unity, mutant counts, live hardware receipts & 11 & $11$ zero-ax \\
+\midrule
+\textbf{Total Audited} & \textbf{0 \code{sorry}, 0 custom axioms, 0 warnings} & \textbf{65} & \textbf{43 zero-ax / 22 std} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{remark}[Live Hardware-to-Lean Receipt Bridge]
+Running \code{beast verify-all} with the \code{--export-lean} flag writes live runtime gate
+counts, spectral norms, CHSH statistics, ELF byte sizes, Blackwell PTX kernel counts, and
+endpoint/REPL flags into \code{LiveReceipt.lean} (\code{BeastLiveReceipt}), which
+Theorem~\code{B65} checks by kernel reduction. This binds runtime receipts to Lean cleanly
+without claiming that the Lean kernel verifies arbitrary native machine code or hardware
+drivers.
+\end{remark}
+
+\section{Falsifiability, Epistemic Boundaries, and Disclosure}
+\label{sec:boundaries}
+
+Every verification gate in \code{beast-civilization} pairs positive assertions with at
+least one explicit \emph{planted mutant} that must be rejected: $3$ in Zig
+(\code{root.zig}), $33$ in Rust/CLI (\code{G01}--\code{G33}, including cloud-spoof C2C,
+tampered \code{.bcg}, Byzantine Planaria chunk, Ring-0 ACL bypass, path traversal, FO
+ML-KEM 1-bit tamper, corrupt GGUF magic/Q4\_0 length, SSRF \code{169.254.169.254}, and
+CRLF header injection), $2$ in CRuby/Prism AST gating, and $6$ in the clean-room Python
+oracle (\code{verify\_independent\_oracle.py}). Continuous integration in
+\code{.github/workflows/ci.yml} additionally executes a live negative Lean~4 tamper test
+injecting a custom axiom and verifying mechanical rejection.
+
+\subsection{Explicit Epistemic Boundaries}
+In accordance with strict falsifiability discipline, we explicitly separate what is proved
+from what is outside scope:
+\begin{itemize}
+  \item \textbf{Capability Matrix (\code{296 / 300} Verified, \code{4 / 300} \code{SPEC}):}
+  \code{300\_agent\_matrix.yaml} under \code{docs/matrices/} verifies $296$ entries live on
+  hardware. Four entries remain honestly marked \code{SPEC}: \code{F036}
+  (\code{tsotchke/tensorcore} is Apple Silicon Metal/Accelerate native and does not run
+  natively on Win64/x86-64), and \code{F038}, \code{F068}, \code{F069} (pretrained external
+  HuggingFace, Whisper, Kokoro, and TFLite checkpoints are intentionally not bundled;
+  zero-weight deterministic DSP TTS/ASR and noisy 2D Sobel/\code{b1.58} OCR run locally
+  instead).
+  \item \textbf{CRuby YJIT:} Local RubyInstaller~3.4.9 ships with \code{+PRISM} and
+  \code{YJIT=false}; all Ruby execution, Prism gating, YARV bytecode mutation, and Zig
+  Fiddle FFI run on CRuby/YARV.
+  \item \textbf{Lean Kernel Scope \& Open Problems:} The Lean~4.35.0 kernel certifies the
+  $65$ formalized algebraic, encoding, isolation, and receipt-consistency theorems. Native
+  C11/Zig/Rust/PTX memory safety and hardware timings lie outside the Lean kernel boundary
+  and are validated empirically by unit tests, planted mutants, and CI. This work explicitly
+  claims \textbf{$0 / 1{,}900$} grand open problems retired in the Unsolved Problems
+  Mega-Atlas and makes zero claims of sentience, consciousness, or physical wet-lab proof.
+\end{itemize}
+
+\subsection{AI-Assistance and Formal-Verification Disclosure}
+AI coding and proof assistants were used during software engineering, LaTeX typesetting,
+and Lean proof drafting under direct author direction. Correctness of every formal theorem
+is certified independently by the deterministic Lean~4.35.0 kernel via
+\code{lean/VerifyAxioms.lean} (zero \code{sorry}, strictly standard axioms), and correctness
+of every runtime claim is independently reproducible via \code{build.ps1},
+\code{verify\_independent\_oracle.py}, and GitHub Actions CI, rather than by authoring
+provenance.
+
+\bibliographystyle{plain}
+\bibliography{refs}
+
+\end{document}

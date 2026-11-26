@@ -1,0 +1,12 @@
+name = "beast_proofs"
+version = "0.7.0"
+defaultTargets = ["LiveReceipt", "BeastProofs", "VerifyAxioms"]
+
+[[lean_lib]]
+name = "LiveReceipt"
+
+[[lean_lib]]
+name = "BeastProofs"
+
+[[lean_lib]]
+name = "VerifyAxioms"

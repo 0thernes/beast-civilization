@@ -5,5 +5,6 @@
 pub mod eshkol_ad;
 pub mod gguf;
 pub mod llm_engine;
+pub mod llm_server;
 pub mod omni_engine;
 pub mod omnimodal;

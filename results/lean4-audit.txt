@@ -58,3 +58,8 @@
 'BeastProofs.B58_total_planted_mutants_35' does not depend on any axioms
 'BeastProofs.B59_matrix_296_of_300_partition' does not depend on any axioms
 'BeastProofs.B60_live_v060_omniscient_hyper_colony_receipt' does not depend on any axioms
+'BeastProofs.B61_gguf_q4_0_block_bytes' does not depend on any axioms
+'BeastProofs.B62_http_loopback_ssrf_guard' does not depend on any axioms
+'BeastProofs.B63_total_planted_mutants_38' does not depend on any axioms
+'BeastProofs.B64_q4_0_compression_vs_f32' depends on axioms: [propext, Quot.sound]
+'BeastProofs.B65_live_v070_omniscient_release_receipt' does not depend on any axioms

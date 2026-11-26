@@ -4,12 +4,124 @@
 
 use crate::alife_forge::forge_bare_metal_alife;
 use crate::forge::{forge_chimera_model, forge_neural_kernel};
+use crate::hyper_graph::{build_cross_repo_abi_graph, verify_confluent_scheduler_and_worktrees};
+use crate::llm_client::post_chat_completion;
 use crate::repo_map::build_merkle_repo_map;
+use beast_colony::civilization::run_colony_civilization;
 use beast_colony::economics::classify_effort_tier;
 use beast_root::Ring0Root;
 use beast_wire::sha256::{hex_encode, sha256};
 use beast_wire::{verify_chain, WireReceipt};
 use std::path::Path;
+
+#[derive(Debug, Clone)]
+pub struct EndpointMissionReport {
+    pub endpoint: String,
+    pub model: String,
+    pub llm_plan: String,
+    pub colony_agents: usize,
+    pub cross_repo_edges: usize,
+    pub confluent_tasks: usize,
+    pub forged_model_gguf_bytes: Option<usize>,
+    pub receipt_chain_len: usize,
+    pub final_receipt_hex: String,
+    pub spend_used_microdollars: u64,
+}
+
+/// Wire a live OpenAI/Ollama/llama.cpp/`beast serve` endpoint into the Ring-0 metered Colony mission loop.
+pub fn run_endpoint_wired_agent_mission(
+    repo_root: &Path,
+    task: &str,
+    endpoint_url: &str,
+    model: &str,
+    allow_remote: bool,
+    seed: u64,
+) -> Result<EndpointMissionReport, String> {
+    if task.trim().is_empty() {
+        return Err("MUTANT CAUGHT: empty mission task".into());
+    }
+    let low = task.to_ascii_lowercase();
+    if low.contains("crates/beast-root") || low.contains("bypass acl") || low.contains("modify ring-0") {
+        return Err("MUTANT CAUGHT: Ring-0 guardian blocked protected-root mission".into());
+    }
+
+    let mut r0 = Ring0Root::new(b"beast-endpoint-mission-v0.7", 250_000, task.as_bytes().to_vec());
+    let key = sha256(b"beast-endpoint-rosette-key-v0.7");
+    let mut chain: Vec<WireReceipt> = Vec::new();
+    let mut prev = [0u8; 32];
+
+    // Step 1: Query live OpenAI-compatible GGUF/C2C endpoint
+    r0.meter_spend(2_000).map_err(|e| format!("{e:?}"))?;
+    let reply = post_chat_completion(endpoint_url, model, task, allow_remote)?;
+    let r_llm = WireReceipt::sign(
+        0,
+        "agent.llm_endpoint_plan",
+        task.as_bytes(),
+        reply.assistant_content.as_bytes(),
+        prev,
+        &key,
+        reply.status_code == 200,
+        &format!("http={} bytes={}", reply.status_code, reply.raw_bytes),
+    );
+    prev = r_llm.digest();
+    chain.push(r_llm);
+
+    // Step 2: Execute live Colony QUBO dispatch + Cross-Repo ABI graph + Confluent scheduler
+    r0.meter_spend(3_000).map_err(|e| format!("{e:?}"))?;
+    let ap_dll = repo_root.parent().unwrap_or(repo_root).join("autophage").join("bin").join("autophage.dll");
+    let civ = run_colony_civilization(10, seed, &ap_dll);
+    let xgraph = build_cross_repo_abi_graph(repo_root)?;
+    let cw = verify_confluent_scheduler_and_worktrees(repo_root)?;
+    let r_col = WireReceipt::sign(
+        1,
+        "agent.colony_and_cross_repo",
+        civ.civilization_digest_hex.as_bytes(),
+        xgraph.graph_merkle_prefix.as_bytes(),
+        prev,
+        &key,
+        cw.church_rosser_confluent && cw.worktrees_isolated,
+        &format!("agents={} edges={} tasks={}", civ.total_agents, xgraph.cross_repo_edges, cw.tasks_reduced),
+    );
+    prev = r_col.digest();
+    chain.push(r_col);
+
+    // Step 3: Optionally forge Chimera GGUF if LLM plan requests it
+    let mut forged_model_gguf_bytes = None;
+    if reply.assistant_content.contains("forge_model") || low.contains("model") || low.contains("chimera") {
+        r0.check_write_acl("bin/forged/endpoint_chimera.gguf")
+            .map_err(|e| format!("{e:?}"))?;
+        r0.meter_spend(4_000).map_err(|e| format!("{e:?}"))?;
+        let fm = forge_chimera_model(repo_root, "endpoint_chimera", seed)?;
+        forged_model_gguf_bytes = Some(fm.gguf_bytes);
+        let r_m = WireReceipt::sign(
+            2,
+            "agent.endpoint_forge_model",
+            fm.name.as_bytes(),
+            fm.repo_merkle_prefix.as_bytes(),
+            prev,
+            &key,
+            fm.planaria_heal_exact && fm.inference_exact,
+            &format!("gguf={}B", fm.gguf_bytes),
+        );
+        prev = r_m.digest();
+        chain.push(r_m);
+    }
+
+    verify_chain(&chain, &key).map_err(|i| format!("Endpoint mission chain failed at {i}"))?;
+
+    Ok(EndpointMissionReport {
+        endpoint: reply.endpoint,
+        model: reply.model,
+        llm_plan: reply.assistant_content,
+        colony_agents: civ.total_agents,
+        cross_repo_edges: xgraph.cross_repo_edges,
+        confluent_tasks: cw.tasks_reduced,
+        forged_model_gguf_bytes,
+        receipt_chain_len: chain.len(),
+        final_receipt_hex: hex_encode(&prev),
+        spend_used_microdollars: r0.spent_micro_usd,
+    })
+}
 
 #[derive(Debug, Clone)]
 pub struct AgentRunReport {
