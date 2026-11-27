@@ -1,31 +1,117 @@
-schema_version: "1.2.0"
+# yaml-language-server: $schema=./repo-standard.schema.json
+# Project manifest for the Build Standard for LLMs v1.2.0. Read by scripts/audit-repo.sh and Audit-Repo.ps1.
+standard: "1.2.0"
 name: "beast-civilization"
-version: "0.7.0"
+description: "Zero-dependency bare-metal polyglot multi-colony AI engine v1.0.0 (Zig 0.17.1, Rust 1.94.1, CRuby 3.4.9, C11, Blackwell sm_12.0 PTX) with pre-registered N=24 statistics and 81 six-kernel Pure Lean 4.35.0 proofs"
 owner: "Alexander Stephen Donahue (Independent Researcher)"
-orcid: "0009-0006-8168-9648"
-profiles:
-  - T13
-  - T07
-  - T05
-  - T04
-excluded_profiles:
-  - T02
-languages:
-  - zig
-  - rust
-  - ruby
-  - c
-  - ptx
-  - lean4
-hard_rules:
-  commit_straight_to_main: true
-  blocking_hooks: false
-  branch_protection: false
-  informational_ci_only: true
-entry_points:
-  canonical_agent_doc: "AGENTS.md"
-  build_command: ".\\build.ps1"
-  claims_ledger: "CLAIMS.md"
-  limitations: "LIMITATIONS.md"
-  replication: "REPLICATION.md"
-  matrix_300: "docs/matrices/300_agent_matrix.yaml"
+year: "2026"
+project_type: research
+stack: [rust, zig, c-cpp, ruby, python, other]
+flags:
+  public: true
+  package: true
+  visual: true
+  ui: false
+  native: true
+  ai: true
+  personal_data: false
+  service: true
+  deployed: false
+  api: true
+  perf: true
+  concurrent: true
+  numeric: true
+  experimental: true
+  ml: true
+  formal: true
+items:
+  A01: {status: done}  # README with a one-line purpose [core]
+  A02: {status: done}  # Badge ribbon [recommended]
+  A03: {status: done}  # Quickstart that works from a clean clone [core]
+  A04: {status: done}  # Usage examples [core]
+  A05: {status: done}  # Demo media (docs/media/social-preview.svg in README.md) [recommended]
+  A06: {status: done}  # Dual open LICENSE (Apache-2.0) + LICENSE-DOCS (CC-BY-4.0) + REUSE.toml + LICENSES/ [core]
+  A07: {status: done}  # CHANGELOG.md (Keep a Changelog with 1.0.0) [core]
+  A08: {status: done}  # Semantic version 1.0.0 consistent across VERSION, Cargo.toml, CHANGELOG.md, CITATION.cff, .zenodo.json, Lean & Paper [core]
+  A09: {status: done}  # Automated tests pass (Zig, 29 Rust unit+fuzz+regression tests, CRuby 4/4, Python oracle, 3000 prop checks, 81 Lean proofs + negative tests) [core]
+  A10: {status: done}  # Informational CI (.github/workflows/ci.yml on push to main) [core]
+  A11: {status: done}  # Releases (.github/workflows/release.yml on tags: v*) [recommended]
+  A12: {status: done}  # .gitignore [core]
+  A13: {status: done}  # .gitattributes and .editorconfig [recommended]
+  A14: {status: done}  # CONTRIBUTING.md [recommended]
+  A15: {status: done}  # CODE_OF_CONDUCT.md [recommended]
+  A16: {status: done}  # SECURITY.md [core]
+  A17: {status: done}  # SUPPORT.md [recommended]
+  A18: {status: done}  # Issue templates (.github/ISSUE_TEMPLATE/{bug,feature,question,config}.yml; zero PR templates) [recommended]
+  A19: {status: done, note: "GitHub About description and topics updated via gh repo edit for v1.0.0 (81 Lean 4.35.0 proofs, 3-OS CI, GitHub Pages Proof Blueprint)."}
+  A20: {status: done}  # docs/ folder (docs/architecture.md + full technical & epistemic docs suite) [recommended]
+  A21: {status: done}  # Architecture Decision Records (docs/adr/0001..0003) [recommended]
+  A22: {status: done}  # CITATION.cff (1.0.0, Apache-2.0, Independent Researcher) + CITATION.bib + .zenodo.json [advanced]
+  A23: {status: done}  # Clean history and correct author identity on main [core]
+  A24: {status: done}  # No secrets, build output or huge files (>5MB) committed [core]
+  A25: {status: done}  # Cross-platform 3-OS CI (ubuntu-latest, windows-latest, macos-latest) [recommended]
+  A26: {status: done}  # Social preview image (docs/media/social-preview.svg) [recommended]
+  A27: {status: done, note: "Static Research Portal & Interactive 81-Theorem Lean 4.35.0 Proof Blueprint built by scripts/build_blueprint.py and published via .github/workflows/pages.yml."}
+  A28: {status: done}  # Cargo.toml 8-crate Rust workspace manifest [recommended]
+  A29: {status: done}  # ROADMAP.md [recommended]
+  A30: {status: done}  # .github/labels.tsv with all 10 finding classes including blindspot [recommended]
+  A31: {status: done}  # justfile with one-word commands (build, test, clippy, fuzz, sanitize, oracle, prop, stats, lean, paper, site, audit, reproduce) [core]
+  A32: {status: done}  # Agent entry points: AGENTS.md (<32 KiB), CLAUDE.md, GEMINI.md, Cursor rules, llms.txt, llms-full.txt [core]
+  A33: {status: done}  # .env.example and docs/configuration.md [core]
+  A34: {status: done, note: "OpenAI-compatible HTTP/1.1 inference server (beast serve) exposes GET /health & GET /healthz readiness probes, strict HTTP 400/404/405/413 error handling, Ring-0 spend/audit logging, and Rosette-Wire SHA-256 receipts verified in G32 and hardening_fuzz_props.rs."}
+  A35: {status: done}  # docs/operations.md documenting git bundle backup, archive pin, DigiCert RFC 3161 TSA, and Software Heritage mirror [recommended]
+  A36: {status: n/a, note: "Local bare-metal CLI/research substrate with no hosted production backend (deployed: false); static blueprint portal published via GitHub Pages (A27)."}
+  A37: {status: done, note: "docs/benchmarks.md defines explicit latency, speedup, memory, and 1,000-case fuzz performance budgets tracked from v0.7.0 to v1.0.0."}
+  A38: {status: n/a, note: "CLI/library/kernel engine with no interactive GUI framework (ui: false); static GitHub Pages Blueprint (_site/) still enforces WCAG 2.2 AA, keyboard navigation, strict CSP, and prefers-reduced-motion."}
+  A39: {status: done}  # NOTICE + THIRD_PARTY_NOTICES.md + vendor/README.md + REUSE.toml + LICENSES/ [recommended]
+  A40: {status: done}  # docs/ai.md documents local model pinning, Ring-0 micro-USD spend budgets, SSRF guards, and deterministic evals [core]
+  A41: {status: done}  # UPGRADING.md documents v0.7.0 -> v1.0.0 breaking/ABI/license migration path [advanced]
+  A42: {status: done}  # Maintenance status: active declared in README.md and ROADMAP.md [recommended]
+  A43: {status: done}  # examples/ directory with runnable 01_quickstart_oracle_and_c2c.py & README.md [recommended]
+  A44: {status: done}  # docs/faq.md and docs/glossary.md [recommended]
+  A45: {status: n/a, note: "Zero personal data collected, stored, or transmitted (personal_data: false)."}
+  B01: {status: done}  # justfile reproduce target for clean-clone rebuild [core]
+  B02: {status: done}  # Committed Cargo.lock, lean/lean-toolchain (v4.35.0), and lean/lake-manifest.json; zero third-party runtime dependencies [core]
+  B03: {status: done, note: "Philox4x32-10 bit-exact parity across Rust and Zig (G01), 0-bit double-run Rosette-Wire parity (G12), deterministic N=24 seed lock (5000..5023), and deterministic USTAR arXiv tarball packaging."}
+  B04: {status: done}  # CLAIMS.md numbered falsifiable ledger [core]
+  B05: {status: done, note: "Every claim C01-C13 in CLAIMS.md maps to executable gates G01-G33, N=24 stats, 29 Rust tests, 81 Lean proofs, or Python oracle checks."}
+  B06: {status: done, note: "40/40 runtime planted mutants (3 Zig + 33 Rust/CLI + 4 CRuby/Prism), 6/6 Python oracle mutants, 8 Lean AT01-AT08 refutations, 3/3 scripts/test_lean_negative.py exploits, and live CI sorry-tamper comparator rejection."}
+  B07: {status: done, note: "Dedicated regression tests in crates/beast-cli/tests/hardening_fuzz_props.rs lock every fixed Cycle-1 security/parser defect (HOLE-01..HOLE-08, BUG-01..BUG-05)."}
+  B08: {status: done, note: "Golden NIST FIPS 180-4 SHA-256 vectors, FIPS-197 AES-256 KAT, FIPS-203 ML-KEM-768 KAT, Eshkol AD reference, verbatim 81-line results/lean4-audit.txt, and CHECKSUMS.sha256."}
+  B09: {status: done, note: "OpenAI HTTP/1.1 API contract (/health, /healthz, /v1/models, /v1/chat/completions, 405, 413), MCP JSON-RPC 2.0 contract (G29), GGUF v3 binary codec contract (G31), and Zig/C11 FFI ABI contract."}
+  B10: {status: done}  # Property-based tests (scripts/prop_check.py 3,000 trials + property_planaria_all_70_subsets_and_f16_q40_bounds) [core]
+  B11: {status: done, note: "Differential testing across Zig SIMD vs Scalar b1.58 (G01/H3), Blackwell PTX vs CPU oracle (G11), QEMU ELF32 vs host oracle (G17), Eshkol Forward/Reverse/Symbolic AD (G27), and Python exact oracle."}
+  B12: {status: done, note: "Clean-room Python exact-arithmetic oracle (scripts/verify_independent_oracle.py) and Zig scalar reference implementations serve as independent oracles."}
+  B13: {status: done}  # Mutation testing (40/40 runtime planted mutants + 6/6 oracle mutants + 3/3 Lean negative tamper tests) [recommended]
+  B14: {status: done, note: "Metamorphic invariants verified: P9 observer independence (G25, B46), Church-Rosser forward==reverse task confluence (G28, B56), and GF(2^8) XOR double-application involution (B17)."}
+  B15: {status: done}  # Fuzzing (1,000-case binary/protocol fuzz suite in hardening_fuzz_props.rs + Clang libFuzzer smoke in scripts/check_sanitizers.sh & CI) [recommended]
+  B16: {status: done}  # Sanitizers (-fsanitize=address,undefined in justfile sanitize, scripts/check_sanitizers.sh, and Linux CI) [core]
+  B17: {status: done}  # Static analysis & linters report-only (cargo clippy --workspace --all-targets -- -D warnings, ruby -w, -Wall -Wextra -Werror) [recommended]
+  B18: {status: done}  # Strict type checking (Rust 1.94.1, Zig 0.17.1, C11 -Wall -Wextra -Werror, Lean 4.35.0 with autoImplicit=false & strict linters) [recommended]
+  B19: {status: done, note: "Church-Rosser forward==reverse 12-task confluent scheduler (G28, B56), isolated parallel git worktrees, multi-PID OS sandbox handoff (G15), and thread-safe TCP loopback server tests (G32)."}
+  B20: {status: done, note: "Exact integer arithmetic for b1.58/GF(2^8)/Multiboot/A-Life energy (residual=0), IEEE-754 binary16 round-trip bounds checked in hardening_fuzz_props.rs, Eshkol tri-mode AD 0.00e0 agreement, spectral contraction ||W||_2 <= 0.99."}
+  B21: {status: done, note: "Failure injection verified via 50% Planaria payload annihilation + Byzantine Trojan chunk injection (G06/G13), FO 1-bit ML-KEM tamper (G21), HTTP 413/405/malformed payloads, and 0-bit Ring-0 rollback (G02)."}
+  B22: {status: done}  # Formal specification & proof (lean/ — 81 audited Pure Lean 4.35.0 declarations across 9 modules, 6-kernel Palomar Challenge/Solution) [advanced]
+  B23: {status: n/a, note: "All protocol, access-control, and algebraic invariants are proved directly in 6-kernel Pure Lean 4.35.0 (B22) rather than TLA+/Alloy."}
+  B24: {status: done, note: "Memory-safe Rust 1.94.1 (8 zero-dependency crates) + Zig 0.17.1 + machine-checked Pure Lean 4.35.0 specification (docs/statement-fidelity.md)."}
+  B25: {status: n/a, note: "Native parser and C-ABI safety is verified via 1,000-case fuzzing + Clang libFuzzer (B15), C11 ASan/UBSan (B16), Rust safe slices with checked arithmetic, Clippy -D warnings (B17), and 40/40 planted mutants rather than Kani/CBMC."}
+  B26: {status: done}  # Honest benchmarks (docs/benchmarks.md including cold-JIT vs warm PTX variance) [core]
+  B27: {status: done, note: "v0.7.0 vs v1.0.0 performance tracking recorded in docs/benchmarks.md, docs/run-log.md, and verified on every CI push."}
+  B28: {status: done, note: "24 locked paired seeds (5000..5023) with matched controls (Overwrite, Random Chimera, Scalar b1.58, Initial QUBO) in results/paired_stats_n24.txt."}
+  B29: {status: done, note: "Deterministic 10,000-iteration two-sided paired sign-flip permutation test (p_raw = 0.00010 across H1-H4)."}
+  B30: {status: done, note: "Paired mean differences, 95% bootstrap CIs (2,000 resamples), Cohen's dz, win fractions (24/24 each), and fold-change ratios reported in results/paired_stats_n24.txt and paper/main.tex."}
+  B31: {status: done, note: "True step-down Holm-Bonferroni FWER correction across all 4 primary hypotheses (p_Holm = 0.00040 <= 0.05)."}
+  B32: {status: done}  # Pre-registration of hypotheses (docs/preregistration.md) [advanced]
+  B33: {status: done, note: "All SwaT C2C and Chimera evolutionary evaluations measure generalization strictly on disjoint held-out test sets (domain 0x8200 / disjoint test split) in G04, G09, H1, and H2."}
+  B34: {status: done}  # evals/ deterministic AI hallucination, safety, fuzz & citation grounding suite [core]
+  B35: {status: done}  # Security scanning report-only (SHA-256-verified gitleaks 8.30.1 + osv-scanner 2.7.1 in .github/workflows/ci.yml) [recommended]
+  B36: {status: done}  # Threat model (docs/threat-model.md) [recommended]
+  B37: {status: done}  # Release hashes & RFC 3161 timestamp (SHA256SUMS in CI + CHECKSUMS.sha256 + DigiCert .tsr) [core]
+  B38: {status: done}  # Build provenance & attestations (actions/attest-build-provenance@v4 in ci.yml and release.yml) [recommended]
+  B39: {status: done}  # Data checksums (data/MANIFEST.sha256 covering archived results/ logs & citation-audit.json) [recommended]
+  B40: {status: done}  # Audit trail (docs/run-log.md + HARDENING_LOG.md + SUBMISSION_READINESS.md) [recommended]
+  B41: {status: done}  # Limitations and real-vs-metaphor boundaries (LIMITATIONS.md + docs/MEGA_ATLAS_CROSSCHECK.md) [core]
+  B42: {status: done}  # What would prove us wrong (CLAIMS.md explicit falsification column) [core]
+  B43: {status: done}  # Clean-clone replication protocol (REPLICATION.md) [core]
+  B44: {status: done, note: "Dated author Win64 clean-clone & 3-OS GitHub Actions CI replication log maintained in REPLICATION.md; external third-party human replication remains openly invited."}
+  B45: {status: done}  # 3-cycle / 10-pass red-team audit dossier (docs/reviews/2026-11-26-3-cycle-hardening-audit.md) [recommended]

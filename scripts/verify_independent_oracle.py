@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2026 Alexander Stephen Donahue
 """
-Clean-Room Independent Exact-Arithmetic & Structural Oracle for `beast-civilization` v0.7.0.
+Clean-Room Independent Exact-Arithmetic & Structural Oracle for `beast-civilization` v1.0.0.
 Zero third-party dependencies (Python 3 stdlib only: fractions, math, pathlib, re, struct).
 
 Independently verifies (without reusing Rust/Zig/Lean code):
@@ -10,9 +12,9 @@ Independently verifies (without reusing Rust/Zig/Lean code):
   4. Exhaustive GF(2^8) XOR involution across all 256 x 256 = 65,536 pairs
   5. Exact Multiboot1 & Multiboot2 32-bit header checksum modular identities
   6. Exact Eshkol Tri-Mode AD check (Forward Dual == Analytic Symbolic == Finite-Diff sanity)
-  7. Exact FIPS-203 ML-KEM-768 modulus (q = 3329 = 13 * 256 + 1) & Fibonacci anyon growth (F_8 = 13)
+  7. Exact FIPS-203 ML-KEM-768 modulus (q = 3329 = 13 * 256 + 1) & Fibonacci anyon growth (F_8 = 21)
   8. Exact 300-Item Agent Matrix partition audit (296 VERIFIED + 4 SPEC = 300)
-  9. Strict Pure Lean 4.35.0 axiom-audit check on results/lean4-audit.txt (65 theorems,
+  9. Strict Pure Lean 4.35.0 Palomar axiom-audit check on results/lean4-audit.txt (81 theorems,
      strictly within {propext, Classical.choice, Quot.sound}, zero sorry/native_decide/bv_decide)
  10. 6 planted falsification self-tests proving the oracle rejects corrupted inputs.
 """
@@ -188,7 +190,7 @@ def check_repo_matrix_and_lean_audit(root: Path) -> tuple[int, int, int]:
                 axs = {a.strip() for a in m1.group(2).split(",") if a.strip()}
                 assert axs.issubset(ALLOWED_AXIOMS), f"Forbidden axiom(s): {axs - ALLOWED_AXIOMS}"
             audited += 1
-        assert audited >= 65, f"Expected >= 65 audited Lean theorems, got {audited}"
+        assert audited >= 81, f"Expected >= 81 audited Lean theorems, got {audited}"
     return verified, spec, audited
 
 
@@ -231,7 +233,7 @@ def main() -> None:
         f"[PASS] Independent Python Oracle: b1.58={b158_n}/243 exhaustive | "
         f"Q4_0={q4_ratio}x vs F32 | GF(2^8)={gf_n}/65536 pairs | "
         f"Eshkol_AD_err={ad_err:.2e} | Matrix={v_cnt}+{s_cnt}=300 | "
-        f"Lean4_audit={lean_cnt}/65 | Oracle_mutants={muts}/6"
+        f"Lean4_audit={lean_cnt}/81 | Oracle_mutants={muts}/6"
     )
 
 

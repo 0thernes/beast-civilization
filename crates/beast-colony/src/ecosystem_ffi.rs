@@ -51,7 +51,9 @@ pub fn probe_full_ecosystem_dlls(repo_root: &Path) -> EcosystemFfiReport {
     let (pinn_available, pinn_out) = match DynLib::open(&bin_dir.join("tsotchke_pinn_bridge.dll")) {
         Ok(lib) => match lib.symbol_raw("beast_tsotchke_pinn_verify") {
             Ok(p) => {
-                let f: extern "C" fn(f64, f64, *mut f64) -> i32 = unsafe { std::mem::transmute(p) };
+                let f = unsafe {
+                    std::mem::transmute::<*mut std::ffi::c_void, extern "C" fn(f64, f64, *mut f64) -> i32>(p)
+                };
                 let mut out = [0.0f64; 3];
                 let rc = f(0.42, -0.73, out.as_mut_ptr());
                 (rc == 0 && out.iter().all(|v| v.is_finite()), out)
@@ -66,8 +68,9 @@ pub fn probe_full_ecosystem_dlls(repo_root: &Path) -> EcosystemFfiReport {
         match DynLib::open(&bin_dir.join("tsotchke_libirrep_bridge.dll")) {
             Ok(lib) => match lib.symbol_raw("beast_tsotchke_libirrep_sph_verify") {
                 Ok(p) => {
-                    let f: extern "C" fn(f64, f64, f64, *mut f64, *mut f64) -> i32 =
-                        unsafe { std::mem::transmute(p) };
+                    let f = unsafe {
+                        std::mem::transmute::<*mut std::ffi::c_void, extern "C" fn(f64, f64, f64, *mut f64, *mut f64) -> i32>(p)
+                    };
                     let mut sh = [0.0f64; 9];
                     let mut norm_sq = 0.0f64;
                     let rc = f(0.3, -0.7, 0.65, sh.as_mut_ptr(), &mut norm_sq);
@@ -90,9 +93,12 @@ pub fn probe_full_ecosystem_dlls(repo_root: &Path) -> EcosystemFfiReport {
     ) = match DynLib::open(&bin_dir.join("tsotchke_moonlab_qgt_bridge.dll")) {
         Ok(lib) => match lib.symbol_raw("beast_tsotchke_moonlab_qgt_verify") {
             Ok(p) => {
-                let f: extern "C" fn(
-                    *mut i32, *mut i32, *mut i32, *mut i32, *mut f64, *mut f64,
-                ) -> i32 = unsafe { std::mem::transmute(p) };
+                let f = unsafe {
+                    std::mem::transmute::<
+                        *mut std::ffi::c_void,
+                        extern "C" fn(*mut i32, *mut i32, *mut i32, *mut i32, *mut f64, *mut f64) -> i32,
+                    >(p)
+                };
                 let (mut c_topo, mut c_triv, mut w_ssh, mut z2) = (0, -1, 0, 0);
                 let (mut fs_tr, mut omega) = (0.0, 0.0);
                 let rc = f(&mut c_topo, &mut c_triv, &mut w_ssh, &mut z2, &mut fs_tr, &mut omega);
@@ -108,8 +114,9 @@ pub fn probe_full_ecosystem_dlls(repo_root: &Path) -> EcosystemFfiReport {
         match DynLib::open(&bin_dir.join("tsotchke_moonlab_mlkem_bridge.dll")) {
             Ok(lib) => match lib.symbol_raw("beast_tsotchke_mlkem768_verify") {
                 Ok(p) => {
-                    let f: extern "C" fn(u64, *mut u8, *mut i32) -> i32 =
-                        unsafe { std::mem::transmute(p) };
+                    let f = unsafe {
+                        std::mem::transmute::<*mut std::ffi::c_void, extern "C" fn(u64, *mut u8, *mut i32) -> i32>(p)
+                    };
                     let mut secret = [0u8; 32];
                     let mut fo_rej = 0i32;
                     let rc = f(5000, secret.as_mut_ptr(), &mut fo_rej);
@@ -126,8 +133,9 @@ pub fn probe_full_ecosystem_dlls(repo_root: &Path) -> EcosystemFfiReport {
         match DynLib::open(&bin_dir.join("tsotchke_sbnn_bridge.dll")) {
             Ok(lib) => match lib.symbol_raw("beast_tsotchke_sbnn_verify") {
                 Ok(p) => {
-                    let f: extern "C" fn(u64, *mut f64, *mut f64, *mut f64, *mut i32) -> i32 =
-                        unsafe { std::mem::transmute(p) };
+                    let f = unsafe {
+                        std::mem::transmute::<*mut std::ffi::c_void, extern "C" fn(u64, *mut f64, *mut f64, *mut f64, *mut i32) -> i32>(p)
+                    };
                     let (mut yb, mut phi, mut pe) = (1.0, 0.0, 0.0);
                     let mut dim8 = 0i32;
                     let rc = f(5000, &mut yb, &mut phi, &mut pe, &mut dim8);
@@ -143,8 +151,9 @@ pub fn probe_full_ecosystem_dlls(repo_root: &Path) -> EcosystemFfiReport {
         match DynLib::open(&bin_dir.join("tsotchke_qgtl_bridge.dll")) {
             Ok(lib) => match lib.symbol_raw("beast_tsotchke_qgtl_verify") {
                 Ok(p) => {
-                    let f: extern "C" fn(f32, f32, f32, *mut f32, *mut f32) -> i32 =
-                        unsafe { std::mem::transmute(p) };
+                    let f = unsafe {
+                        std::mem::transmute::<*mut std::ffi::c_void, extern "C" fn(f32, f32, f32, *mut f32, *mut f32) -> i32>(p)
+                    };
                     let (mut fid, mut oerr) = (0.0f32, 1.0f32);
                     let rc = f(0.5, 1.5471976, 0.8, &mut fid, &mut oerr);
                     (rc == 0, fid, oerr)
@@ -162,7 +171,9 @@ pub fn probe_full_ecosystem_dlls(repo_root: &Path) -> EcosystemFfiReport {
     let (omega_available, omega_sha256_match) = match DynLib::open(&omega_path) {
         Ok(lib) => match lib.symbol_raw("omega_sha256_hex") {
             Ok(p) => {
-                let f: extern "C" fn(*const u8, usize, *mut u8) = unsafe { std::mem::transmute(p) };
+                let f = unsafe {
+                    std::mem::transmute::<*mut std::ffi::c_void, extern "C" fn(*const u8, usize, *mut u8)>(p)
+                };
                 let msg = b"abc";
                 let mut hex = [0u8; 65];
                 f(msg.as_ptr(), msg.len(), hex.as_mut_ptr());
@@ -185,7 +196,7 @@ pub fn probe_full_ecosystem_dlls(repo_root: &Path) -> EcosystemFfiReport {
     let (cellulogonic_available, cellulogonic_abi) = match DynLib::open(&cell_path) {
         Ok(lib) => match lib.symbol_raw("cellulogonic_abi_version") {
             Ok(p) => {
-                let f: extern "C" fn() -> u32 = unsafe { std::mem::transmute(p) };
+                let f = unsafe { std::mem::transmute::<*mut std::ffi::c_void, extern "C" fn() -> u32>(p) };
                 (true, f())
             }
             Err(_) => (false, 0),

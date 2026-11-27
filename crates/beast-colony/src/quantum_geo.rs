@@ -90,17 +90,17 @@ pub struct C64 {
 
 impl C64 {
     pub fn conj(self) -> Self { Self { re: self.re, im: -self.im } }
-    pub fn mul(self, o: Self) -> Self {
+    pub fn cmul(self, o: Self) -> Self {
         Self { re: self.re * o.re - self.im * o.im, im: self.re * o.im + self.im * o.re }
     }
-    pub fn add(self, o: Self) -> Self { Self { re: self.re + o.re, im: self.im + o.im } }
-    pub fn sub(self, o: Self) -> Self { Self { re: self.re - o.re, im: self.im - o.im } }
+    pub fn cadd(self, o: Self) -> Self { Self { re: self.re + o.re, im: self.im + o.im } }
+    pub fn csub(self, o: Self) -> Self { Self { re: self.re - o.re, im: self.im - o.im } }
 }
 
 fn inner(a: &[C64], b: &[C64]) -> C64 {
     let mut acc = C64 { re: 0.0, im: 0.0 };
-    for i in 0..a.len() {
-        acc = acc.add(a[i].conj().mul(b[i]));
+    for (&ai, &bi) in a.iter().zip(b.iter()) {
+        acc = acc.cadd(ai.conj().cmul(bi));
     }
     acc
 }
@@ -136,9 +136,9 @@ pub fn qgtl_bloch_qgt(theta: f64, phi: f64) -> QgtPoint {
     let psi_dt = inner(&psi, &d_theta);
     let psi_dp = inner(&psi, &d_phi);
 
-    let q_tt = inner(&d_theta, &d_theta).sub(dt_psi.mul(psi_dt));
-    let q_pp = inner(&d_phi, &d_phi).sub(dp_psi.mul(psi_dp));
-    let q_tp = inner(&d_theta, &d_phi).sub(dt_psi.mul(psi_dp));
+    let q_tt = inner(&d_theta, &d_theta).csub(dt_psi.cmul(psi_dt));
+    let q_pp = inner(&d_phi, &d_phi).csub(dp_psi.cmul(psi_dp));
+    let q_tp = inner(&d_theta, &d_phi).csub(dt_psi.cmul(psi_dp));
 
     QgtPoint {
         g_theta_theta: q_tt.re,
@@ -204,7 +204,7 @@ mod tests {
         let linear = [-2.0, -1.5, -2.5, -1.0, -3.0, -1.2];
         let mut quad = vec![0.0; 36];
         // Penalize putting conflicting tasks 0&1 or 2&4 on same caste
-        quad[0 * 6 + 1] = 4.0;
+        quad[1] = 4.0;
         quad[2 * 6 + 4] = 5.0;
         let res = moonlab_style_qubo_anneal(&linear, &quad, 200, 5000);
         assert!(res.best_energy <= res.initial_energy);

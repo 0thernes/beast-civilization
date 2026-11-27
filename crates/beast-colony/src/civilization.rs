@@ -102,7 +102,7 @@ pub fn run_colony_civilization(
     // Solve 6-caste task conflict QUBO via Moonlab cosine-schedule annealer
     let linear = [-2.4, -2.1, -2.8, -1.9, -2.6, -1.7];
     let mut quad = vec![0.0; 36];
-    quad[0 * 6 + 1] = 3.5; // KernelForge + ModelBreeder VRAM contention penalty
+    quad[1] = 3.5; // KernelForge (0) + ModelBreeder (1) VRAM contention penalty
     quad[2 * 6 + 5] = 2.8; // Router + OmniSensor bus contention penalty
     let qubo = moonlab_style_qubo_anneal(&linear, &quad, 160, seed);
 
@@ -132,7 +132,7 @@ pub fn run_colony_civilization(
         let sharer = KvCache::deterministic(ModelFamily::Qwen3, 12, 32, seed + tick as u64, 0x9100);
         let recv = KvCache::deterministic(ModelFamily::TemRust, 8, 32, seed + tick as u64 + 1, 0x9101);
         let mapped = mapper.project_and_compact(&sharer, 6);
-        let q = mapper.adapt_query(&vec![0.25f32; 32]);
+        let q = mapper.adapt_query(&[0.25f32; 32]);
         let (out, tot_len) = augment_cache_attend(&q, &recv, &mapped);
         assert_eq!(tot_len, 14);
         c2c_handoffs += 1;

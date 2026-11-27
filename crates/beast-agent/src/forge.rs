@@ -136,14 +136,14 @@ pub fn boot_kernel_in_qemu(
     let mut serial_b158 = i32::MIN;
     let mut serial_nvfp4 = i32::MIN;
     for tok in serial.split_whitespace() {
-        if let Some(v) = tok.strip_prefix("B158_REFLEX=") {
-            if let Ok(n) = v.parse::<i32>() {
-                serial_b158 = n;
-            }
-        } else if let Some(v) = tok.strip_prefix("NVFP4_PRIO=") {
-            if let Ok(n) = v.parse::<i32>() {
-                serial_nvfp4 = n;
-            }
+        if let Some(v) = tok.strip_prefix("B158_REFLEX=")
+            && let Ok(n) = v.parse::<i32>()
+        {
+            serial_b158 = n;
+        } else if let Some(v) = tok.strip_prefix("NVFP4_PRIO=")
+            && let Ok(n) = v.parse::<i32>()
+        {
+            serial_nvfp4 = n;
         }
     }
 
@@ -185,7 +185,11 @@ pub struct ForgedKernelReport {
 }
 
 fn sanitize_name(name: &str) -> Result<String, String> {
-    if name.is_empty() || name.len() > 32 || !name.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'_' || b == b'-') {
+    if name.is_empty()
+        || name.len() > 32
+        || name.starts_with('-')
+        || !name.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'_' || b == b'-')
+    {
         return Err(format!("MUTANT CAUGHT: unsafe forge artifact name '{name}'"));
     }
     Ok(name.to_string())

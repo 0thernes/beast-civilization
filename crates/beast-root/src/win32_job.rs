@@ -18,6 +18,7 @@ pub struct Win32JobReport {
 }
 
 #[cfg(windows)]
+#[allow(clippy::upper_case_acronyms)]
 mod win32_ffi {
     use std::ffi::c_void;
 

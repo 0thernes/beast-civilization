@@ -212,13 +212,13 @@ impl SwatCrossFamilyMapper {
     pub fn adapt_query(&self, q: &[f32]) -> Vec<f32> {
         assert_eq!(q.len(), self.dst_dim);
         let mut out = vec![0.0f32; self.dst_dim];
-        for r in 0..self.dst_dim {
+        for (r, slot) in out.iter_mut().enumerate().take(self.dst_dim) {
             let row = r * self.dst_dim;
             let mut acc = 0.0f32;
-            for c in 0..self.dst_dim {
-                acc += self.w_q_delta[row + c] * q[c];
+            for (c, &qc) in q.iter().enumerate().take(self.dst_dim) {
+                acc += self.w_q_delta[row + c] * qc;
             }
-            out[r] = q[r] + acc;
+            *slot = q[r] + acc;
         }
         out
     }
@@ -244,8 +244,8 @@ pub fn augment_cache_attend(
     for t in 0..self_kv.seq_len {
         let base = t * dim;
         let mut dot = 0.0f32;
-        for d in 0..dim {
-            dot += q_adapted[d] * self_kv.keys[base + d];
+        for (d, &qd) in q_adapted.iter().enumerate().take(dim) {
+            dot += qd * self_kv.keys[base + d];
         }
         let s = dot * inv_sqrt_d;
         if s > max_l { max_l = s; }
@@ -254,8 +254,8 @@ pub fn augment_cache_attend(
     for t in 0..mapped_peer.seq_len {
         let base = t * dim;
         let mut dot = 0.0f32;
-        for d in 0..dim {
-            dot += q_adapted[d] * mapped_peer.keys[base + d];
+        for (d, &qd) in q_adapted.iter().enumerate().take(dim) {
+            dot += qd * mapped_peer.keys[base + d];
         }
         let s = dot * inv_sqrt_d;
         if s > max_l { max_l = s; }
@@ -272,18 +272,18 @@ pub fn augment_cache_attend(
     let inv_denom = 1.0 / denom.max(1e-12);
 
     let mut out = vec![0.0f32; dim];
-    for t in 0..self_kv.seq_len {
-        let w = weights[t] * inv_denom;
+    for (t, &wt) in weights.iter().enumerate().take(self_kv.seq_len) {
+        let w = wt * inv_denom;
         let base = t * dim;
-        for d in 0..dim {
-            out[d] += w * self_kv.values[base + d];
+        for (d, o) in out.iter_mut().enumerate().take(dim) {
+            *o += w * self_kv.values[base + d];
         }
     }
     for t in 0..mapped_peer.seq_len {
         let w = weights[self_kv.seq_len + t] * inv_denom;
         let base = t * dim;
-        for d in 0..dim {
-            out[d] += w * mapped_peer.values[base + d];
+        for (d, o) in out.iter_mut().enumerate().take(dim) {
+            *o += w * mapped_peer.values[base + d];
         }
     }
     (out, total_len)
@@ -300,13 +300,13 @@ pub fn replace_activation(
     assert_eq!(peer_hidden.len(), src_dim);
     assert_eq!(target_stream.len(), dst_dim);
     assert_eq!(proj_matrix.len(), dst_dim * src_dim);
-    for r in 0..dst_dim {
+    for (r, dst) in target_stream.iter_mut().enumerate().take(dst_dim) {
         let row = r * src_dim;
         let mut acc = 0.0f32;
-        for c in 0..src_dim {
-            acc += proj_matrix[row + c] * peer_hidden[c];
+        for (c, &ph) in peer_hidden.iter().enumerate().take(src_dim) {
+            acc += proj_matrix[row + c] * ph;
         }
-        target_stream[r] = acc;
+        *dst = acc;
     }
 }
 
@@ -419,7 +419,7 @@ mod tests {
 
         // MIT Law #2: Direct activation replacement
         let mut target = vec![99.0f32; 32];
-        replace_activation(&vec![1.0f32; 48], &mapper.w_k, 48, 32, &mut target);
+        replace_activation(&[1.0f32; 48], &mapper.w_k, 48, 32, &mut target);
         assert!(target.iter().all(|&v| v != 99.0 && v.is_finite()));
 
         // Valid local C2C packet passes validation

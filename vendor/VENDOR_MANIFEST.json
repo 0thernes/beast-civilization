@@ -176,32 +176,32 @@
   "local_0thernes_engines": [
     {
       "name": "autophage",
-      "path": "Z:\\[Vibe Coded (AI)]\\ANTIGRAVITY\\autophage",
+      "path": "../autophage",
       "head_sha": "1f39157b3c2f214917447aedacb286f2eeb4b67f"
     },
     {
       "name": "cellular-engine-omega",
-      "path": "Z:\\[Vibe Coded (AI)]\\ANTIGRAVITY\\cellular-engine-omega",
+      "path": "../cellular-engine-omega",
       "head_sha": "62d00a6ba567cd6dad8f49b4745b1c5903d3ee87"
     },
     {
       "name": "cellulogonic-mecha",
-      "path": "Z:\\[Vibe Coded (AI)]\\ANTIGRAVITY\\cellulogonic-mecha",
+      "path": "../cellulogonic-mecha",
       "head_sha": "3b85b1515af7507e7ddd1ce132d8a0e091fa5ee9"
     },
     {
       "name": "noetic-organism-omega",
-      "path": "Z:\\[Vibe Coded (AI)]\\ANTIGRAVITY\\noetic-organism-omega",
+      "path": "../noetic-organism-omega",
       "head_sha": "0c372fdae4d9794021b04128df3f95ea50727452"
     },
     {
       "name": "planaria",
-      "path": "Z:\\[Vibe Coded (AI)]\\ANTIGRAVITY\\planaria",
+      "path": "../planaria",
       "head_sha": "b4eaf7cfc88ccc12191f86e910448db43b42c993"
     },
     {
       "name": "alife-singularity-omega-package",
-      "path": "Z:\\[Vibe Coded (AI)]\\ANTIGRAVITY\\alife-singularity-omega-package",
+      "path": "../alife-singularity-omega-package",
       "head_sha": "c5319dd04507a3a45e00536704974009e0c8f11e"
     }
   ]

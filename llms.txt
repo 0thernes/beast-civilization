@@ -1,12 +1,17 @@
-# beast-civilization
+# beast-civilization (v1.0.0)
 
-> Bare-metal, self-rewriting, multi-colony AI civilization and evolutionary compute substrate in Zig, Rust, CRuby/YARV, C11/CUDA sm_120, and Pure Lean 4.
+> Zero-dependency bare-metal polyglot multi-colony AI engine, cross-architecture Cache-to-Cache substrate, Blackwell sm_12.0 PTX runtime, pre-registered N=24 statistical benchmark suite, and 81-theorem 6-kernel Palomar Pure Lean 4.35.0 formal verification stack.
 
 ## Key Files
-- [AGENTS.md](AGENTS.md): Canonical engineering rules, hard rules (R1-R9), and architecture map.
-- [README.md](README.md): Overview, quickstart, and live verified benchmarks.
-- [CLAIMS.md](CLAIMS.md): Falsifiable claims ledger mapping every claim to a live command and receipt.
-- [LIMITATIONS.md](LIMITATIONS.md): Honest verification boundaries (real silicon vs. metaphor).
-- [REPLICATION.md](REPLICATION.md): Clean-clone reproduction protocol.
-- [docs/matrices/300_agent_matrix.yaml](docs/matrices/300_agent_matrix.yaml): 100 Harness Problems x 100 User Wishlists x 100 Top Agent Features registry.
-- [lean/BeastProofs.lean](lean/BeastProofs.lean): Machine-checked Pure Lean 4 proofs (0 sorry, 0 custom axioms).
+- [AGENTS.md](AGENTS.md): Canonical engineering constitution, Hard Rules (R1-R9), and 12-layer architecture map.
+- [README.md](README.md): Overview, v1.0.0 live silicon & N=24 Holm-Bonferroni results, quickstart, usage examples, and verbatim 81-line Lean `#print axioms`.
+- [CLAIMS.md](CLAIMS.md): Numbered falsifiable claims ledger (C01-C13) with explicit "What Would Prove Us Wrong" criteria.
+- [VERIFICATION.md](VERIFICATION.md): Verification & falsification dossier (33 gates, 40 runtime mutants, 29 Rust/fuzz tests, 81 Lean proofs, 45 Crossref DOIs).
+- [REPLICATION.md](REPLICATION.md): Clean-clone reproduction protocol and dated replication log.
+- [LIMITATIONS.md](LIMITATIONS.md): Honest verification boundaries (296/300 verified, 4/300 SPEC, 0/1,900 Mega-Atlas retired).
+- [docs/MEGA_ATLAS_CROSSCHECK.md](docs/MEGA_ATLAS_CROSSCHECK.md): Verbatim 10-ID non-retirement cross-check against Mega-Atlas v2.8.0 (9e16554).
+- [docs/statement-fidelity.md](docs/statement-fidelity.md): Theorem-to-code correspondence matrix and arithmetic-certificate transparency.
+- [docs/preregistration.md](docs/preregistration.md): Pre-registered N=24 paired hypotheses (H1-H4) & Holm-Bonferroni protocol.
+- [lean/VerifyAxioms.lean](lean/VerifyAxioms.lean): Six-kernel Palomar Pure Lean 4.35.0 axiom audit (`81/81` declarations, `0 sorry`).
+- [dist/Donahue_2026_beast_civilization.pdf](dist/Donahue_2026_beast_civilization.pdf): 11-page AMS-LaTeX monograph (Apache-2.0 code / CC-BY-4.0 paper).
+- [SUBMISSION_READINESS.md](SUBMISSION_READINESS.md): 43-item Playbook v1.3 Gold Standard readiness ledger.

@@ -1,6 +1,6 @@
 //! `beast-cuda`: Direct CUDA Driver API (`nvcuda.dll` / `libcuda.so.1`) 5-Kernel PTX JIT Suite
 //! + Pinned Host-RAM <-> VRAM Async KV Paging (`W059`, `F058`) on NVIDIA RTX 5070 Ti (`sm_12.0` Blackwell)
-//! with ZERO nvcc and ZERO MSVC:
+//!   with ZERO nvcc and ZERO MSVC:
 //!   1. `beast_b158_rowdot`         — 5-trit/byte ternary matvec (bit-exact int64 CPU parity)
 //!   2. `beast_nvfp4_rowdot`        — OCP Blackwell FP4 E2M1 matvec (eps < 1e-4 CPU parity)
 //!   3. `beast_c2c_augment_scores`  — MIT Augment-Cache parallel [K_self; K_peer] scoring (eps < 1e-4)

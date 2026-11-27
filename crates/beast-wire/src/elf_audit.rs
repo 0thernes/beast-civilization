@@ -29,6 +29,18 @@ pub struct Elf32Multiboot1Audit {
     pub multiboot1_checksum_valid: bool,
 }
 
+fn read_u32_le(bytes: &[u8], off: usize) -> Result<u32, String> {
+    let end = off.checked_add(4).ok_or_else(|| "ELF offset overflow".to_string())?;
+    let sl = bytes.get(off..end).ok_or_else(|| "ELF u32 out of bounds".to_string())?;
+    Ok(u32::from_le_bytes([sl[0], sl[1], sl[2], sl[3]]))
+}
+
+fn read_u64_le(bytes: &[u8], off: usize) -> Result<u64, String> {
+    let end = off.checked_add(8).ok_or_else(|| "ELF offset overflow".to_string())?;
+    let sl = bytes.get(off..end).ok_or_else(|| "ELF u64 out of bounds".to_string())?;
+    Ok(u64::from_le_bytes([sl[0], sl[1], sl[2], sl[3], sl[4], sl[5], sl[6], sl[7]]))
+}
+
 pub fn audit_elf64_multiboot2(bytes: &[u8]) -> Result<ElfKernelAudit, String> {
     if bytes.len() < 64 {
         return Err("file too short for ELF64 header".into());
@@ -47,18 +59,19 @@ pub fn audit_elf64_multiboot2(bytes: &[u8]) -> Result<ElfKernelAudit, String> {
     if machine != 62 {
         return Err(format!("expected EM_X86_64 (62), got {machine}"));
     }
-    let entry_addr = u64::from_le_bytes(bytes[24..32].try_into().unwrap());
-    let phoff = u64::from_le_bytes(bytes[32..40].try_into().unwrap()) as usize;
+    let entry_addr = read_u64_le(bytes, 24)?;
+    let phoff = usize::try_from(read_u64_le(bytes, 32)?).map_err(|_| "ELF64 phoff overflow".to_string())?;
     let phentsize = u16::from_le_bytes([bytes[54], bytes[55]]) as usize;
     let phnum = u16::from_le_bytes([bytes[56], bytes[57]]) as usize;
+    if phnum > 0 && phentsize < 4 {
+        return Err("ELF64 phentsize too small".into());
+    }
 
     let mut pt_load_count = 0usize;
     for i in 0..phnum {
-        let off = phoff + i * phentsize;
-        if off + 4 > bytes.len() {
-            return Err("program header out of bounds".into());
-        }
-        let p_type = u32::from_le_bytes(bytes[off..off + 4].try_into().unwrap());
+        let delta = i.checked_mul(phentsize).ok_or_else(|| "ELF64 phoff mul overflow".to_string())?;
+        let off = phoff.checked_add(delta).ok_or_else(|| "ELF64 phoff add overflow".to_string())?;
+        let p_type = read_u32_le(bytes, off).map_err(|_| "program header out of bounds".to_string())?;
         if p_type == 1 {
             pt_load_count += 1;
         }
@@ -69,17 +82,16 @@ pub fn audit_elf64_multiboot2(bytes: &[u8]) -> Result<ElfKernelAudit, String> {
 
     let mut mb_off = None;
     for off in (0..=bytes.len().saturating_sub(16)).step_by(4) {
-        let m = u32::from_le_bytes(bytes[off..off + 4].try_into().unwrap());
-        if m == MULTIBOOT2_MAGIC {
+        if read_u32_le(bytes, off)? == MULTIBOOT2_MAGIC {
             mb_off = Some(off);
             break;
         }
     }
     let off = mb_off.ok_or_else(|| "Multiboot2 magic 0xE85250D6 not found".to_string())?;
-    let magic = u32::from_le_bytes(bytes[off..off + 4].try_into().unwrap());
-    let arch = u32::from_le_bytes(bytes[off + 4..off + 8].try_into().unwrap());
-    let hlen = u32::from_le_bytes(bytes[off + 8..off + 12].try_into().unwrap());
-    let csum = u32::from_le_bytes(bytes[off + 12..off + 16].try_into().unwrap());
+    let magic = read_u32_le(bytes, off)?;
+    let arch = read_u32_le(bytes, off + 4)?;
+    let hlen = read_u32_le(bytes, off + 8)?;
+    let csum = read_u32_le(bytes, off + 12)?;
     let sum = magic.wrapping_add(arch).wrapping_add(hlen).wrapping_add(csum);
     if sum != 0 {
         return Err(format!(
@@ -116,18 +128,19 @@ pub fn audit_elf32_multiboot1(bytes: &[u8]) -> Result<Elf32Multiboot1Audit, Stri
     if machine != 3 {
         return Err(format!("expected EM_386 (3), got {machine}"));
     }
-    let entry_addr = u32::from_le_bytes(bytes[24..28].try_into().unwrap());
-    let phoff = u32::from_le_bytes(bytes[28..32].try_into().unwrap()) as usize;
+    let entry_addr = read_u32_le(bytes, 24)?;
+    let phoff = read_u32_le(bytes, 28)? as usize;
     let phentsize = u16::from_le_bytes([bytes[42], bytes[43]]) as usize;
     let phnum = u16::from_le_bytes([bytes[44], bytes[45]]) as usize;
+    if phnum > 0 && phentsize < 4 {
+        return Err("ELF32 phentsize too small".into());
+    }
 
     let mut pt_load_count = 0usize;
     for i in 0..phnum {
-        let off = phoff + i * phentsize;
-        if off + 4 > bytes.len() {
-            return Err("ELF32 program header out of bounds".into());
-        }
-        let p_type = u32::from_le_bytes(bytes[off..off + 4].try_into().unwrap());
+        let delta = i.checked_mul(phentsize).ok_or_else(|| "ELF32 phoff mul overflow".to_string())?;
+        let off = phoff.checked_add(delta).ok_or_else(|| "ELF32 phoff add overflow".to_string())?;
+        let p_type = read_u32_le(bytes, off).map_err(|_| "ELF32 program header out of bounds".to_string())?;
         if p_type == 1 {
             pt_load_count += 1;
         }
@@ -140,16 +153,15 @@ pub fn audit_elf32_multiboot1(bytes: &[u8]) -> Result<Elf32Multiboot1Audit, Stri
     let search_end = bytes.len().min(8192).saturating_sub(12);
     let mut mb_off = None;
     for off in (0..=search_end).step_by(4) {
-        let m = u32::from_le_bytes(bytes[off..off + 4].try_into().unwrap());
-        if m == MULTIBOOT1_MAGIC {
+        if read_u32_le(bytes, off)? == MULTIBOOT1_MAGIC {
             mb_off = Some(off);
             break;
         }
     }
     let off = mb_off.ok_or_else(|| "Multiboot1 magic 0x1BADB002 not found in first 8192B".to_string())?;
-    let magic = u32::from_le_bytes(bytes[off..off + 4].try_into().unwrap());
-    let flags = u32::from_le_bytes(bytes[off + 4..off + 8].try_into().unwrap());
-    let csum = u32::from_le_bytes(bytes[off + 8..off + 12].try_into().unwrap());
+    let magic = read_u32_le(bytes, off)?;
+    let flags = read_u32_le(bytes, off + 4)?;
+    let csum = read_u32_le(bytes, off + 8)?;
     let sum = magic.wrapping_add(flags).wrapping_add(csum);
     if sum != 0 {
         return Err(format!(

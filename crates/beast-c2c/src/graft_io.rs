@@ -88,40 +88,47 @@ pub fn save_bcg(bank: &DiskCacheGraftBank, out_path: &Path) -> Result<usize, Str
     Ok(buf.len())
 }
 
-pub fn load_bcg(path: &Path) -> Result<DiskCacheGraftBank, String> {
-    let buf = fs::read(path).map_err(|e| format!("read {}: {e}", path.display()))?;
+pub fn load_bcg_bytes(buf: &[u8], label: &str) -> Result<DiskCacheGraftBank, String> {
     if buf.len() < 48 || buf[0..4] != BCG_MAGIC {
         return Err("invalid .bcg magic or truncated header".into());
     }
-    let chunks_indexed = u32::from_le_bytes(buf[4..8].try_into().unwrap()) as usize;
-    let seq_len = u32::from_le_bytes(buf[8..12].try_into().unwrap()) as usize;
-    let dim = u32::from_le_bytes(buf[12..16].try_into().unwrap()) as usize;
+    let chunks_indexed = u32::from_le_bytes([buf[4], buf[5], buf[6], buf[7]]) as usize;
+    let seq_len = u32::from_le_bytes([buf[8], buf[9], buf[10], buf[11]]) as usize;
+    let dim = u32::from_le_bytes([buf[12], buf[13], buf[14], buf[15]]) as usize;
+    if seq_len > 1_000_000 || dim > 65_536 {
+        return Err(format!(".bcg dimensions exceed safety caps: seq_len={seq_len} dim={dim}"));
+    }
     let mut expected_sha = [0u8; 32];
     expected_sha.copy_from_slice(&buf[16..48]);
 
     let payload = &buf[48..];
-    let expected_bytes = seq_len * dim * 4 * 2;
+    let n = seq_len.checked_mul(dim).ok_or_else(|| ".bcg seq_len*dim overflow".to_string())?;
+    let expected_bytes = n.checked_mul(8).ok_or_else(|| ".bcg byte count overflow".to_string())?;
     if payload.len() != expected_bytes {
         return Err("payload byte count mismatch in .bcg".into());
     }
     if sha256(payload) != expected_sha {
         return Err("MUTANT CAUGHT: .bcg SHA-256 integrity failure!".into());
     }
-    let n = seq_len * dim;
-    let mut keys = Vec::with_capacity(n);
-    let mut values = Vec::with_capacity(n);
-    for i in 0..n {
-        let off = i * 4;
-        keys.push(f32::from_le_bytes(payload[off..off + 4].try_into().unwrap()));
-    }
-    for i in 0..n {
-        let off = (n + i) * 4;
-        values.push(f32::from_le_bytes(payload[off..off + 4].try_into().unwrap()));
-    }
+    let half = n * 4;
+    let keys: Vec<f32> = payload[..half]
+        .chunks_exact(4)
+        .map(|c| f32::from_le_bytes([c[0], c[1], c[2], c[3]]))
+        .collect();
+    let values: Vec<f32> = payload[half..]
+        .chunks_exact(4)
+        .map(|c| f32::from_le_bytes([c[0], c[1], c[2], c[3]]))
+        .collect();
     Ok(DiskCacheGraftBank {
-        repo_label: path.file_name().and_then(|s| s.to_str()).unwrap_or("bank").to_string(),
+        repo_label: label.to_string(),
         chunks_indexed,
         kv: KvCache { family: ModelFamily::TemRust, seq_len, dim, keys, values },
         sha256_digest: expected_sha,
     })
+}
+
+pub fn load_bcg(path: &Path) -> Result<DiskCacheGraftBank, String> {
+    let buf = fs::read(path).map_err(|e| format!("read {}: {e}", path.display()))?;
+    let label = path.file_name().and_then(|s| s.to_str()).unwrap_or("bank");
+    load_bcg_bytes(&buf, label)
 }

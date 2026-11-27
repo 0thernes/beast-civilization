@@ -1,8 +1,8 @@
 cff-version: 1.2.0
-message: "If you use beast-civilization or cite the accompanying white paper and Lean 4 proof suite, please cite it using the metadata below."
+message: "If you use beast-civilization or cite the accompanying white paper and Lean 4.35.0 proof suite, please cite it using the metadata below."
 type: software
-title: "BEAST CIVILIZATION: Bare-Metal Polyglot Multi-Colony AI Architecture, Cross-Architecture KV-Cache (Cache-to-Cache) Transfer, Blackwell PTX Kernels, and a 65-Theorem Lean 4.35.0 Invariant Suite"
-version: "0.7.0"
+title: "BEAST CIVILIZATION: Bare-Metal Polyglot Multi-Colony AI Architecture, Cross-Architecture KV-Cache Transfer, Blackwell PTX Kernels, and 81 Six-Kernel Pure Lean 4.35.0 Proofs"
+version: "1.0.0"
 date-released: "2026-11-26"
 authors:
   - family-names: "Donahue"
@@ -12,7 +12,7 @@ authors:
     email: "0_0@0thernes.art"
 repository-code: "https://github.com/0thernes/beast-civilization"
 url: "https://github.com/0thernes/beast-civilization"
-license: "MIT"
+license: "Apache-2.0"
 keywords:
   - "bare-metal AI"
   - "cache-to-cache communication"
@@ -23,4 +23,5 @@ keywords:
   - "CRuby YARV"
   - "CUDA PTX"
   - "Lean 4 formal verification"
+  - "Palomar six-kernel verification"
   - "multi-colony agent systems"

@@ -131,14 +131,34 @@ impl Ring0Root {
     }
 
     /// Check Ring-0 ACL against a target path proposed by an agent self-edit.
+    /// Hardened against backslash escapes, `./` prefixes, repeated slashes `//`,
+    /// NUL/control bytes, and case-insensitive Windows filesystem bypasses.
     pub fn check_write_acl(&mut self, rel_path: &str) -> Result<(), HarmSignal> {
-        let normalized = rel_path.replace('\\', "/");
-        if normalized.contains("..") || normalized.starts_with('/') || normalized.contains(':') {
+        if rel_path.is_empty() || rel_path.bytes().any(|b| b < 0x20 || b == 0x7F) {
             self.acl_blocked_attempts += 1;
             return Err(HarmSignal::Ring0AclBreach);
         }
+        let mut normalized = rel_path.replace('\\', "/");
+        while normalized.contains("//") {
+            normalized = normalized.replace("//", "/");
+        }
+        while let Some(stripped) = normalized.strip_prefix("./") {
+            normalized = stripped.to_string();
+        }
+        if normalized.is_empty()
+            || normalized == "."
+            || normalized.contains("..")
+            || normalized.starts_with('/')
+            || normalized.contains(':')
+        {
+            self.acl_blocked_attempts += 1;
+            return Err(HarmSignal::Ring0AclBreach);
+        }
+        let lower = normalized.to_ascii_lowercase();
         for prefix in PROTECTED_PREFIXES {
-            if normalized == *prefix || normalized.starts_with(prefix) {
+            let p_low = prefix.to_ascii_lowercase();
+            let p_trim = p_low.trim_end_matches('/');
+            if lower == p_low || lower == p_trim || lower.starts_with(&p_low) {
                 self.acl_blocked_attempts += 1;
                 return Err(HarmSignal::Ring0AclBreach);
             }

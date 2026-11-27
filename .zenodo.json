@@ -1,0 +1,34 @@
+{
+  "title": "BEAST CIVILIZATION v1.0.0: Bare-Metal Polyglot Multi-Colony AI Architecture, Cross-Architecture KV-Cache Transfer, Blackwell PTX Kernels, and 81 Six-Kernel Pure Lean 4.35.0 Proofs",
+  "version": "1.0.0",
+  "upload_type": "software",
+  "publication_date": "2026-11-26",
+  "access_right": "open",
+  "license": "Apache-2.0",
+  "creators": [
+    {
+      "name": "Donahue, Alexander Stephen",
+      "affiliation": "Independent Researcher, Spokane, WA, USA",
+      "orcid": "0009-0006-8168-9648"
+    }
+  ],
+  "description": "Zero-dependency bare-metal polyglot multi-colony AI engine in Zig 0.17.1, Rust 1.94.1 (8 crates), CRuby 3.4.9/Prism/YARV, C11, NVIDIA Blackwell sm_12.0 CUDA PTX, and 81 six-kernel Pure Lean 4.35.0 formal proofs (Palomar Challenge/Solution + NonVacuity + AdversarialTests), with pre-registered N=24 Holm-Bonferroni statistical evaluation and clean-room Python exact-arithmetic oracle.",
+  "keywords": [
+    "bare-metal AI",
+    "Cache-to-Cache communication",
+    "BitNet b1.58",
+    "GGUF v3",
+    "Lean 4",
+    "Palomar verification",
+    "Zig",
+    "Rust",
+    "CUDA PTX"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "https://github.com/0thernes/beast-civilization",
+      "relation": "isSupplementTo",
+      "scheme": "url"
+    }
+  ]
+}

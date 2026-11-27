@@ -183,7 +183,7 @@ try {
     & "$binDir\beast.exe" probe
     if ($LASTEXITCODE -ne 0) { throw "beast probe failed!" }
 
-    & "$binDir\beast.exe" verify-all --export-lean "$proj\lean\LiveReceipt.lean"
+    & "$binDir\beast.exe" verify-all --export-lean "$proj\lean\BeastProofs\LiveReceiptData.lean"
     if ($LASTEXITCODE -ne 0) { throw "beast verify-all failed!" }
 
     & "$binDir\beast.exe" evolve-chimera
@@ -243,25 +243,26 @@ try {
 # [5/6] CRuby 3.4.9 + Prism + YARV Live Bytecode Mutation + Zig Fiddle Bridge
 # ============================================================================
 Write-Host "`n[5/6] Running CRuby 3.4 + YARV + Prism AST Guard + Zig Fiddle C-ABI..."
-& $ruby "$proj\ruby\beast_yarv.rb"
+& $ruby -w "$proj\ruby\beast_yarv.rb"
 if ($LASTEXITCODE -ne 0) { throw "CRuby/YARV bridge failed!" }
 
 # ============================================================================
-# [6/6] Pure Lean 4 v4.35.0 Kernel Proofs (65 Theorems) + Strict VerifyAxioms Audit
+# [6/6] Pure Lean 4 v4.35.0 Palomar Kernel Proofs (81 Theorems) + Strict VerifyAxioms Audit
 # ============================================================================
 if (-not $SkipLean -and (Test-Path -LiteralPath $lean)) {
-    Write-Host "`n[6/6] Machine-checking 65 Pure Lean 4 theorems via VerifyAxioms.lean (including live hardware receipt B65)..."
+    Write-Host "`n[6/6] Machine-checking 81 Pure Lean 4.35.0 Palomar theorems via lake build + VerifyAxioms.lean..."
     $leanDir = "$proj\lean"
-    $env:LEAN_PATH = "$leanDir;$leanRoot\lib\lean"
+    $lake = "$leanRoot\bin\lake.exe"
+    $env:PATH = "$leanRoot\bin;$env:PATH"
     Push-Location -LiteralPath $leanDir
     try {
-        & $lean -R . -o "LiveReceipt.olean" "LiveReceipt.lean" 2>&1
-        if ($LASTEXITCODE -ne 0) { throw "Lean 4 LiveReceipt compile failed!" }
+        & $lake build 2>&1 | ForEach-Object { Write-Host $_ }
+        if ($LASTEXITCODE -ne 0) { throw "Lean 4 lake build failed!" }
 
-        & $lean -R . -o "BeastProofs.olean" "BeastProofs.lean" 2>&1
-        if ($LASTEXITCODE -ne 0) { throw "Lean 4 BeastProofs compile failed!" }
+        & $lake build Challenge 2>&1 | ForEach-Object { Write-Host $_ }
+        if ($LASTEXITCODE -ne 0) { throw "Lean 4 lake build Challenge failed!" }
 
-        $leanOut = & $lean -R . "VerifyAxioms.lean" 2>&1
+        $leanOut = & $lake env lean "VerifyAxioms.lean" 2>&1
         $leanRc = $LASTEXITCODE
     } finally {
         Pop-Location
@@ -269,12 +270,22 @@ if (-not $SkipLean -and (Test-Path -LiteralPath $lean)) {
     foreach ($line in $leanOut) { Write-Host $line }
     if ($leanRc -ne 0) { throw "Lean 4 VerifyAxioms verification failed (rc=$leanRc)!" }
 
+    # Normalize multi-line wrapped `#print axioms` output onto canonical single lines
+    $joinedLines = @()
+    foreach ($raw in $leanOut) {
+        $seg = "$raw".Trim()
+        if ($seg -eq "") { continue }
+        if ($seg.StartsWith("'") -or $joinedLines.Count -eq 0) {
+            $joinedLines += $seg
+        } else {
+            $joinedLines[$joinedLines.Count - 1] = ($joinedLines[$joinedLines.Count - 1] + " " + $seg) -replace "\s+", " "
+        }
+    }
+
     $allowed = @("propext", "Classical.choice", "Quot.sound")
     $audited = 0
     $cleanLines = @()
-    foreach ($raw in $leanOut) {
-        $line = "$raw".Trim()
-        if ($line -eq "") { continue }
+    foreach ($line in $joinedLines) {
         if ($line -match "(?i)\b(warning|error)\b|sorryAx|declaration uses 'sorry'|bv_decide|native_decide|ofReduceBool|trustCompiler") {
             throw "Lean 4 kernel integrity violation: $line"
         }
@@ -297,13 +308,13 @@ if (-not $SkipLean -and (Test-Path -LiteralPath $lean)) {
         }
         throw "Unexpected Lean 4 output line: $line"
     }
-    if ($audited -lt 65) {
-        throw "Expected >= 65 audited Lean 4 theorems, got $audited"
+    if ($audited -ne 81) {
+        throw "Expected 81 audited Lean 4 theorems, got $audited"
     }
     [System.IO.File]::WriteAllText("$resDir\lean4-audit.txt", ($cleanLines -join "`n") + "`n", [System.Text.UTF8Encoding]::new($false))
-    Write-Host "[PASS] $audited/65 Pure Lean 4 theorems audited cleanly (0 sorry, 0 custom axioms, 0 warnings)"
+    Write-Host "[PASS] $audited/81 Pure Lean 4.35.0 Palomar theorems audited cleanly (0 sorry, 0 custom axioms, 0 warnings)"
 }
 
 Write-Host "`n========================================================================="
-Write-Host "  BEAST CIVILIZATION v0.7.0 FULL-STACK BUILD & VERIFICATION: ALL GREEN!"
+Write-Host "  BEAST CIVILIZATION v1.0.0 FULL-STACK BUILD & VERIFICATION: ALL GREEN!"
 Write-Host "========================================================================="

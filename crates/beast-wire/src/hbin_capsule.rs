@@ -52,9 +52,9 @@ fn encode_row(shard_idx: usize) -> [u8; 4] {
     } else {
         let x = (shard_idx - 3) as u8; // 1, 2, 3, 4
         let mut r = [0u8; 4];
-        for j in 0..4 {
+        for (j, slot) in r.iter_mut().enumerate() {
             let y = (j + 5) as u8; // 5, 6, 7, 8
-            r[j] = gf_inv(x ^ y);
+            *slot = gf_inv(x ^ y);
         }
         r
     }
@@ -63,8 +63,8 @@ fn encode_row(shard_idx: usize) -> [u8; 4] {
 /// Invert any 4x4 submatrix of the systematic Cauchy MDS matrix over GF(2^8) (always nonsingular!).
 fn invert_4x4(mut a: [[u8; 4]; 4]) -> Result<[[u8; 4]; 4], &'static str> {
     let mut inv = [[0u8; 4]; 4];
-    for i in 0..4 {
-        inv[i][i] = 1;
+    for (i, row) in inv.iter_mut().enumerate() {
+        row[i] = 1;
     }
     for col in 0..4 {
         let pivot = (col..4).find(|&r| a[r][col] != 0).ok_or("singular matrix")?;
@@ -220,11 +220,11 @@ impl PlanariaCapsule {
         let inv = invert_4x4(mat)?;
 
         let mut recovered = Vec::with_capacity(self.shard_len * 4);
-        for d in 0..4 {
+        for inv_row in &inv {
             for pos in 0..self.shard_len {
                 let mut byte = 0u8;
-                for r in 0..4 {
-                    byte ^= gf_mul(inv[d][r], chosen[r].data[pos]);
+                for (r, &coeff) in inv_row.iter().enumerate() {
+                    byte ^= gf_mul(coeff, chosen[r].data[pos]);
                 }
                 recovered.push(byte);
             }

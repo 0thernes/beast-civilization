@@ -28,6 +28,15 @@ pub struct EndpointMissionReport {
     pub spend_used_microdollars: u64,
 }
 
+fn task_requests_ring0_violation(task: &str) -> bool {
+    let low = task.replace('\\', "/").to_ascii_lowercase();
+    low.contains("crates/beast-root")
+        || low.contains("bypass acl")
+        || low.contains("modify ring-0")
+        || low.contains("overwrite lean/")
+        || low.contains("overwrite .env")
+}
+
 /// Wire a live OpenAI/Ollama/llama.cpp/`beast serve` endpoint into the Ring-0 metered Colony mission loop.
 pub fn run_endpoint_wired_agent_mission(
     repo_root: &Path,
@@ -41,12 +50,12 @@ pub fn run_endpoint_wired_agent_mission(
         return Err("MUTANT CAUGHT: empty mission task".into());
     }
     let low = task.to_ascii_lowercase();
-    if low.contains("crates/beast-root") || low.contains("bypass acl") || low.contains("modify ring-0") {
+    if task_requests_ring0_violation(task) {
         return Err("MUTANT CAUGHT: Ring-0 guardian blocked protected-root mission".into());
     }
 
-    let mut r0 = Ring0Root::new(b"beast-endpoint-mission-v0.7", 250_000, task.as_bytes().to_vec());
-    let key = sha256(b"beast-endpoint-rosette-key-v0.7");
+    let mut r0 = Ring0Root::new(b"beast-endpoint-mission-v1.0", 250_000, task.as_bytes().to_vec());
+    let key = sha256(b"beast-endpoint-rosette-key-v1.0");
     let mut chain: Vec<WireReceipt> = Vec::new();
     let mut prev = [0u8; 32];
 
@@ -61,7 +70,7 @@ pub fn run_endpoint_wired_agent_mission(
         prev,
         &key,
         reply.status_code == 200,
-        &format!("http={} bytes={}", reply.status_code, reply.raw_bytes),
+        format!("http={} bytes={}", reply.status_code, reply.raw_bytes),
     );
     prev = r_llm.digest();
     chain.push(r_llm);
@@ -80,7 +89,7 @@ pub fn run_endpoint_wired_agent_mission(
         prev,
         &key,
         cw.church_rosser_confluent && cw.worktrees_isolated,
-        &format!("agents={} edges={} tasks={}", civ.total_agents, xgraph.cross_repo_edges, cw.tasks_reduced),
+        format!("agents={} edges={} tasks={}", civ.total_agents, xgraph.cross_repo_edges, cw.tasks_reduced),
     );
     prev = r_col.digest();
     chain.push(r_col);
@@ -101,7 +110,7 @@ pub fn run_endpoint_wired_agent_mission(
             prev,
             &key,
             fm.planaria_heal_exact && fm.inference_exact,
-            &format!("gguf={}B", fm.gguf_bytes),
+            format!("gguf={}B", fm.gguf_bytes),
         );
         prev = r_m.digest();
         chain.push(r_m);
@@ -150,12 +159,12 @@ pub fn run_autonomous_agent_task(
         return Err("MUTANT CAUGHT: empty agent task prompt".into());
     }
     let lower = task.to_ascii_lowercase();
-    if lower.contains("crates/beast-root") || lower.contains("modify ring-0") || lower.contains("bypass acl") {
+    if task_requests_ring0_violation(task) {
         return Err("MUTANT CAUGHT: Ring-0 guardian blocked task requesting protected root modification".into());
     }
 
-    let mut r0 = Ring0Root::new(b"beast-agent-v0.5", 250_000, task.as_bytes().to_vec());
-    let key = sha256(b"beast-agent-rosette-key-v0.5");
+    let mut r0 = Ring0Root::new(b"beast-agent-v1.0", 250_000, task.as_bytes().to_vec());
+    let key = sha256(b"beast-agent-rosette-key-v1.0");
     let mut chain: Vec<WireReceipt> = Vec::new();
     let mut prev = [0u8; 32];
 
@@ -172,7 +181,7 @@ pub fn run_autonomous_agent_task(
         prev,
         &key,
         true,
-        &format!("files={} syms={}", rmap.files_indexed, rmap.total_symbols),
+        format!("files={} syms={}", rmap.files_indexed, rmap.total_symbols),
     );
     prev = r1.digest();
     chain.push(r1);
@@ -203,7 +212,7 @@ pub fn run_autonomous_agent_task(
             prev,
             &key,
             fk.planaria_healed_exact,
-            &format!("elf={}B qemu_exact={}", fk.elf_bytes, fk.qemu_bit_exact),
+            format!("elf={}B qemu_exact={}", fk.elf_bytes, fk.qemu_bit_exact),
         );
         prev = rk.digest();
         chain.push(rk);
@@ -224,7 +233,7 @@ pub fn run_autonomous_agent_task(
             prev,
             &key,
             fm.planaria_heal_exact && fm.inference_exact,
-            &format!("gguf={}B bcg={}B", fm.gguf_bytes, fm.bcg_bytes),
+            format!("gguf={}B bcg={}B", fm.gguf_bytes, fm.bcg_bytes),
         );
         prev = rm.digest();
         chain.push(rm);
@@ -246,7 +255,7 @@ pub fn run_autonomous_agent_task(
             prev,
             &key,
             fa.planaria_healed_exact && forged_alife_p9_exact,
-            &format!("exe={}B res={} p9={}", fa.exe_bytes, fa.energy_residual, forged_alife_p9_exact),
+            format!("exe={}B res={} p9={}", fa.exe_bytes, fa.energy_residual, forged_alife_p9_exact),
         );
         prev = ra.digest();
         chain.push(ra);

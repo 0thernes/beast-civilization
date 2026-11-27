@@ -23,6 +23,9 @@
 *.cubin
 *.olean
 /.lake/
+/lean/.lake/
+/_site/
+/SHA256SUMS
 
 # Vendored upstream source checkouts (tracked via vendor/VENDOR_MANIFEST.json + SHA pins)
 /vendor/*/

@@ -155,7 +155,7 @@ pub fn render_hex_image_pgm(text: &str, noise_flip_seed: u64, out_pgm: Option<&P
                 let on = ((row >> (7 - x)) & 1) != 0;
                 let mut pix: u8 = if on { 235 } else { 18 };
                 // Inject real salt-and-pepper pixel noise (1 pixel per glyph) if seed != 0
-                if noise_flip_seed != 0 && ((ci * 31 + y * 7 + x * 3 + noise_flip_seed as usize) % 53 == 0) {
+                if noise_flip_seed != 0 && (ci * 31 + y * 7 + x * 3 + noise_flip_seed as usize).is_multiple_of(53) {
                     pix = 255 - pix;
                 }
                 img[y * w + ci * 8 + x] = pix;
@@ -191,10 +191,9 @@ pub fn ocr_decode_hex_image(w: usize, h: usize, img: &[u8]) -> (String, f64) {
     for ci in 0..n_glyphs {
         let mut best_gi = 0usize;
         let mut best_dot = i64::MIN;
-        for gi in 0..16 {
+        for (gi, glyph) in GLYPH_FONT_8X8.iter().enumerate() {
             let mut dot = 0i64;
-            for y in 0..8 {
-                let row = GLYPH_FONT_8X8[gi][y];
+            for (y, &row) in glyph.iter().enumerate() {
                 for x in 0..8 {
                     let trit: i64 = if ((row >> (7 - x)) & 1) != 0 { 1 } else { -1 };
                     let pix: i64 = (img[y * w + ci * 8 + x] as i64) - 128;

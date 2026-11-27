@@ -365,6 +365,7 @@ pub export fn beast_c2c_augment_attn_f32(
     dim: usize,
     out_vec: [*]f32,
 ) callconv(.c) i32 {
+    if (len_self > 512 or len_peer > 512) return -1;
     const total = len_self + len_peer;
     if (dim == 0 or total == 0 or total > 512) return -1;
 
@@ -532,8 +533,10 @@ pub export fn beast_chimera_op_xenograft(dst: *BeastChimeraGenome, donor: *const
 
 /// OP_SPECTRAL_CLAMP: Noetic WSE guarantee `||W||_2 <= max_norm` (0.99) across every active block.
 pub export fn beast_chimera_op_spectral_clamp(g: *BeastChimeraGenome, max_norm: f32) callconv(.c) f32 {
+    if (g.magic != BEAST_CHIMERA_MAGIC or !math.isFinite(max_norm) or max_norm <= 0.0) return -1.0;
+    const n_blocks: usize = @min(@as(usize, g.num_blocks), BEAST_CHIMERA_MAX_BLOCKS);
     var worst: f32 = 0.0;
-    for (0..g.num_blocks) |i| {
+    for (0..n_blocks) |i| {
         var blk = &g.blocks[i];
         if (blk.active == 0) continue;
         var s = estimateSpectralNorm(blk);
@@ -557,7 +560,7 @@ pub export fn beast_chimera_forward(
     output16: [*]f32,
     liquid_state16: [*]f32,
 ) callconv(.c) i32 {
-    if (g.magic != BEAST_CHIMERA_MAGIC) return -1;
+    if (g.magic != BEAST_CHIMERA_MAGIC or g.num_blocks > BEAST_CHIMERA_MAX_BLOCKS) return -1;
     var h: [BEAST_CHIMERA_DIM]f32 = undefined;
     for (0..BEAST_CHIMERA_DIM) |i| h[i] = input16[i];
 

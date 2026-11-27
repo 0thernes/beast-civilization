@@ -1,0 +1,48 @@
+version = 1
+SPDX-PackageName = "beast-civilization"
+SPDX-PackageSupplier = "Alexander Stephen Donahue <0_0@0thernes.art>"
+SPDX-PackageDownloadLocation = "https://github.com/0thernes/beast-civilization"
+
+[[annotations]]
+path = [
+  "crates/**",
+  "zig/**",
+  "c_bridges/**",
+  "cuda/**",
+  "ruby/**",
+  "lean/**",
+  "scripts/**",
+  "examples/**",
+  "evals/**",
+  "build.ps1",
+  "justfile",
+  "Cargo.toml",
+  "Cargo.lock",
+  ".github/workflows/**",
+]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 Alexander Stephen Donahue"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = [
+  "paper/**",
+  "docs/**",
+  "dist/**",
+  "results/**",
+  "data/**",
+  "vendor/**",
+  "*.md",
+  "CITATION.*",
+  ".zenodo.json",
+  "repo.yaml",
+  "repo-standard.schema.json",
+  "VERSION",
+  "CHECKSUMS.sha256",
+  ".github/ISSUE_TEMPLATE/**",
+  ".github/labels.tsv",
+  "llms*.txt",
+]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 Alexander Stephen Donahue"
+SPDX-License-Identifier = "CC-BY-4.0"

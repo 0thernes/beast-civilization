@@ -1,0 +1,146 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/mathlib-initiative/formalization.yaml/main/schema/v0.4.schema.json
+# SPDX-License-Identifier: Apache-2.0
+version: "v0.4"
+
+project:
+  name: "BEAST CIVILIZATION Formal Verification Suite (BeastProofs v1.0.0)"
+  description: >-
+    Zero-Mathlib Lean 4.35.0 formalization of 81 audited theorems (65 core domain
+    theorems B01-B65 across 7 modules, 8 concrete non-vacuity witnesses NV01-NV08, and
+    8 adversarial false-variant refutations AT01-AT08) certifying BitNet b1.58 5-trit/byte
+    bijection, GGUF v3 Q4_0 compression, MIT Cache-to-Cache Augment-over-Overwrite laws,
+    Ring-0 immutability, spend-cap conservation, OS secret scrubbing & HTTP SSRF guard,
+    NonHuman monotonicity, ReZero & WSE spectral contraction, Planaria GF(2^8) & Merkle
+    invariants, FIPS-203 ML-KEM-768 / FIPS-197 AES-256 dimensions, QGT PSD bound,
+    Eshkol DualInt Leibniz commutativity, Church-Rosser XOR confluence, Multiboot1/2
+    checksums, Blackwell PTX grid coverage, and live hardware receipt consistency.
+  authors:
+    - "Alexander Stephen Donahue (ORCID 0009-0006-8168-9648, Independent Researcher, Spokane, WA, USA)"
+  responsible_maintainers:
+    - "Alexander Stephen Donahue <0_0@0thernes.art> (GitHub: @0thernes, ORCID 0009-0006-8168-9648)"
+  license: "Apache-2.0"
+
+classification:
+  arxiv:
+    - "cs.LO"
+    - "cs.DC"
+    - "cs.AI"
+    - "cs.OS"
+  msc2020:
+    - "03B35"
+    - "68Q60"
+    - "68T07"
+    - "94B05"
+
+sources:
+  - title: "BEAST CIVILIZATION v1.0.0: A Zero-Dependency Bare-Metal Polyglot Multi-Colony AI Architecture, Cross-Architecture Cache-to-Cache Telepathy, Blackwell PTX Kernels, and 81 Six-Kernel Pure Lean 4.35.0 Proofs"
+    authors:
+      - "Alexander Stephen Donahue"
+    id: "https://github.com/0thernes/beast-civilization"
+    type: "original-proof"
+    relationship: "other"
+    note: >-
+      Original formal invariant suite and companion AMS-LaTeX preprint first presented
+      in this repository. No external DOI, arXiv ID, or peer review is claimed prior to
+      confirmed external assignment.
+
+related_formalizations: []
+
+status:
+  scope: >-
+    Certifies exact integer, bitvector, combinatorial, algebraic, isolation, non-vacuity,
+    adversarial-refutation, and exported receipt-consistency invariants over Spec.lean
+    strictly within [propext, Classical.choice, Quot.sound] with zero Mathlib, zero sorry
+    in Solution, zero native_decide, zero bv_decide, and zero warnings. Explicitly NOT
+    formalized inside the Lean 4 kernel: Rust/Zig/C11/PTX memory safety, floating-point
+    SGD/softmax/AD rounding, live hardware timings, OS kernel Job Object enforcement, or
+    upstream physics library internals. Zero (0/1,900) overarching open problems in
+    0thernes/unsolved-problems-mega-atlas (v2.8.0) are claimed solved or retired.
+  sorry_count: 0
+  sorry_in_definitions: 0
+  axioms:
+    - "propext"
+    - "Classical.choice"
+    - "Quot.sound"
+  main_results:
+    - declaration: "BeastProofs.Quantization.B02_b158_pack_unpack_exact"
+      file: "lean/BeastProofs/Quantization.lean"
+      sorry_count: 0
+      axioms: ["propext", "Quot.sound"]
+      comparator_config: "lean/comparator.json"
+    - declaration: "BeastProofs.CacheTelepathy.B21_augment_strictly_dominates_overwrite"
+      file: "lean/BeastProofs/CacheTelepathy.lean"
+      sorry_count: 0
+      axioms: ["propext"]
+      comparator_config: "lean/comparator.json"
+    - declaration: "BeastProofs.Ring0Security.B09_ring0_immutability"
+      file: "lean/BeastProofs/Ring0Security.lean"
+      sorry_count: 0
+      axioms: ["propext"]
+      comparator_config: "lean/comparator.json"
+    - declaration: "BeastProofs.ColonyGovernance.B11_nonhuman_call_monotonicity"
+      file: "lean/BeastProofs/ColonyGovernance.lean"
+      sorry_count: 0
+      axioms: ["propext"]
+      comparator_config: "lean/comparator.json"
+    - declaration: "BeastProofs.CryptoPhysics.B35_quantum_geometric_bound_psd"
+      file: "lean/BeastProofs/CryptoPhysics.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+      comparator_config: "lean/comparator.json"
+    - declaration: "BeastProofs.CryptoPhysics.B54_dual_leibniz_comm"
+      file: "lean/BeastProofs/CryptoPhysics.lean"
+      sorry_count: 0
+      axioms: ["propext"]
+      comparator_config: "lean/comparator.json"
+    - declaration: "BeastProofs.CryptoPhysics.B56_church_rosser_xor_confluence"
+      file: "lean/BeastProofs/CryptoPhysics.lean"
+      sorry_count: 0
+      axioms: ["propext"]
+      comparator_config: "lean/comparator.json"
+    - declaration: "BeastProofs.SystemsRuntime.B24_multiboot2_checksum_zero_mod32"
+      file: "lean/BeastProofs/SystemsRuntime.lean"
+      sorry_count: 0
+      axioms: []
+      comparator_config: "lean/comparator.json"
+    - declaration: "BeastProofs.LiveReceipt.B65_live_v100_omniscient_release_receipt"
+      file: "lean/BeastProofs/LiveReceipt.lean"
+      sorry_count: 0
+      axioms: []
+      comparator_config: "lean/comparator.json"
+    - declaration: "BeastProofs.NonVacuity.NV03_ring0_rewrite_and_block_witness"
+      file: "lean/BeastProofs/NonVacuity.lean"
+      sorry_count: 0
+      axioms: []
+      comparator_config: "lean/comparator.json"
+    - declaration: "BeastProofs.AdversarialTests.AT03_refute_ring0_rewrite_when_protected"
+      file: "lean/BeastProofs/AdversarialTests.lean"
+      sorry_count: 0
+      axioms: ["propext"]
+      comparator_config: "lean/comparator.json"
+
+automation:
+  methods:
+    - method: "manual"
+      prompting_notes: "Alexander Stephen Donahue conceived the architecture, formal specification scope, falsification boundaries, and 3-cycle hardening audit."
+    - method: "agent"
+      models:
+        - "Gemini (Antigravity)"
+      framework: "Antigravity"
+      prompting_notes: >-
+        Assisted with Lean 4.35.0 Palomar modularization, NonVacuity/AdversarialTests
+        drafting, Rust/Zig hardening, and AMS-LaTeX typesetting under human direction.
+
+fidelity:
+  divergences: >-
+    Lean 4.35.0 verifies discrete algebraic, encoding, bitvector, isolation, and exported
+    receipt-consistency abstractions over Spec.lean, whereas native Rust/Zig/C11/PTX/CRuby
+    code executes floating-point training/attention/AD, OS kernel Job Objects, QEMU boot,
+    and GPU kernels outside the Lean kernel. See docs/statement-fidelity.md.
+
+review:
+  status: "self-assessed"
+  notes: >-
+    Not externally peer-reviewed. Machine-checked across all 6 independent Lean 4.35.0
+    kernel checks in sandboxed bubblewrap on Ubuntu Linux CI via lake check --paranoid
+    and lake comparator --config comparator.json --paranoid, plus live negative tamper rejection.

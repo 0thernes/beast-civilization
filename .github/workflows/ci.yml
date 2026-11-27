@@ -1,40 +1,76 @@
-# Reproducible Linux Verification CI (Informational — Build Standard v1.2.0 R1-R3: no blocking hooks/branch protection)
-name: beast-ci-verification
+# SPDX-License-Identifier: Apache-2.0
+# BEAST CIVILIZATION v1.0.0 — 3-OS Native, 6-Kernel Palomar Lean 4.35.0, Paper/Citations & Security CI
+# Informational CI per Build Standard v1.2.0 R1-R3 (zero blocking branch protection / hooks).
+name: BEAST CIVILIZATION CI — 3-OS Polyglot, 81-Theorem 6-Kernel Lean 4.35, Paper & Security
+
 on:
   push:
-    branches: [main]
-    tags: ["v*"]
+    branches: [ main ]
+    tags:
+      - 'v*'
   workflow_dispatch:
 
+permissions:
+  contents: read
+  id-token: write
+  attestations: write
+
 jobs:
-  zig-rust-ruby-oracle:
-    name: Zig 0.17.1 + Rust 8-Crate + CRuby + Python Exact Oracle
-    runs-on: ubuntu-latest
+  native-3os-matrix:
+    name: Zig 0.17.1 + Rust 8-Crate + CRuby + Oracle + Stats (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
     steps:
       - uses: actions/checkout@v4
-      - name: Install Rust stable
+      - name: Install Rust stable with clippy
         uses: dtolnay/rust-toolchain@stable
-      - name: Install Zig 0.17.1
+        with:
+          components: clippy
+      - name: Install Zig 0.17.1 (Linux)
+        if: matrix.os == 'ubuntu-latest'
         run: |
           curl -fsSL https://ziglang.org/download/0.17.1/zig-x86_64-linux-0.17.1.tar.xz -o zig.tar.xz
           tar -xf zig.tar.xz && sudo mv zig-x86_64-linux-0.17.1 /usr/local/zig
           echo "/usr/local/zig" >> "$GITHUB_PATH"
           /usr/local/zig/zig version
-      - name: Zig unit & 3 planted-mutant tests + libbeast_metal.so + freestanding ELF64/ELF32 microkernels
+      - name: Install Zig 0.17.1 (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: |
+          curl.exe -fsSL https://ziglang.org/download/0.17.1/zig-x86_64-windows-0.17.1.zip -o zig.zip
+          Expand-Archive -Path zig.zip -DestinationPath C:\zig_inst -Force
+          $zigDir = (Get-ChildItem C:\zig_inst -Directory | Select-Object -First 1).FullName
+          "$zigDir" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          & "$zigDir\zig.exe" version
+      - name: Install Zig 0.17.1 (macOS)
+        if: matrix.os == 'macos-latest'
+        run: |
+          ARCH=$(uname -m)
+          if [ "$ARCH" = "arm64" ]; then ZARCH="aarch64"; else ZARCH="x86_64"; fi
+          curl -fsSL "https://ziglang.org/download/0.17.1/zig-${ZARCH}-macos-0.17.1.tar.xz" -o zig.tar.xz
+          tar -xf zig.tar.xz && sudo mv "zig-${ZARCH}-macos-0.17.1" /usr/local/zig
+          echo "/usr/local/zig" >> "$GITHUB_PATH"
+          /usr/local/zig/zig version
+      - name: Setup Ruby 3.4 (Linux & macOS)
+        if: matrix.os != 'windows-latest'
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.4'
+      - name: Build & Verify Polyglot Suite (Linux x86-64 + C11 ASan/UBSan + libFuzzer)
+        if: matrix.os == 'ubuntu-latest'
         run: |
           mkdir -p bin
           zig test zig/beast-metal/src/root.zig
           zig build-lib zig/beast-metal/src/root.zig -dynamic -OReleaseFast -femit-bin=bin/libbeast_metal.so
           zig build-exe zig/freestanding_kernel/src/kernel.zig -target x86_64-freestanding-none -OReleaseSmall -T zig/freestanding_kernel/linker.ld -femit-bin=bin/beast_microkernel.elf
           zig build-exe zig/freestanding_kernel/src/boot32.zig -target x86-freestanding-none -OReleaseSmall -T zig/freestanding_kernel/linker32.ld -femit-bin=bin/beast_boot32.elf
-          ls -la bin/
-      - name: Rust 8-crate workspace unit & integration tests (zero external crates)
-        run: |
+          cargo clippy --workspace --all-targets -- -D warnings
           cargo test --workspace
           cargo build --release --bin beast
           cp target/release/beast bin/beast
-      - name: Portable Linux CLI live execution (C2C LLM, GGUF Q4_0, Eshkol AD, Omnimodal, REPL)
-        run: |
           ./bin/beast ad-test
           ./bin/beast llm-c2c
           ./bin/beast inspect-gguf bin/beast_4layer_chimera.gguf
@@ -42,86 +78,210 @@ jobs:
           ./bin/beast omni-test
           ./bin/beast repo-map
           ./bin/beast repl --script "ad-test;repo-map;quit"
-      - name: Clean-room Python 3 exact-arithmetic oracle & 300-matrix audit
-        run: python3 scripts/verify_independent_oracle.py
+          ruby -w ruby/beast_yarv.rb
+          bash scripts/check_sanitizers.sh
+          python3 scripts/verify_stats.py
+          python3 scripts/verify_independent_oracle.py
+          python3 scripts/prop_check.py
+          python3 scripts/check_versions.py
+          python3 examples/01_quickstart_oracle_and_c2c.py
+          python3 evals/eval_suite.py
+      - name: Build & Verify Polyglot Suite (Windows x86-64)
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path bin | Out-Null
+          zig test zig/beast-metal/src/root.zig
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          zig build-lib zig/beast-metal/src/root.zig -dynamic -OReleaseFast -femit-bin=bin/beast_metal.dll
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          zig build-exe zig/freestanding_kernel/src/kernel.zig -target x86_64-freestanding-none -OReleaseSmall -T zig/freestanding_kernel/linker.ld -femit-bin=bin/beast_microkernel.elf
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          zig build-exe zig/freestanding_kernel/src/boot32.zig -target x86-freestanding-none -OReleaseSmall -T zig/freestanding_kernel/linker32.ld -femit-bin=bin/beast_boot32.elf
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          cargo clippy --workspace --all-targets -- -D warnings
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          cargo test --workspace
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          cargo build --release --bin beast
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Copy-Item target/release/beast.exe bin/beast.exe -Force
+          .\bin\beast.exe ad-test
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          .\bin\beast.exe llm-c2c
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          .\bin\beast.exe inspect-gguf bin\beast_4layer_chimera.gguf
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          .\bin\beast.exe omni-test
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python scripts/verify_independent_oracle.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python scripts/prop_check.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python scripts/check_versions.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python examples/01_quickstart_oracle_and_c2c.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python evals/eval_suite.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Build & Verify Polyglot Suite (macOS ARM64)
+        if: matrix.os == 'macos-latest'
+        run: |
+          mkdir -p bin
+          zig test zig/beast-metal/src/root.zig
+          zig build-lib zig/beast-metal/src/root.zig -dynamic -OReleaseFast -femit-bin=bin/libbeast_metal.dylib
+          zig build-exe zig/freestanding_kernel/src/kernel.zig -target x86_64-freestanding-none -OReleaseSmall -T zig/freestanding_kernel/linker.ld -femit-bin=bin/beast_microkernel.elf
+          zig build-exe zig/freestanding_kernel/src/boot32.zig -target x86-freestanding-none -OReleaseSmall -T zig/freestanding_kernel/linker32.ld -femit-bin=bin/beast_boot32.elf
+          cargo clippy --workspace --all-targets -- -D warnings
+          cargo test --workspace
+          cargo build --release --bin beast
+          cp target/release/beast bin/beast
+          ./bin/beast ad-test
+          ./bin/beast llm-c2c
+          ./bin/beast inspect-gguf bin/beast_4layer_chimera.gguf
+          ./bin/beast omni-test
+          ruby -w ruby/beast_yarv.rb
+          python3 scripts/verify_independent_oracle.py
+          python3 scripts/prop_check.py
+          python3 scripts/check_versions.py
+          python3 examples/01_quickstart_oracle_and_c2c.py
+          python3 evals/eval_suite.py
 
-  lean4-proofs:
-    name: Pure Lean 4.35.0 Kernel Proofs (65 Theorems + Live Negative Rejection)
+  lean4-six-kernel:
+    name: Pure Lean 4.35.0 — 81 Theorems, 6-Kernel Palomar & Live Sorry-Tamper Rejection
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Install elan & Lean 4.35.0
+      - name: Install bubblewrap for 6-kernel Palomar sandbox
+        run: sudo apt-get update && sudo apt-get install -y bubblewrap
+      - name: Install Elan & Pinned Lean v4.35.0
         run: |
-          curl -sSf https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y --default-toolchain leanprover/lean4:v4.35.0
+          curl -sSf https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y --default-toolchain none
           echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
-          "$HOME/.elan/bin/lean" --version
-      - name: Machine-check 65 Pure Lean 4 theorems via VerifyAxioms.lean + strict axiom allowlist
+      - name: Build Solution + Challenge, Verify 81 Axioms, Audit Diff & README Parity
+        working-directory: lean
         run: |
-          cd lean
-          export LEAN_PATH=".:$(lean --print-libdir)"
-          lean -R . -o LiveReceipt.olean LiveReceipt.lean
-          lean -R . -o BeastProofs.olean BeastProofs.lean
-          lean -R . VerifyAxioms.lean > /tmp/lean_ci_audit.txt 2>&1
-          cat /tmp/lean_ci_audit.txt
-          python3 - <<'PY'
+          set -o pipefail
+          lake build
+          lake build Challenge
+          lake env lean VerifyAxioms.lean 2>&1 | python3 -c '
           import re, sys
-          allowed = {"propext", "Classical.choice", "Quot.sound"}
-          lines = [ln.strip() for ln in open("/tmp/lean_ci_audit.txt", encoding="utf-8") if ln.strip()]
-          audited = 0
-          for ln in lines:
-              for bad in ("warning", "error", "sorryAx", "sorry", "native_decide", "bv_decide", "ofReduceBool", "trustCompiler"):
-                  if re.search(rf"\b{bad}\b", ln, re.I):
-                      sys.exit(f"FAIL forbidden token {bad}: {ln}")
-              m0 = re.match(r"^'([^']+)' does not depend on any axioms$", ln)
-              m1 = re.match(r"^'([^']+)' depends on axioms: \[([^\]]*)\]$", ln)
-              if not (m0 or m1):
-                  sys.exit(f"FAIL unexpected line: {ln}")
-              if m1:
-                  axs = {a.strip() for a in m1.group(2).split(",") if a.strip()}
-                  if not axs.issubset(allowed):
-                      sys.exit(f"FAIL forbidden axioms {axs - allowed} in {ln}")
-              audited += 1
-          assert audited == 65, f"Expected 65 audited theorems, got {audited}"
-          print(f"[PASS] CI Lean 4.35.0 verified {audited}/65 theorems cleanly!")
-          PY
-      - name: Live negative tamper rejection test (custom axiom must be rejected)
-        run: |
-          cat > /tmp/TamperTest.lean <<'EOF'
-          axiom fakeCustomAxiom : False
-          theorem bad : False := fakeCustomAxiom
-          #print axioms bad
-          EOF
-          lean /tmp/TamperTest.lean > /tmp/tamper_out.txt 2>&1
-          grep -q "fakeCustomAxiom" /tmp/tamper_out.txt
-          echo "[PASS] Live negative tamper audit confirmed custom axiom detection!"
-
-  ams-latex-pdf:
-    name: Tectonic AMS-LaTeX White Paper & Clean-Room arXiv Tarball
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install Tectonic 0.17.0
-        run: |
-          curl -fsSL https://github.com/tectonic-typesetting/tectonic/releases/download/tectonic%400.15.0/tectonic-0.15.0-x86_64-unknown-linux-gnu.tar.gz -o tectonic.tar.gz
-          tar -xzf tectonic.tar.gz && sudo mv tectonic /usr/local/bin/tectonic
-          tectonic --version
-      - name: Compile paper/main.tex with zero warnings/overfull hboxes
-        run: |
-          cd paper
-          mkdir -p build
-          tectonic -X compile main.tex --outdir build --keep-intermediates --keep-logs > /tmp/tectonic.log 2>&1 || (cat /tmp/tectonic.log && exit 1)
-          cat /tmp/tectonic.log
-          if grep -E "Overfull \\\\hbox|Underfull \\\\hbox|Undefined control sequence|Citation .* undefined|Reference .* undefined" build/main.log; then
-            echo "FAIL: LaTeX layout/reference warning detected!"
+          raw = sys.stdin.read()
+          joined = []
+          for line in raw.splitlines():
+              s = line.strip()
+              if not s: continue
+              if s.startswith("\x27") or not joined:
+                  joined.append(s)
+              else:
+                  joined[-1] = re.sub(r"\s+", " ", joined[-1] + " " + s)
+          out = "\n".join(joined) + "\n"
+          open("/tmp/lean4-audit.txt", "w", encoding="utf-8", newline="\n").write(out)
+          sys.stdout.write(out)
+          '
+          COUNT=$(grep -cE "depends on axioms:|does not depend on any axioms" /tmp/lean4-audit.txt)
+          echo "Audited theorem count: $COUNT"
+          test "$COUNT" -eq 81
+          if grep -iE "\bwarning\b|\berror\b|sorryAx|ofReduceBool|trustCompiler|_native" /tmp/lean4-audit.txt; then
+            echo "FORBIDDEN AXIOM OR WARNING DETECTED" >&2
             exit 1
           fi
-          test -s build/main.pdf
-          echo "[PASS] Tectonic AMS-LaTeX PDF built cleanly!"
-      - name: Clean-room arXiv tarball extraction & standalone compilation
+          diff -u ../results/lean4-audit.txt /tmp/lean4-audit.txt
+          cd ..
+          python3 scripts/check_readme_axioms.py
+          python3 scripts/test_lean_negative.py
+      - name: Run 6 Kernel Checks (leanchecker, leanchecker-paranoid, lake check --paranoid, lake comparator --paranoid)
+        working-directory: lean
         run: |
-          mkdir -p /tmp/arxiv_verify/out
-          tar -xzf dist/arxiv_submission.tar.gz -C /tmp/arxiv_verify
-          cd /tmp/arxiv_verify
-          tectonic -X compile main.tex --outdir out
-          test -s out/main.pdf
-          echo "[PASS] Standalone arXiv tarball compiled cleanly!"
+          lake env leanchecker --fresh Solution
+          lake env leanchecker-paranoid --fresh Solution
+          lake check --paranoid
+          lake comparator --config comparator.json --paranoid
+      - name: Live Negative Comparator Sorry-Tamper Rejection Test
+        run: |
+          cp -r lean /tmp/lean_tamper
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("/tmp/lean_tamper/BeastProofs/Quantization.lean")
+          txt = p.read_text(encoding="utf-8")
+          old = "public theorem B01_b158_five_trits_per_byte : 3 ^ 5 = 243 ∧ 243 ≤ 256 := by decide"
+          new = "public theorem B01_b158_five_trits_per_byte : 3 ^ 5 = 243 ∧ 243 ≤ 256 := by sorry"
+          assert old in txt, "Failed to find target theorem for sorry tamper!"
+          p.write_text(txt.replace(old, new, 1), encoding="utf-8")
+          PY
+          cd /tmp/lean_tamper
+          lake build
+          if lake comparator --config comparator.json --paranoid; then
+            echo "FAIL: 6-kernel Palomar comparator WRONGLY ACCEPTED a sorry-tampered Solution!" >&2
+            exit 1
+          fi
+          echo "PASS: 6-kernel Palomar comparator cleanly REJECTED sorry-tampered Solution!"
+          rm -rf /tmp/lean_tamper
+
+  paper-and-provenance:
+    name: AMS-LaTeX White Paper (Tectonic), Citations, Blueprint, SHA256SUMS & SLSA v4
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify Citations, Checksums, DigiCert RFC 3161 Timestamp & Proof Blueprint
+        run: |
+          python3 scripts/check_citations.py --offline
+          python3 -c 'import json; d=json.load(open("results/citation-audit.json")); assert d["targets_checked"]>=30 and d["targets_passed"]==d["targets_checked"] and d.get("title_aligned")==d["targets_checked"] and d.get("author_aligned")==d["targets_checked"] and d["retractions_found"]==0, d; print("Citation audit JSON OK:", d["targets_passed"], "/", d["targets_checked"], "retractions=0")'
+          python3 scripts/build_blueprint.py
+          test -s _site/index.html
+          sha256sum -c CHECKSUMS.sha256
+          openssl ts -reply -in data/timestamps/CHECKSUMS.sha256.tsr -text | grep -q "Status: Granted."
+      - name: Install Tectonic TeX engine
+        run: |
+          curl --proto '=https' --tlsv1.2 -fsSL https://drop-sh.fullyjustified.net | sh
+          sudo mv tectonic /usr/local/bin/tectonic
+          tectonic --version
+      - name: Compile paper/main.tex and verify clean-room dist/arxiv_submission.tar.gz
+        run: python3 scripts/build_paper.py
+      - name: Generate CI SHA256SUMS
+        run: |
+          sha256sum dist/Donahue_2026_beast_civilization.pdf dist/arxiv_submission.tar.gz results/lean4-audit.txt results/citation-audit.json results/paired_stats_n24.txt lean/comparator.json > SHA256SUMS
+          cat SHA256SUMS
+      - name: Attest build provenance (SLSA v4)
+        uses: actions/attest-build-provenance@v4
+        continue-on-error: true
+        with:
+          subject-path: |
+            dist/Donahue_2026_beast_civilization.pdf
+            dist/arxiv_submission.tar.gz
+            SHA256SUMS
+
+  audit-and-security:
+    name: Build Standard v1.2.0 Audit & SHA-256-Verified Report-Only Security Scans
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Run Build Standard v1.2.0 self-audit (report-only)
+        continue-on-error: true
+        run: bash scripts/audit-repo.sh .
+      - name: Secret scan via SHA-256-verified gitleaks v8.30.1 (report-only)
+        continue-on-error: true
+        run: |
+          GITLEAKS_VER="8.30.1"
+          GITLEAKS_SHA="551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb"
+          curl -fsSL "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VER}/gitleaks_${GITLEAKS_VER}_linux_x64.tar.gz" -o /tmp/gitleaks.tgz
+          echo "${GITLEAKS_SHA}  /tmp/gitleaks.tgz" | sha256sum -c -
+          tar -xzf /tmp/gitleaks.tgz -C /tmp gitleaks
+          /tmp/gitleaks detect --source . --config .gitleaks.toml --no-banner --redact
+      - name: Dependency vulnerability scan via SHA-256-verified osv-scanner v2.7.1 (report-only)
+        continue-on-error: true
+        run: |
+          OSV_VER="2.7.1"
+          OSV_SHA="fb7dab19a8bd9bbe5c3189f09d4b7ee1820c9553a23bac202648a56efd2f6ee8"
+          curl -fsSL "https://github.com/google/osv-scanner/releases/download/v${OSV_VER}/osv-scanner_linux_amd64" -o /tmp/osv-scanner
+          echo "${OSV_SHA}  /tmp/osv-scanner" | sha256sum -c -
+          chmod +x /tmp/osv-scanner
+          rc=0
+          /tmp/osv-scanner scan source -r . || rc=$?
+          if [ "$rc" -eq 128 ]; then
+            echo "PASS: Zero vulnerable third-party dependencies detected."
+          else
+            exit "$rc"
+          fi

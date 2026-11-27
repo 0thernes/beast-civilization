@@ -1,0 +1,4 @@
+4f9f5139577c5c4fab0a03f9724b2a85a7115ed2bf76a76f2681dac8510d98a7  ../results/citation-audit.json
+d86774151c9202d4cc6f66b2650703d2a2435524545ed7564b4a010f0b59b624  ../results/lean4-audit.txt
+31274bd27255b152440923ee8f856fa73d1db86b7482607777f7dc5d29d90d40  ../results/paired_stats_n24.txt
+4a08472b4d5e5d9424ef941b7d90467f91ffba79bedc8ff9f0df8ccede9f09df  ../results/verify_win64.txt

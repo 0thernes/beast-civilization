@@ -4,3 +4,6 @@
 *.hbin binary
 *.bin binary
 *.elf binary
+*.tsr binary
+*.pdf binary
+*.gz binary

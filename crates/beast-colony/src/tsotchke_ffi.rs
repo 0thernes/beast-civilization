@@ -16,7 +16,9 @@ pub fn run_upstream_tsotchke_bell(dll_path: &Path, seed: u64, shots: usize) -> T
         Err(_) => return TsotchkeBellReport { available: false, chsh_s: 0.0, violates_classical: false },
     };
     let f: extern "C" fn(u64, usize, *mut i32) -> f64 = match lib.symbol_raw("beast_tsotchke_run_bell_chsh") {
-        Ok(p) => unsafe { std::mem::transmute(p) },
+        Ok(p) => unsafe {
+            std::mem::transmute::<*mut std::ffi::c_void, extern "C" fn(u64, usize, *mut i32) -> f64>(p)
+        },
         Err(_) => return TsotchkeBellReport { available: false, chsh_s: 0.0, violates_classical: false },
     };
     let mut violates = 0i32;

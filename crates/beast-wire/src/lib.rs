@@ -72,6 +72,7 @@ impl WireReceipt {
         h.finalize()
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn sign(
         seq: u64,
         component_id: impl Into<String>,
@@ -105,8 +106,8 @@ impl WireReceipt {
         let expected_mac = hmac_sha256(root_key, &d);
         // Constant-time comparison
         let mut diff = 0u8;
-        for i in 0..32 {
-            diff |= self.verifier_mac[i] ^ expected_mac[i];
+        for (a, b) in self.verifier_mac.iter().zip(expected_mac.iter()) {
+            diff |= a ^ b;
         }
         diff == 0
     }

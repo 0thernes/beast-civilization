@@ -25,13 +25,14 @@ pub struct ChatCompletionReply {
 }
 
 pub fn is_loopback_host(host: &str) -> bool {
-    matches!(host, "127.0.0.1" | "localhost" | "::1" | "[::1]")
+    let low = host.to_ascii_lowercase();
+    matches!(low.as_str(), "127.0.0.1" | "localhost" | "::1" | "[::1]")
 }
 
 /// Parse & validate an HTTP/1.1 endpoint URL under Ring-0 SSRF and CRLF guards.
 pub fn validate_llm_endpoint(url: &str, allow_remote: bool) -> Result<ParsedHttpUrl, String> {
-    if url.bytes().any(|b| b == b'\r' || b == b'\n' || b == 0) {
-        return Err("MUTANT CAUGHT: CRLF/control-byte injection in LLM endpoint URL".into());
+    if url.bytes().any(|b| b < 0x20 || b == 0x7F || b == b' ') {
+        return Err("MUTANT CAUGHT: CRLF/control-byte/whitespace injection in LLM endpoint URL".into());
     }
     let rest = url
         .strip_prefix("http://")
@@ -58,6 +59,9 @@ pub fn validate_llm_endpoint(url: &str, allow_remote: bool) -> Result<ParsedHttp
     } else {
         (authority.to_string(), 80)
     };
+    if host.is_empty() || host == "0.0.0.0" {
+        return Err("MUTANT CAUGHT: empty or unspecified host in LLM endpoint URL".into());
+    }
 
     if !allow_remote && !is_loopback_host(&host) {
         return Err(format!(
@@ -90,24 +94,24 @@ fn extract_assistant_content(body: &str) -> String {
     };
     let mut idx = pos + needle.len();
     let bytes = body.as_bytes();
-    while idx < bytes.len() && (bytes[idx] == b' ' || bytes[idx] == b':' || bytes[idx] == b'\t') {
+    while idx < bytes.len() && matches!(bytes[idx], b' ' | b':' | b'\t') {
         idx += 1;
     }
     if idx >= bytes.len() || bytes[idx] != b'"' {
         return body.trim().to_string();
     }
     idx += 1;
-    let mut out = String::new();
+    let mut raw_out: Vec<u8> = Vec::new();
     let mut esc = false;
     while idx < bytes.len() {
         let b = bytes[idx];
         idx += 1;
         if esc {
             match b {
-                b'n' => out.push('\n'),
-                b'r' => out.push('\r'),
-                b't' => out.push('\t'),
-                _ => out.push(b as char),
+                b'n' => raw_out.push(b'\n'),
+                b'r' => raw_out.push(b'\r'),
+                b't' => raw_out.push(b'\t'),
+                _ => raw_out.push(b),
             }
             esc = false;
         } else if b == b'\\' {
@@ -115,10 +119,10 @@ fn extract_assistant_content(body: &str) -> String {
         } else if b == b'"' {
             break;
         } else {
-            out.push(b as char);
+            raw_out.push(b);
         }
     }
-    out
+    String::from_utf8_lossy(&raw_out).into_owned()
 }
 
 /// Execute a real HTTP/1.1 `POST /v1/chat/completions` against `beast serve`, Ollama, llama-server, or vLLM.

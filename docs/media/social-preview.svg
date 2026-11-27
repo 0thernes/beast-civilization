@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 640" role="img" aria-label="BEAST CIVILIZATION v1.0.0 social preview">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#050a14"/>
+      <stop offset="55%" stop-color="#0b182c"/>
+      <stop offset="100%" stop-color="#071220"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#38e8c6"/>
+      <stop offset="100%" stop-color="#56ccf2"/>
+    </linearGradient>
+  </defs>
+  <rect width="1280" height="640" fill="url(#bg)"/>
+  <rect x="34" y="34" width="1212" height="572" rx="18" fill="none" stroke="#1e3554" stroke-width="2"/>
+  <rect x="64" y="66" width="290" height="34" rx="17" fill="#0d2633" stroke="#38e8c6" stroke-width="1.5"/>
+  <text x="209" y="88" text-anchor="middle" fill="#38e8c6" font-family="ui-monospace,Consolas,monospace" font-size="15" font-weight="700">v1.0.0 · ZERO-DEPENDENCY</text>
+  <text x="64" y="168" fill="#ffffff" font-family="ui-sans-serif,system-ui,Segoe UI,sans-serif" font-size="56" font-weight="800" letter-spacing="2">BEAST CIVILIZATION</text>
+  <text x="64" y="216" fill="#9bc0e6" font-family="ui-sans-serif,system-ui,Segoe UI,sans-serif" font-size="24">Bare-Metal Polyglot Multi-Colony AI · MIT C2C Telepathy · Blackwell PTX · 81 Lean 4.35.0 Proofs</text>
+  <line x1="64" y1="246" x2="1216" y2="246" stroke="url(#accent)" stroke-width="2.5"/>
+
+  <g font-family="ui-monospace,Consolas,monospace">
+    <rect x="64" y="276" width="268" height="148" rx="12" fill="#0c1729" stroke="#38e8c6" stroke-width="1.5"/>
+    <text x="86" y="314" fill="#38e8c6" font-size="16" font-weight="700">POLYGLOT METAL</text>
+    <text x="86" y="346" fill="#e6f0ff" font-size="15">Zig 0.17.1 + Rust 1.94</text>
+    <text x="86" y="372" fill="#9ab2d4" font-size="14">CRuby/Prism + C11 + PTX</text>
+    <text x="86" y="398" fill="#8be6ff" font-size="14">12/12 Native Live DLLs</text>
+
+    <rect x="358" y="276" width="268" height="148" rx="12" fill="#0c1729" stroke="#56ccf2" stroke-width="1.5"/>
+    <text x="380" y="314" fill="#56ccf2" font-size="16" font-weight="700">6-KERNEL PALOMAR</text>
+    <text x="380" y="346" fill="#e6f0ff" font-size="15">81 Lean 4.35.0 Proofs</text>
+    <text x="380" y="372" fill="#9ab2d4" font-size="14">0 Mathlib · 0 sorry</text>
+    <text x="380" y="398" fill="#8be6ff" font-size="14">NV01-08 + AT01-08</text>
+
+    <rect x="652" y="276" width="268" height="148" rx="12" fill="#0c1729" stroke="#a78bfa" stroke-width="1.5"/>
+    <text x="674" y="314" fill="#a78bfa" font-size="16" font-weight="700">LIVE SILICON</text>
+    <text x="674" y="346" fill="#e6f0ff" font-size="15">5x RTX 5070 Ti sm_12.0</text>
+    <text x="674" y="372" fill="#9ab2d4" font-size="14">20.21 GB/s Async Paging</text>
+    <text x="674" y="398" fill="#8be6ff" font-size="14">QEMU Ring-0 + Win32 Job</text>
+
+    <rect x="946" y="276" width="270" height="148" rx="12" fill="#0c1729" stroke="#fbbf24" stroke-width="1.5"/>
+    <text x="968" y="314" fill="#fbbf24" font-size="16" font-weight="700">FALSIFIABILITY</text>
+    <text x="968" y="346" fill="#e6f0ff" font-size="15">33 Gates · 40 Mutants</text>
+    <text x="968" y="372" fill="#9ab2d4" font-size="14">N=24 Holm-Bonferroni</text>
+    <text x="968" y="398" fill="#8be6ff" font-size="14">1,000-Case Parser Fuzz</text>
+  </g>
+
+  <text x="64" y="492" fill="#cbdcf5" font-family="ui-sans-serif,system-ui,Segoe UI,sans-serif" font-size="19">Alexander Stephen Donahue · Independent Researcher, Spokane, WA, USA · ORCID 0009-0006-8168-9648</text>
+  <text x="64" y="532" fill="#7ea1c9" font-family="ui-monospace,Consolas,monospace" font-size="16">github.com/0thernes/beast-civilization · Apache-2.0 (Code/Lean) · CC-BY-4.0 (Paper/Docs) · 0/1,900 Mega-Atlas Retired</text>
+</svg>

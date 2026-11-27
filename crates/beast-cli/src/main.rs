@@ -81,7 +81,9 @@ fn find_repo_root() -> PathBuf {
 fn default_zig_dll(root: &Path) -> PathBuf {
     #[cfg(windows)]
     { root.join("bin").join("beast_metal.dll") }
-    #[cfg(not(windows))]
+    #[cfg(target_os = "macos")]
+    { root.join("bin").join("libbeast_metal.dylib") }
+    #[cfg(all(unix, not(target_os = "macos")))]
     { root.join("bin").join("libbeast_metal.so") }
 }
 
@@ -195,15 +197,65 @@ fn main() {
                 std::process::exit(1);
             }
         }
+        "stats-n24" => {
+            if let Err(e) = cmd_stats_n24(&root) {
+                eprintln!("STATS_N24 FAILED: {e}");
+                std::process::exit(1);
+            }
+        }
         other => {
-            eprintln!("Usage: beast <probe | bench | evolve-chimera | colony-sim | graft-repo | model-c2c | llm-c2c | ad-test | cross-repo | inspect-asm | inspect-gguf | serve | mcp-serve | omni-test | repo-map | boot-kernel | forge-kernel | forge-model | forge-alife | agent-run | repl | api-query | verify-all> (got: {other})");
+            eprintln!("Usage: beast <probe | bench | evolve-chimera | colony-sim | graft-repo | model-c2c | llm-c2c | ad-test | cross-repo | inspect-asm | inspect-gguf | serve | mcp-serve | omni-test | repo-map | boot-kernel | forge-kernel | forge-model | forge-alife | agent-run | repl | api-query | stats-n24 | verify-all> (got: {other})");
             std::process::exit(2);
         }
     }
 }
 
+fn cmd_stats_n24(root: &Path) -> Result<(), String> {
+    let zig = ZigMetalLib::load(&default_zig_dll(root))?;
+    println!("seed\tswat_aug_cos\tswat_ovr_cos\tchimera_evo_mse\tchimera_ctrl_mse\tb158_ref_us\tb158_simd_us\tqubo_best_e\tqubo_init_e");
+    let linear = [-2.0, -1.5, -2.5, -1.0, -3.0, -1.2];
+    let mut quad = vec![0.0; 36];
+    quad[1] = 4.0;
+    quad[2 * 6 + 4] = 5.0;
+    for seed in 5000u64..5024u64 {
+        let (_, swat) = train_and_verify_swat_mapper(32, 24, 100, seed);
+        let mut evo = BeastEvolutionReport::default();
+        if (zig.chimera_evolve_benchmark)(60, 16, seed, &mut evo) != 0 {
+            return Err(format!("chimera evolve failed on seed {seed}"));
+        }
+        let packed_w: Vec<u8> = (0..200).map(|i| ((i * 37 + seed as usize * 13) % 243) as u8).collect();
+        let x_i32: Vec<i32> = (0..1000).map(|i| ((i * 17 + seed as i32) % 127) - 63).collect();
+        let t_ref = Instant::now();
+        let mut s_ref = 0i64;
+        for _ in 0..2_000 {
+            s_ref = s_ref.wrapping_add((zig.dot_b158_ref)(packed_w.as_ptr(), x_i32.as_ptr(), 1000));
+        }
+        let ref_us = t_ref.elapsed().as_micros().max(1);
+        let t_simd = Instant::now();
+        let mut s_simd = 0i64;
+        for _ in 0..2_000 {
+            s_simd = s_simd.wrapping_add((zig.dot_b158_simd)(packed_w.as_ptr(), x_i32.as_ptr(), 1000));
+        }
+        let simd_us = t_simd.elapsed().as_micros().max(1);
+        if s_ref != s_simd {
+            return Err(format!("b1.58 bit-exact mismatch on seed {seed}"));
+        }
+        let qubo = moonlab_style_qubo_anneal(&linear, &quad, 200, seed);
+        println!(
+            "{seed}\t{:.6}\t{:.6}\t{:.6}\t{:.6}\t{ref_us}\t{simd_us}\t{:.6}\t{:.6}",
+            swat.augment_self_recall_cos,
+            swat.overwrite_self_recall_cos,
+            evo.evolved_heldout_mse,
+            evo.random_control_heldout_mse,
+            qubo.best_energy,
+            qubo.initial_energy
+        );
+    }
+    Ok(())
+}
+
 fn dispatch_repl_line(root: &Path, line: &str) -> Result<bool, String> {
-    let parts: Vec<&str> = line.trim().split_whitespace().collect();
+    let parts: Vec<&str> = line.split_whitespace().collect();
     if parts.is_empty() { return Ok(true); }
     match parts[0] {
         "quit" | "exit" => return Ok(false),
@@ -253,7 +305,7 @@ fn dispatch_repl_line(root: &Path, line: &str) -> Result<bool, String> {
 }
 
 fn cmd_repl(root: &Path, script: Option<&str>) {
-    println!("BEAST CIVILIZATION v0.7.0 OMNISCIENT HYPER-COLONY CONSOLE");
+    println!("BEAST CIVILIZATION v{} OMNISCIENT HYPER-COLONY CONSOLE", env!("CARGO_PKG_VERSION"));
     if let Some(sc) = script {
         for cmd in sc.split(';') {
             let trimmed = cmd.trim();
@@ -296,7 +348,7 @@ fn cmd_inspect_gguf(path: &Path) {
 }
 
 fn cmd_probe(root: &Path) {
-    println!("=== BEAST CIVILIZATION v0.7.0 HARDWARE & 12-DLL ECOSYSTEM PROBE ===");
+    println!("=== BEAST CIVILIZATION v{} HARDWARE & 12-DLL ECOSYSTEM PROBE ===", env!("CARGO_PKG_VERSION"));
     println!("Repo root          : {}", root.display());
     println!("Omnimodal domains  : {} routes across 8 architectures", OMNIMODAL_ROUTES_20.len());
     println!("Public OSS APIs    : {} endpoints baked in", PUBLIC_OSS_APIS.len());
@@ -343,7 +395,7 @@ fn cmd_probe(root: &Path) {
 }
 
 fn cmd_bench(root: &Path) {
-    println!("=== BEAST CIVILIZATION v0.7.0 LIVE SILICON BENCHMARKS (ZERO MOCKS) ===");
+    println!("=== BEAST CIVILIZATION v{} LIVE SILICON BENCHMARKS (ZERO MOCKS) ===", env!("CARGO_PKG_VERSION"));
     let zig = ZigMetalLib::load(&default_zig_dll(root)).expect("beast_metal.dll required");
     let iters = 200_000u64;
     let t0 = Instant::now();
@@ -353,7 +405,7 @@ fn cmd_bench(root: &Path) {
     println!("1. Rust<->Zig FFI Philox4x32-10 : {:.2} ns/call (KC-2 target < 50 ns)", (t0.elapsed().as_nanos() as f64) / (iters as f64));
 
     let packed_w: Vec<u8> = (0..200).map(|i| ((i * 37 + 13) % 243) as u8).collect();
-    let x_i32: Vec<i32> = (0..1000).map(|i| ((i as i32 * 17) % 127) - 63).collect();
+    let x_i32: Vec<i32> = (0..1000).map(|i| ((i * 17) % 127) - 63).collect();
     let t_ref = Instant::now();
     let mut s_ref = 0i64;
     for _ in 0..10_000 { s_ref = s_ref.wrapping_add((zig.dot_b158_ref)(packed_w.as_ptr(), x_i32.as_ptr(), 1000)); }
@@ -487,7 +539,7 @@ fn cmd_agent_run(root: &Path, task: &str) {
 
 fn cmd_verify_all(root: &Path, export_lean_path: Option<&str>) -> Result<(), String> {
     println!("=========================================================================");
-    println!("  BEAST CIVILIZATION v0.7.0 — 33-GATE / 33-MUTANT HYPER-COLONY AUDIT");
+    println!("  BEAST CIVILIZATION v{} — 33-GATE / 33-MUTANT HYPER-COLONY AUDIT", env!("CARGO_PKG_VERSION"));
     println!("=========================================================================");
 
     let mut gates_passed = 0u32;
@@ -528,14 +580,14 @@ fn cmd_verify_all(root: &Path, export_lean_path: Option<&str>) -> Result<(), Str
     let receiver = KvCache::deterministic(ModelFamily::TemRust, 24, 32, 5001, 101);
     let mapper = SwatCrossFamilyMapper::new(ModelFamily::Qwen3, ModelFamily::TemRust, 64, 32, 5002);
     let mapped = mapper.project_and_compact(&sharer, 12);
-    let q_ad = mapper.adapt_query(&vec![0.3f32; 32]);
+    let q_ad = mapper.adapt_query(&[0.3f32; 32]);
     let (rust_out, tot_len) = augment_cache_attend(&q_ad, &receiver, &mapped);
     let mut zig_out = vec![0.0f32; 32];
     let zig_tot = (zig.c2c_augment_attn_f32)(q_ad.as_ptr(), receiver.keys.as_ptr(), receiver.values.as_ptr(), receiver.seq_len, mapped.keys.as_ptr(), mapped.values.as_ptr(), mapped.seq_len, 32, zig_out.as_mut_ptr());
     let max_diff = rust_out.iter().zip(zig_out.iter()).map(|(a, b)| (a - b).abs()).fold(0.0f32, f32::max);
     if zig_tot as usize != tot_len || max_diff > 1e-5 { return Err("C2C Rust vs Zig mismatch".into()); }
     let mut act_t = vec![0.0f32; 32];
-    replace_activation(&vec![0.5f32; 64], &mapper.w_k, 64, 32, &mut act_t);
+    replace_activation(&[0.5f32; 64], &mapper.w_k, 64, 32, &mut act_t);
     let payload = mapped.to_bytes();
     let spoof = Bc2cPacketHeader {
         magic: BC2C_MAGIC, src_family: ModelFamily::CloudFrontier as u8, dst_family: ModelFamily::TemRust as u8,
@@ -632,8 +684,7 @@ fn cmd_verify_all(root: &Path, export_lean_path: Option<&str>) -> Result<(), Str
     if (zig.chimera_evolve_benchmark)(120, 24, 5000, &mut evo) != 0 || evo.evolved_beats_control != 1 || evo.apex_spectral_norm > 0.991 {
         return Err(format!("KC-4 failed: {evo:?}"));
     }
-    let mut bad_g = BeastChimeraGenome::default();
-    bad_g.magic = 0xDEADBEEF;
+    let bad_g = BeastChimeraGenome { magic: 0xDEADBEEF, ..Default::default() };
     let mut out16 = [0.0f32; 16]; let mut liq16 = [0.0f32; 16];
     if (zig.chimera_forward)(&bad_g, [0.3f32; 16].as_ptr(), std::ptr::null(), out16.as_mut_ptr(), liq16.as_mut_ptr()) == 0 {
         return Err("Mutant 11 escaped".into());
@@ -795,7 +846,7 @@ fn cmd_verify_all(root: &Path, export_lean_path: Option<&str>) -> Result<(), Str
     println!("[PASS] G21 Upstream Moonlab FIPS-203 ML-KEM-768 + FIPS-197 AES-256 KAT (PQC-sealed C2C exact, ss={}.., FO tamper rejected)", eco.mlkem768_secret_prefix);
 
     // G22: Upstream SbNN Fibonacci Anyons + Spintronic p-bit Ising + Mutant #22
-    if !eco.sbnn_available || !(eco.sbnn_fibo_phi > 1.618 && eco.sbnn_fibo_phi < 1.619) || !(eco.sbnn_pbit_energy < 0.0) {
+    if !(eco.sbnn_available && eco.sbnn_fibo_phi > 1.618 && eco.sbnn_fibo_phi < 1.619 && eco.sbnn_pbit_energy < 0.0) {
         return Err("Upstream SbNN verification failed!".into());
     }
     let bad_phi = eco.sbnn_fibo_phi + 0.05;
@@ -841,7 +892,7 @@ fn cmd_verify_all(root: &Path, export_lean_path: Option<&str>) -> Result<(), Str
         alife_rep.exe_bytes, alife_rep.world_sha256_prefix);
 
     // G26: Upstream `tsotchke/quantum_geometric_tensor` (`QGTL`) Bloch Complex Fidelity + Mutant #26
-    if !eco.qgtl_available || !(eco.qgtl_fidelity > 0.70 && eco.qgtl_fidelity < 0.80) || eco.qgtl_ortho_err > 1e-5 {
+    if !(eco.qgtl_available && eco.qgtl_fidelity > 0.70 && eco.qgtl_fidelity < 0.80 && eco.qgtl_ortho_err <= 1e-5) {
         return Err("Upstream QGTL Bloch fidelity verification failed!".into());
     }
     // Mutant 26: Perturbing fidelity breaks cos^2((t2-t1)/2) invariant
@@ -922,7 +973,7 @@ fn cmd_verify_all(root: &Path, export_lean_path: Option<&str>) -> Result<(), Str
     let q4_dec = GgufFile::decode(&q4_enc)?;
     let q4_back = q4_dec.tensors[0].to_f32_vec()?;
     let q4_max_err = q4_weights.iter().zip(q4_back.iter()).map(|(a, b)| (a - b).abs()).fold(0.0f32, f32::max);
-    if !(q4_max_err < 0.25) || quantize_q4_0(&[1.0, 2.0, 3.0]).is_ok() {
+    if q4_max_err.is_nan() || q4_max_err >= 0.25 || quantize_q4_0(&[1.0, 2.0, 3.0]).is_ok() {
         return Err(format!("Mutant 31 / Q4_0 check failed: max_err={q4_max_err}"));
     }
     mutants_caught += 1;
@@ -966,108 +1017,71 @@ fn cmd_verify_all(root: &Path, export_lean_path: Option<&str>) -> Result<(), Str
         let spectral_milli = (evo.apex_spectral_norm * 1000.0).round() as u64;
         let chsh_milli = (chsh_s * 1000.0).round() as u64;
         let swat_drop_pct = swat_rep.mse_reduction_pct.floor().max(0.0) as u64;
-        let gpu_kernels: u64 = if gpu.available { gpu.kernels_verified as u64 } else { 5 };
-        let pinned_ok: u64 = if !gpu.available || gpu.pinned_paging_ok { 1 } else { 0 };
-        let ap_ok: u64 = if !civ.autophage_available || civ.autophage_bit_exact { 1 } else { 0 };
-        let qemu_ok: u64 = if !qemu_rep.qemu_available || qemu_rep.bit_exact_match { 1 } else { 0 };
-        let win32_job_ok: u64 = if !job_rep.supported_on_os || (job_rep.verified_in_job && job_rep.secret_scrubbed) { 1 } else { 0 };
+        let gpu_kernels: u64 = if gpu.available { gpu.kernels_verified as u64 } else { 0 };
+        let pinned_ok: u64 = if gpu.available && gpu.pinned_paging_ok { 1 } else { 0 };
+        let ap_ok: u64 = if civ.autophage_available && civ.autophage_bit_exact { 1 } else { 0 };
+        let qemu_ok: u64 = if qemu_rep.qemu_available && qemu_rep.bit_exact_match { 1 } else { 0 };
+        let win32_job_ok: u64 = if job_rep.supported_on_os && job_rep.verified_in_job && job_rep.secret_scrubbed { 1 } else { 0 };
+        let pkg_ver = env!("CARGO_PKG_VERSION");
         let lean_src = format!(
-            r#"-- AUTO-GENERATED BY `beast verify-all --export-lean` FROM LIVE v0.7.0 HARDWARE EXECUTION
+            r#"module
+
+/-!
+# BeastProofs.LiveReceiptData — Pure Hardware Receipt Constants (Zero Proofs)
+
+Auto-generated by `beast verify-all --export-lean` from live v{pkg_ver} hardware execution.
+Copyright (c) 2026 Alexander Stephen Donahue <0_0@0thernes.art>.
+SPDX-License-Identifier: Apache-2.0
+-/
+
 namespace BeastLiveReceipt
 
-def liveGatesPassed : Nat := {gates_passed}
-def liveMutantsCaught : Nat := {mutants_caught}
-def liveC2cSelfLen : Nat := 24
-def liveC2cPeerLen : Nat := 12
-def liveC2cTotalLen : Nat := {tot_len}
-def liveSpectralMilli : Nat := {spectral_milli}
-def liveChshMilli : Nat := {chsh_milli}
-def liveMicrokernelBytes : Nat := {elf_b}
-def liveBoot32Bytes : Nat := {boot32_b}
-def liveGpuKernelsVerified : Nat := {gpu_kernels}
-def livePinnedPagingOk : Nat := {pinned_ok}
-def liveSwatMseDropPct : Nat := {swat_drop_pct}
-def liveChimeraBeatsCtrl : Nat := {kc4}
-def livePlanariaQuarantined : Nat := {quarantined}
-def liveAutophageBitExact : Nat := {ap_ok}
-def liveColonyAgents : Nat := {agents}
-def liveOmnimodalDomains : Nat := 20
-def liveMatrixItems : Nat := 300
-def liveGgufHealExact : Nat := {gguf_ok}
-def liveTtsAsrMatched : Nat := {asr_m}
-def liveOcrExact : Nat := {ocr_ok}
-def liveOsSandboxClean : Nat := {os_ok}
-def liveEcosystemDlls : Nat := {dlls_active}
-def liveLibirrepUnsoldOk : Nat := {irrep_ok}
-def liveMoonlabChernTopo : Nat := {qwz_topo}
-def liveMoonlabChernTriv : Nat := {qwz_triv}
-def liveMoonlabSshWinding : Nat := {ssh_w}
-def liveMoonlabKitaevZ2 : Nat := {kit_z2}
-def liveMlkem768Ok : Nat := {mlkem_ok}
-def liveSbnnAnyonPbitOk : Nat := {sbnn_ok}
-def liveQgtlBlochOk : Nat := {qgtl_ok}
-def liveWin32JobOk : Nat := {win32_job_ok}
-def liveLlmC2cLayers : Nat := {llm_layers}
-def liveAlifeZeroResidualP9 : Nat := {alife_ok}
-def liveEshkolTriAdOk : Nat := {ad_ok}
-def liveCrossRepoRepos : Nat := {xrepos}
-def liveConfluentWorktreesOk : Nat := {cw_ok}
-def liveMcpBusOk : Nat := 1
-def liveAsmInstrs : Nat := {asm_ins}
-def liveRepoMapFiles : Nat := {rmap_f}
-def liveForgedKernelOk : Nat := {fk_ok}
-def liveAgentSteps : Nat := {ag_steps}
-def liveQemuGateClean : Nat := {qemu_ok}
-def liveGgufQ40Ok : Nat := 1
-def liveOpenAiEndpointOk : Nat := 1
-def liveReplMissionOk : Nat := 1
-
-theorem live_runtime_receipt_verified :
-    liveGatesPassed = 33 ∧
-    liveMutantsCaught = 33 ∧
-    liveC2cTotalLen = liveC2cSelfLen + liveC2cPeerLen ∧
-    liveSpectralMilli ≤ 990 ∧
-    liveChshMilli > 2000 ∧
-    liveMicrokernelBytes > 0 ∧
-    liveBoot32Bytes > 0 ∧
-    liveGpuKernelsVerified = 5 ∧
-    livePinnedPagingOk = 1 ∧
-    liveSwatMseDropPct ≥ 85 ∧
-    liveChimeraBeatsCtrl = 1 ∧
-    livePlanariaQuarantined = 1 ∧
-    liveAutophageBitExact = 1 ∧
-    liveColonyAgents = 18 ∧
-    liveOmnimodalDomains = 20 ∧
-    liveMatrixItems = 300 ∧
-    liveGgufHealExact = 1 ∧
-    liveTtsAsrMatched = 4 ∧
-    liveOcrExact = 1 ∧
-    liveOsSandboxClean = 1 ∧
-    liveEcosystemDlls ≥ 11 ∧
-    liveLibirrepUnsoldOk = 1 ∧
-    liveMoonlabChernTopo = 1 ∧
-    liveMoonlabChernTriv = 0 ∧
-    liveMoonlabSshWinding = 1 ∧
-    liveMoonlabKitaevZ2 = 1 ∧
-    liveMlkem768Ok = 1 ∧
-    liveSbnnAnyonPbitOk = 1 ∧
-    liveQgtlBlochOk = 1 ∧
-    liveWin32JobOk = 1 ∧
-    liveLlmC2cLayers = 4 ∧
-    liveAlifeZeroResidualP9 = 1 ∧
-    liveEshkolTriAdOk = 1 ∧
-    liveCrossRepoRepos ≥ 2 ∧
-    liveConfluentWorktreesOk = 1 ∧
-    liveMcpBusOk = 1 ∧
-    liveAsmInstrs ≥ 100 ∧
-    liveRepoMapFiles ≥ 20 ∧
-    liveForgedKernelOk = 1 ∧
-    liveAgentSteps = 4 ∧
-    liveQemuGateClean = 1 ∧
-    liveGgufQ40Ok = 1 ∧
-    liveOpenAiEndpointOk = 1 ∧
-    liveReplMissionOk = 1 := by
-  decide
+@[expose] public def liveGatesPassed : Nat := {gates_passed}
+@[expose] public def liveMutantsCaught : Nat := {mutants_caught}
+@[expose] public def liveC2cSelfLen : Nat := 24
+@[expose] public def liveC2cPeerLen : Nat := 12
+@[expose] public def liveC2cTotalLen : Nat := {tot_len}
+@[expose] public def liveSpectralMilli : Nat := {spectral_milli}
+@[expose] public def liveChshMilli : Nat := {chsh_milli}
+@[expose] public def liveMicrokernelBytes : Nat := {elf_b}
+@[expose] public def liveBoot32Bytes : Nat := {boot32_b}
+@[expose] public def liveGpuKernelsVerified : Nat := {gpu_kernels}
+@[expose] public def livePinnedPagingOk : Nat := {pinned_ok}
+@[expose] public def liveSwatMseDropPct : Nat := {swat_drop_pct}
+@[expose] public def liveChimeraBeatsCtrl : Nat := {kc4}
+@[expose] public def livePlanariaQuarantined : Nat := {quarantined}
+@[expose] public def liveAutophageBitExact : Nat := {ap_ok}
+@[expose] public def liveColonyAgents : Nat := {agents}
+@[expose] public def liveOmnimodalDomains : Nat := 20
+@[expose] public def liveMatrixItems : Nat := 300
+@[expose] public def liveGgufHealExact : Nat := {gguf_ok}
+@[expose] public def liveTtsAsrMatched : Nat := {asr_m}
+@[expose] public def liveOcrExact : Nat := {ocr_ok}
+@[expose] public def liveOsSandboxClean : Nat := {os_ok}
+@[expose] public def liveEcosystemDlls : Nat := {dlls_active}
+@[expose] public def liveLibirrepUnsoldOk : Nat := {irrep_ok}
+@[expose] public def liveMoonlabChernTopo : Nat := {qwz_topo}
+@[expose] public def liveMoonlabChernTriv : Nat := {qwz_triv}
+@[expose] public def liveMoonlabSshWinding : Nat := {ssh_w}
+@[expose] public def liveMoonlabKitaevZ2 : Nat := {kit_z2}
+@[expose] public def liveMlkem768Ok : Nat := {mlkem_ok}
+@[expose] public def liveSbnnAnyonPbitOk : Nat := {sbnn_ok}
+@[expose] public def liveQgtlBlochOk : Nat := {qgtl_ok}
+@[expose] public def liveWin32JobOk : Nat := {win32_job_ok}
+@[expose] public def liveLlmC2cLayers : Nat := {llm_layers}
+@[expose] public def liveAlifeZeroResidualP9 : Nat := {alife_ok}
+@[expose] public def liveEshkolTriAdOk : Nat := {ad_ok}
+@[expose] public def liveCrossRepoRepos : Nat := {xrepos}
+@[expose] public def liveConfluentWorktreesOk : Nat := {cw_ok}
+@[expose] public def liveMcpBusOk : Nat := 1
+@[expose] public def liveAsmInstrs : Nat := {asm_ins}
+@[expose] public def liveRepoMapFiles : Nat := {rmap_f}
+@[expose] public def liveForgedKernelOk : Nat := {fk_ok}
+@[expose] public def liveAgentSteps : Nat := {ag_steps}
+@[expose] public def liveQemuGateClean : Nat := {qemu_ok}
+@[expose] public def liveGgufQ40Ok : Nat := 1
+@[expose] public def liveOpenAiEndpointOk : Nat := 1
+@[expose] public def liveReplMissionOk : Nat := 1
 
 end BeastLiveReceipt
 "#,
@@ -1098,7 +1112,7 @@ end BeastLiveReceipt
             ag_steps = agent_rep.steps_executed,
         );
         fs::write(lean_out_path, lean_src).map_err(|e| format!("failed to write {lean_out_path}: {e}"))?;
-        println!("Exported live v0.7.0 runtime receipt to {lean_out_path}");
+        println!("Exported live v{pkg_ver} runtime receipt to {lean_out_path}");
     }
 
     Ok(())

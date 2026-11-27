@@ -88,32 +88,38 @@ impl ZigMetalLib {
     pub fn load(path: &Path) -> Result<Self, String> {
         let lib = DynLib::open(path)?;
         macro_rules! sym {
-            ($name:literal) => {
-                unsafe { std::mem::transmute(lib.symbol_raw($name)?) }
+            ($name:literal, $ty:ty) => {
+                unsafe { std::mem::transmute::<*mut std::ffi::c_void, $ty>(lib.symbol_raw($name)?) }
             };
         }
         Ok(Self {
-            abi_version: sym!("beast_metal_abi_version"),
-            philox_u64: sym!("beast_philox_u64"),
-            pack_5trits: sym!("beast_pack_5trits"),
-            unpack_5trits: sym!("beast_unpack_5trits"),
-            dot_b158_ref: sym!("beast_dot_b158_ref"),
-            dot_b158_simd: sym!("beast_dot_b158_simd"),
-            dot_u1_ref: sym!("beast_dot_u1_ref"),
-            dot_u1_simd: sym!("beast_dot_u1_simd"),
-            dot_i2_ref: sym!("beast_dot_i2_ref"),
-            dot_i2_simd: sym!("beast_dot_i2_simd"),
-            dot_nvfp4_ref: sym!("beast_dot_nvfp4_ref"),
-            dot_nvfp4_simd: sym!("beast_dot_nvfp4_simd"),
-            c2c_augment_attn_f32: sym!("beast_c2c_augment_attn_f32"),
-            chimera_init: sym!("beast_chimera_init"),
-            chimera_op_insert_block: sym!("beast_chimera_op_insert_block"),
-            chimera_op_prec_morph: sym!("beast_chimera_op_prec_morph"),
-            chimera_op_xenograft: sym!("beast_chimera_op_xenograft"),
-            chimera_op_spectral_clamp: sym!("beast_chimera_op_spectral_clamp"),
-            chimera_forward: sym!("beast_chimera_forward"),
-            chimera_evolve_benchmark: sym!("beast_chimera_evolve_benchmark"),
-            self_test_all: sym!("beast_metal_self_test_all"),
+            abi_version: sym!("beast_metal_abi_version", extern "C" fn() -> u32),
+            philox_u64: sym!("beast_philox_u64", extern "C" fn(u64, u64, u32) -> u64),
+            pack_5trits: sym!("beast_pack_5trits", extern "C" fn(*const i8) -> u8),
+            unpack_5trits: sym!("beast_unpack_5trits", extern "C" fn(u8, *mut i8)),
+            dot_b158_ref: sym!("beast_dot_b158_ref", extern "C" fn(*const u8, *const i32, usize) -> i64),
+            dot_b158_simd: sym!("beast_dot_b158_simd", extern "C" fn(*const u8, *const i32, usize) -> i64),
+            dot_u1_ref: sym!("beast_dot_u1_ref", extern "C" fn(*const u8, *const i32, usize) -> i64),
+            dot_u1_simd: sym!("beast_dot_u1_simd", extern "C" fn(*const u8, *const i32, usize) -> i64),
+            dot_i2_ref: sym!("beast_dot_i2_ref", extern "C" fn(*const u8, *const i32, usize) -> i64),
+            dot_i2_simd: sym!("beast_dot_i2_simd", extern "C" fn(*const u8, *const i32, usize) -> i64),
+            dot_nvfp4_ref: sym!("beast_dot_nvfp4_ref", extern "C" fn(*const u8, *const f32, usize) -> f32),
+            dot_nvfp4_simd: sym!("beast_dot_nvfp4_simd", extern "C" fn(*const u8, *const f32, usize) -> f32),
+            c2c_augment_attn_f32: sym!(
+                "beast_c2c_augment_attn_f32",
+                extern "C" fn(*const f32, *const f32, *const f32, usize, *const f32, *const f32, usize, usize, *mut f32) -> i32
+            ),
+            chimera_init: sym!("beast_chimera_init", extern "C" fn(*mut BeastChimeraGenome, u64)),
+            chimera_op_insert_block: sym!("beast_chimera_op_insert_block", extern "C" fn(*mut BeastChimeraGenome, u8, u8, u64) -> i32),
+            chimera_op_prec_morph: sym!("beast_chimera_op_prec_morph", extern "C" fn(*mut BeastChimeraGenome, u32, u8) -> i32),
+            chimera_op_xenograft: sym!("beast_chimera_op_xenograft", extern "C" fn(*mut BeastChimeraGenome, *const BeastChimeraGenome, u32) -> i32),
+            chimera_op_spectral_clamp: sym!("beast_chimera_op_spectral_clamp", extern "C" fn(*mut BeastChimeraGenome, f32) -> f32),
+            chimera_forward: sym!(
+                "beast_chimera_forward",
+                extern "C" fn(*const BeastChimeraGenome, *const f32, *const f32, *mut f32, *mut f32) -> i32
+            ),
+            chimera_evolve_benchmark: sym!("beast_chimera_evolve_benchmark", extern "C" fn(u32, u32, u64, *mut BeastEvolutionReport) -> i32),
+            self_test_all: sym!("beast_metal_self_test_all", extern "C" fn(u32) -> u64),
             _lib: lib,
         })
     }

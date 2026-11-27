@@ -1,0 +1,36 @@
+# SPDX-License-Identifier: Apache-2.0
+# Deploy static 81-Theorem Lean 4.35.0 Proof Blueprint & Research Portal to GitHub Pages (A27)
+name: Deploy GitHub Pages Proof Blueprint
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build static Research Portal & 81-Theorem Lean Blueprint
+        run: |
+          python3 scripts/build_blueprint.py
+          test -s _site/index.html
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v4

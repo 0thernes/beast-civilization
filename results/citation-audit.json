@@ -1,0 +1,1154 @@
+{
+  "schema": "beast-civilization-citation-audit/v2",
+  "generated_utc": "2026-11-27T00:12:13Z",
+  "bib_entries": 46,
+  "targets_checked": 45,
+  "targets_passed": 45,
+  "title_aligned": 45,
+  "author_aligned": 45,
+  "retractions_found": 0,
+  "records": [
+    {
+      "target": "doi:10.1145/2063384.2063405",
+      "source": "crossref",
+      "ok": true,
+      "retracted": false,
+      "year_ok": true,
+      "title_ok": true,
+      "title_overlap": 1.0,
+      "author_ok": true,
+      "author_overlap": 1.0,
+      "bib_surnames": [
+        "salmon",
+        "moraes",
+        "dror",
+        "shaw"
+      ],
+      "crossref_surnames": [
+        "salmon",
+        "moraes",
+        "dror",
+        "shaw"
+      ],
+      "crossref_title": "Parallel random numbers",
+      "crossref_years": [
+        2011
+      ],
+      "status": "OK (Crossref)",
+      "key": "salmon2011parallel"
+    },
+    {
+      "target": "doi:10.48550/arXiv.2402.17764",
+      "source": "doi_handle",
+      "ok": true,
+      "retracted": false,
+      "year_ok": true,
+      "title_ok": true,
+      "title_overlap": null,
+      "author_ok": true,
+      "author_overlap": null,
+      "status": "OK (DOI Handle)",
+      "key": "ma2024era"
+    },
+    {
+      "target": "doi:10.1007/978-3-030-79876-5_37",
+      "source": "crossref",
+      "ok": true,
+      "retracted": false,
+      "year_ok": true,
+      "title_ok": true,
+      "title_overlap": 1.0,
+      "author_ok": true,
+      "author_overlap": 1.0,
+      "bib_surnames": [
+        "moura",
+        "de moura",
+        "ullrich"
+      ],
+      "crossref_surnames": [
+        "moura",
+        "ullrich"
+      ],
+      "crossref_title": "The Lean 4 Theorem Prover and Programming Language",
+      "crossref_years": [
+        2021
+      ],
+      "status": "OK (Crossref)",
+      "key": "moura2021lean4"
+    },
+    {
+      "target": "doi:10.1137/0108018",
+      "source": "crossref",
+      "ok": true,
+      "retracted": false,
+      "year_ok": true,
+      "title_ok": true,
+      "title_overlap": 1.0,
+      "author_ok": true,
+      "author_overlap": 1.0,
+      "bib_surnames": [
+        "reed",
+        "solomon"
+      ],
+      "crossref_surnames": [
+        "reed",
+        "solomon"
+      ],
+      "crossref_title": "Polynomial Codes Over Certain Finite Fields",
+      "crossref_years": [
+        1960,
+        2005,
+        2006
+      ],
+      "status": "OK (Crossref)",
+      "key": "reed1960polynomial"
+    },
+    {
+      "target": "doi:10.1002/(SICI)1097-024X(199709)27:9<995::AID-SPE111>3.0.CO;2-6",
+      "source": "crossref",
+      "ok": true,
+      "retracted": false,
+      "year_ok": true,
+      "title_ok": true,
+      "title_overlap": 1.0,
+      "author_ok": true,
+      "author_overlap": 1.0,
+      "bib_surnames": [
+        "plank"
+      ],
+      "crossref_surnames": [
+        "plank"
+      ],
+      "crossref_title": "A tutorial on Reed-Solomon coding for fault-tolerance in RAID-like systems",
+      "crossref_years": [
+        1997,
+        2005
+      ],
+      "status": "OK (Crossref)",
+      "key": "plank1997tutorial"
+    },
+    {
+      "target": "doi:10.1007/3-540-48184-2_32",
+      "source": "crossref",
+      "ok": true,
+      "retracted": false,
+      "year_ok": true,
+      "title_ok": true,
+      "title_overlap": 1.0,
+      "author_ok": true,
+      "author_overlap": 1.0,
+      "bib_surnames": [
+        "merkle"
+      ],
+      "crossref_surnames": [
+        "merkle"
+      ],
+      "crossref_title": "A Digital Signature Based on a Conventional Encryption Function",
+      "crossref_years": [
+        1988,
+        2000,
+        2009
+      ],
+      "status": "OK (Crossref)",
+      "key": "merkle1988digital"
+    },
+    {
+      "target": "doi:10.1145/357172.357176",
+      "source": "crossref",
+      "ok": true,
+      "retracted": false,
+      "year_ok": true,
+      "title_ok": true,
+      "title_overlap": 1.0,
+      "author_ok": true,
+      "author_overlap": 1.0,
+      "bib_surnames": [
+        "lamport",
+        "shostak",
+        "pease"
+      ],
+      "crossref_surnames": [
+        "lamport",
+        "shostak",
+        "pease"
+      ],
+      "crossref_title": "The Byzantine Generals Problem",
+      "crossref_years": [
+        1982,
+        2002
+      ],
+      "status": "OK (Crossref)",
+      "key": "lamport1982byzantine"
+    },
+    {
+      "target": "doi:10.6028/NIST.FIPS.203",
+      "source": "crossref",
+      "ok": true,
+      "retracted": false,
+      "year_ok": true,
+      "title_ok": true,
+      "title_overlap": 1.0,
+      "author_ok": true,
+      "author_overlap": 1.0,
+      "bib_surnames": [
+        "national institute standards technology",
+        "national",
+        "institute",
+        "standards",
+        "technology"
+      ],
+      "crossref_surnames": [
+        "national institute standards technology",
+        "national",
+        "institute",
+        "standards",
+        "technology"
+      ],
+      "crossref_title": "Module-lattice-based key-encapsulation mechanism standard",
+      "crossref_years": [
+        2024
+      ],
+      "status": "OK (Crossref)",
+      "key": "nist2024fips203"
+    },
+    {
+      "target": "doi:10.6028/NIST.FIPS.197",
+      "source": "crossref",
+      "ok": true,
+      "retracted": false,
+      "year_ok": true,
+      "title_ok": true,
+      "title_overlap": 1.0,
+      "author_ok": true,
+      "author_overlap": 1.0,
+      "bib_surnames": [
+        "national institute standards technology",
+        "national",
+        "institute",
+        "standards",
+        "technology"
+      ],
+      "crossref_surnames": [
+        "national institute standards technology",
+        "national",
+        "institute",
+        "standards",
+        "technology"
+      ],
+      "crossref_title": "Advanced Encryption Standard (AES)",
+      "crossref_years": [
+        2001,
+        2017
+      ],
+      "status": "OK (Crossref)",
+      "key": "nist2001fips197"
+    },
+    {
+      "target": "doi:10.6028/NIST.FIPS.180-4",
+      "source": "crossref",
+      "ok": true,
+      "retracted": false,
+      "year_ok": true,
+      "title_ok": true,
+      "title_overlap": 1.0,
+      "author_ok": true,
+      "author_overlap": 1.0,
+      "bib_surnames": [
+        "national institute standards technology",
+        "national",
+        "institute",
+        "standards",
+        "technology"
+      ],
+      "crossref_surnames": [
+        "national institute standards technology",
+        "national",
+        "institute",
+        "standards",
+        "technology"
+      ],
+      "crossref_title": "Secure hash standard",
+      "crossref_years": [
+        2015
+      ],
+      "status": "OK (Crossref)",
+      "key": "nist2015fips180"
+    },
+    {
+      "target": "doi:10.1103/PhysicsPhysiqueFizika.1.195",
+      "source": "crossref",
+      "ok": true,
+      "retracted": false,
+      "year_ok": true,
+      "title_ok": true,
+      "title_overlap": 1.0,
+      "author_ok": true,
+      "author_overlap": 1.0,
+      "bib_surnames": [
+        "bell"
+      ],
+      "crossref_surnames": [
+        "bell"
+      ],
+      "crossref_title": "On the Einstein Podolsky Rosen paradox",
+      "crossref_years": [
+        1964,
+        2018
+      ],
+      "status": "OK (Crossref)",
+      "key": "bell1964epr"
+    },
+    {
+      "target": "doi:10.1103/PhysRevLett.23.880",
+      "source": "crossref",
+      "ok": true,
+      "retracted": false,
+      "year_ok": true,
+      "title_ok": true,
+      "title_overlap": 1.0,
+      "author_ok": true,
+      "author_overlap": 1.0,
+      "bib_surnames": [
+        "clauser",
+        "horne",
+        "shimony",
+        "holt"
+      ],
+      "crossref_surnames": [
+        "clauser",
+        "horne",
+        "shimony",
+        "holt"
+      ],
+      "crossref_title": "Proposed Experiment to Test Local Hidden-Variable Theories",
+      "crossref_years": [
+        1969,
+        2002
+      ],
+      "status": "OK (Crossref)",
+      "key": "clauser1969proposed"
+    },
+    {
+      "target": "doi:10.1007/BF02193559",
+      "source": "crossref",
+      "ok": true,
+      "retracted": false,
+      "year_ok": true,
+      "title_ok": true,
+      "title_overlap": 1.0,
+      "author_ok": true,
+      "author_overlap": 1.0,
+      "bib_surnames": [
+        "provost",
+        "vallee"
+      ],
+      "crossref_surnames": [
+        "provost",
+        "vallee"
+      ],
+      "crossref_title": "Riemannian structure on manifolds of quantum states",
+      "crossref_years": [
+        1980,
+        2005
+      ],
+      "status": "OK (Crossref)",
+      "key": "provost1980riemannian"
+    },
+    {
+      "target": "doi:10.1103/PhysRevB.74.085308",
+      "source": "crossref",
+      "ok": true,
+      "retracted": false,
+      "year_ok": true,
+      "title_ok": true,
+      "title_overlap": 1.0,
+      "author_ok": true,
+      "author_overlap": 1.0,
+      "bib_surnames": [
+        "qi",
+        "wu",
+        "zhang"
+      ],
+      "crossref_surnames": [
+        "qi",
+        "wu",
+        "zhang"
+      ],
+      "crossref_title": "Topological quantization of the spin Hall effect in two-dimensional paramagnetic semiconductors",
+      "crossref_years": [
+        2006,
+        2007
+      ],
+      "status": "OK (Crossref)",
+      "key": "qi2006topological"
+    },
+    {
+      "target": "doi:10.1103/PhysRevLett.42.1698",
+      "source": "crossref",
+      "ok": true,
+      "retracted": false,
+      "year_ok": true,
+      "title_ok": true,
+      "title_overlap": 1.0,
+      "author_ok": true,
+      "author_overlap": 1.0,
+      "bib_surnames": [
+        "su",
+        "schrieffer",
+        "heeger"
+      ],
+      "crossref_surnames": [
+        "su",
+        "schrieffer",
+        "heeger"
+      ],
+      "crossref_title": "Solitons in Polyacetylene",
+      "crossref_years": [
+        1979,
+        2002
+      ],
+      "status": "OK (Crossref)",
+      "key": "su1979solitons"
+    },
+    {
+      "target": "doi:10.1070/1063-7869/44/10S/S29",
+      "source": "crossref",
+      "ok": true,
+      "retracted": false,
+      "year_ok": true,
+      "title_ok": true,
+      "title_overlap": 1.0,
+      "author_ok": true,
+      "author_overlap": 1.0,
+      "bib_surnames": [
+        "kitaev"
+      ],
+      "crossref_surnames": [
+        "kitaev"
+      ],
+      "crossref_title": "Unpaired Majorana fermions in quantum wires",
+      "crossref_years": [
+        2001,
+        2007,
+        2008
+      ],
+      "status": "OK (Crossref)",
+      "key": "kitaev2001unpaired"
+    },
+    {
+      "target": "doi:10.1002/andp.19273870304",
+      "source": "crossref",
+      "ok": true,
+      "retracted": false,
+      "year_ok": true,
+      "title_ok": true,
+      "title_overlap": 1.0,
+      "author_ok": true,
+      "author_overlap": 1.0,
+      "bib_surnames": [
+        "unsold"
+      ],
+      "crossref_surnames": [
+        "unsold"
+      ],
+      "crossref_title": "Beitr\u00e4ge zur Quantenmechanik der Atome",
+      "crossref_years": [
+        1927,
+        2006,
+        2007
+      ],
+      "status": "OK (Crossref)",
+      "key": "unsold1927beitraege"
+    },
+    {
+      "target": "doi:10.48550/arXiv.1502.05767",
+      "source": "doi_handle",
+      "ok": true,
+      "retracted": false,
+      "year_ok": true,
+      "title_ok": true,
+      "title_overlap": null,
+      "author_ok": true,
+      "author_overlap": null,
+      "status": "OK (DOI Handle)",
+      "key": "baydin2018automatic"
+    },
+    {
+      "target": "doi:10.1137/1.9780898717761",
+      "source": "crossref",
+      "ok": true,
+      "retracted": false,
+      "year_ok": true,
+      "title_ok": true,
+      "title_overlap": 1.0,
+      "author_ok": true,
+      "author_overlap": 1.0,
+      "bib_surnames": [
+        "griewank",
+        "walther"
+      ],
+      "crossref_surnames": [
+        "griewank",
+        "walther"
+      ],
+      "crossref_title": "Evaluating Derivatives",
+      "crossref_years": [
+        2008,
+        2011,
+        2012
+      ],
+      "status": "OK (Crossref)",
+      "key": "griewank2008evaluating"
+    },
+    {
+      "target": "doi:10.1016/j.neunet.2017.12.012",
+      "source": "crossref",
+      "ok": true,
+      "retracted": false,
+      "year_ok": true,
+      "title_ok": true,
+      "title_overlap": 1.0,
+      "author_ok": true,
+      "author_overlap": 1.0,
+      "bib_surnames": [
+        "elfwing",
+        "uchibe",
+        "doya"
+      ],
+      "crossref_surnames": [
+        "elfwing",
+        "uchibe",
+        "doya"
+      ],
+      "crossref_title": "Sigmoid-weighted linear units for neural network function approximation in reinforcement learning",
+      "crossref_years": [
+        2018
+      ],
+      "status": "OK (Crossref)",
+      "key": "elfwing2018sigmoid"
+    },
+    {
+      "target": "doi:10.1609/aaai.v35i9.16936",
+      "source": "crossref",
+      "ok": true,
+      "retracted": false,
+      "year_ok": true,
+      "title_ok": true,
+      "title_overlap": 1.0,
+      "author_ok": true,
+      "author_overlap": 1.0,
+      "bib_surnames": [
+        "hasani",
+        "lechner",
+        "amini",
+        "rus",
+        "grosu"
+      ],
+      "crossref_surnames": [
+        "hasani",
+        "lechner",
+        "amini",
+        "rus",
+        "grosu"
+      ],
+      "crossref_title": "Liquid Time-constant Networks",
+      "crossref_years": [
+        2021,
+        2022
+      ],
+      "status": "OK (Crossref)",
+      "key": "hasani2021liquid"
+    },
+    {
+      "target": "doi:10.48550/arXiv.2003.04887",
+      "source": "doi_handle",
+      "ok": true,
+      "retracted": false,
+      "year_ok": true,
+      "title_ok": true,
+      "title_overlap": null,
+      "author_ok": true,
+      "author_overlap": null,
+      "status": "OK (DOI Handle)",
+      "key": "bachlechner2021rezero"
+    },
+    {
+      "target": "doi:10.48550/arXiv.1706.03762",
+      "source": "doi_handle",
+      "ok": true,
+      "retracted": false,
+      "year_ok": true,
+      "title_ok": true,
+      "title_overlap": null,
+      "author_ok": true,
+      "author_overlap": null,
+      "status": "OK (DOI Handle)",
+      "key": "vaswani2017attention"
+    },
+    {
+      "target": "doi:10.1016/j.neucom.2023.127063",
+      "source": "crossref",
+      "ok": true,
+      "retracted": false,
+      "year_ok": true,
+      "title_ok": true,
+      "title_overlap": 1.0,
+      "author_ok": true,
+      "author_overlap": 1.0,
+      "bib_surnames": [
+        "su",
+        "ahmed",
+        "lu",
+        "pan",
+        "bo"
+      ],
+      "crossref_surnames": [
+        "su",
+        "ahmed",
+        "lu",
+        "pan",
+        "bo"
+      ],
+      "crossref_title": "RoFormer: Enhanced transformer with Rotary Position Embedding",
+      "crossref_years": [
+        2023,
+        2024
+      ],
+      "status": "OK (Crossref)",
+      "key": "su2024roformer"
+    },
+    {
+      "target": "doi:10.18653/v1/2023.emnlp-main.298",
+      "source": "crossref",
+      "ok": true,
+      "retracted": false,
+      "year_ok": true,
+      "title_ok": true,
+      "title_overlap": 1.0,
+      "author_ok": true,
+      "author_overlap": 1.0,
+      "bib_surnames": [
+        "ainslie",
+        "thorp",
+        "lee thorp",
+        "jong",
+        "de jong"
+      ],
+      "crossref_surnames": [
+        "ainslie",
+        "thorp",
+        "lee thorp",
+        "jong",
+        "de jong"
+      ],
+      "crossref_title": "GQA: Training Generalized Multi-Query Transformer Models from Multi-Head Checkpoints",
+      "crossref_years": [
+        2023
+      ],
+      "status": "OK (Crossref)",
+      "key": "ainslie2023gqa"
+    },
+    {
+      "target": "doi:10.48550/arXiv.1701.06538",
+      "source": "doi_handle",
+      "ok": true,
+      "retracted": false,
+      "year_ok": true,
+      "title_ok": true,
+      "title_overlap": null,
+      "author_ok": true,
+      "author_overlap": null,
+      "status": "OK (DOI Handle)",
+      "key": "shazeer2017outrageously"
+    },
+    {
+      "target": "doi:10.48550/arXiv.2101.03961",
+      "source": "doi_handle",
+      "ok": true,
+      "retracted": false,
+      "year_ok": true,
+      "title_ok": true,
+      "title_overlap": null,
+      "author_ok": true,
+      "author_overlap": null,
+      "status": "OK (DOI Handle)",
+      "key": "fedus2022switch"
+    },
+    {
+      "target": "doi:10.1016/j.jcp.2018.10.045",
+      "source": "crossref",
+      "ok": true,
+      "retracted": false,
+      "year_ok": true,
+      "title_ok": true,
+      "title_overlap": 1.0,
+      "author_ok": true,
+      "author_overlap": 1.0,
+      "bib_surnames": [
+        "raissi",
+        "perdikaris",
+        "karniadakis"
+      ],
+      "crossref_surnames": [
+        "raissi",
+        "perdikaris",
+        "karniadakis"
+      ],
+      "crossref_title": "Physics-informed neural networks: A deep learning framework for solving forward and inverse problems involving nonlinear partial differential equations",
+      "crossref_years": [
+        2018,
+        2019
+      ],
+      "status": "OK (Crossref)",
+      "key": "raissi2019pinn"
+    },
+    {
+      "target": "doi:10.1080/01621459.1927.10502953",
+      "source": "crossref",
+      "ok": true,
+      "retracted": false,
+      "year_ok": true,
+      "title_ok": true,
+      "title_overlap": 1.0,
+      "author_ok": true,
+      "author_overlap": 1.0,
+      "bib_surnames": [
+        "wilson"
+      ],
+      "crossref_surnames": [
+        "wilson"
+      ],
+      "crossref_title": "Probable Inference, the Law of Succession, and Statistical Inference",
+      "crossref_years": [
+        1927,
+        2012
+      ],
+      "status": "OK (Crossref)",
+      "key": "wilson1927probable"
+    },
+    {
+      "target": "doi:10.2202/1544-6115.1585",
+      "source": "crossref",
+      "ok": true,
+      "retracted": false,
+      "year_ok": true,
+      "title_ok": true,
+      "title_overlap": 1.0,
+      "author_ok": true,
+      "author_overlap": 1.0,
+      "bib_surnames": [
+        "phipson",
+        "smyth"
+      ],
+      "crossref_surnames": [
+        "phipson",
+        "smyth"
+      ],
+      "crossref_title": "Permutation P-values Should Never Be Zero: Calculating Exact P-values When Permutations Are Randomly Drawn",
+      "crossref_years": [
+        2010
+      ],
+      "status": "OK (Crossref)",
+      "key": "phipson2010permutation"
+    },
+    {
+      "target": "doi:10.1214/aos/1176344552",
+      "source": "crossref",
+      "ok": true,
+      "retracted": false,
+      "year_ok": true,
+      "title_ok": true,
+      "title_overlap": 1.0,
+      "author_ok": true,
+      "author_overlap": 1.0,
+      "bib_surnames": [
+        "efron"
+      ],
+      "crossref_surnames": [
+        "efron"
+      ],
+      "crossref_title": "Bootstrap Methods: Another Look at the Jackknife",
+      "crossref_years": [
+        1979,
+        2007
+      ],
+      "status": "OK (Crossref)",
+      "key": "efron1979bootstrap"
+    },
+    {
+      "target": "doi:10.1126/science.220.4598.671",
+      "source": "crossref",
+      "ok": true,
+      "retracted": false,
+      "year_ok": true,
+      "title_ok": true,
+      "title_overlap": 1.0,
+      "author_ok": true,
+      "author_overlap": 1.0,
+      "bib_surnames": [
+        "kirkpatrick",
+        "gelatt",
+        "vecchi"
+      ],
+      "crossref_surnames": [
+        "kirkpatrick",
+        "gelatt",
+        "vecchi"
+      ],
+      "crossref_title": "Optimization by Simulated Annealing",
+      "crossref_years": [
+        1983,
+        2006
+      ],
+      "status": "OK (Crossref)",
+      "key": "kirkpatrick1983optimization"
+    },
+    {
+      "target": "doi:10.1007/s10288-019-00424-y",
+      "source": "crossref",
+      "ok": true,
+      "retracted": false,
+      "year_ok": true,
+      "title_ok": true,
+      "title_overlap": 1.0,
+      "author_ok": true,
+      "author_overlap": 1.0,
+      "bib_surnames": [
+        "glover",
+        "kochenberger",
+        "du"
+      ],
+      "crossref_surnames": [
+        "glover",
+        "kochenberger",
+        "du"
+      ],
+      "crossref_title": "Quantum Bridge Analytics I: a tutorial on formulating and using QUBO models",
+      "crossref_years": [
+        2019
+      ],
+      "status": "OK (Crossref)",
+      "key": "glover2019qubo"
+    },
+    {
+      "target": "doi:10.3389/fphy.2014.00005",
+      "source": "crossref",
+      "ok": true,
+      "retracted": false,
+      "year_ok": true,
+      "title_ok": true,
+      "title_overlap": 1.0,
+      "author_ok": true,
+      "author_overlap": 1.0,
+      "bib_surnames": [
+        "lucas"
+      ],
+      "crossref_surnames": [
+        "lucas"
+      ],
+      "crossref_title": "Ising formulations of many NP problems",
+      "crossref_years": [
+        2014
+      ],
+      "status": "OK (Crossref)",
+      "key": "lucas2014ising"
+    },
+    {
+      "target": "doi:10.1103/RevModPhys.80.1083",
+      "source": "crossref",
+      "ok": true,
+      "retracted": false,
+      "year_ok": true,
+      "title_ok": true,
+      "title_overlap": 1.0,
+      "author_ok": true,
+      "author_overlap": 1.0,
+      "bib_surnames": [
+        "nayak",
+        "simon",
+        "stern",
+        "freedman",
+        "sarma"
+      ],
+      "crossref_surnames": [
+        "nayak",
+        "simon",
+        "stern",
+        "freedman",
+        "sarma"
+      ],
+      "crossref_title": "Non-Abelian anyons and topological quantum computation",
+      "crossref_years": [
+        2008
+      ],
+      "status": "OK (Crossref)",
+      "key": "nayak2008nonabelian"
+    },
+    {
+      "target": "doi:10.1103/PhysRevX.7.031014",
+      "source": "crossref",
+      "ok": true,
+      "retracted": false,
+      "year_ok": true,
+      "title_ok": true,
+      "title_overlap": 1.0,
+      "author_ok": true,
+      "author_overlap": 1.0,
+      "bib_surnames": [
+        "camsari",
+        "faria",
+        "sutton",
+        "datta"
+      ],
+      "crossref_surnames": [
+        "camsari",
+        "faria",
+        "sutton",
+        "datta"
+      ],
+      "crossref_title": "Stochastic\n                    <mml:math xmlns:mml=\"http://www.w3.org/1998/Math/MathML\" display=\"inline\">\n                      <mml:mrow>\n                        <mml:mi>p</mml:mi>\n                      </mml:mrow>\n                    </mml:math>\n                    -Bits for Invertible Logic",
+      "crossref_years": [
+        2017
+      ],
+      "status": "OK (Crossref)",
+      "key": "camsari2017stochastic"
+    },
+    {
+      "target": "doi:10.1090/S0002-9947-1936-1501858-0",
+      "source": "crossref",
+      "ok": true,
+      "retracted": false,
+      "year_ok": true,
+      "title_ok": true,
+      "title_overlap": 1.0,
+      "author_ok": true,
+      "author_overlap": 1.0,
+      "bib_surnames": [
+        "church",
+        "rosser"
+      ],
+      "crossref_surnames": [
+        "church",
+        "rosser"
+      ],
+      "crossref_title": "Some properties of conversion",
+      "crossref_years": [
+        1936,
+        2010
+      ],
+      "status": "OK (Crossref)",
+      "key": "church1936conversion"
+    },
+    {
+      "target": "doi:10.1145/1538788.1538814",
+      "source": "crossref",
+      "ok": true,
+      "retracted": false,
+      "year_ok": true,
+      "title_ok": true,
+      "title_overlap": 1.0,
+      "author_ok": true,
+      "author_overlap": 1.0,
+      "bib_surnames": [
+        "leroy"
+      ],
+      "crossref_surnames": [
+        "leroy"
+      ],
+      "crossref_title": "Formal verification of a realistic compiler",
+      "crossref_years": [
+        2009
+      ],
+      "status": "OK (Crossref)",
+      "key": "leroy2009compcert"
+    },
+    {
+      "target": "doi:10.1145/1629575.1629596",
+      "source": "crossref",
+      "ok": true,
+      "retracted": false,
+      "year_ok": true,
+      "title_ok": true,
+      "title_overlap": 1.0,
+      "author_ok": true,
+      "author_overlap": 1.0,
+      "bib_surnames": [
+        "klein",
+        "elphinstone",
+        "heiser",
+        "andronick",
+        "cock"
+      ],
+      "crossref_surnames": [
+        "klein",
+        "elphinstone",
+        "heiser",
+        "andronick",
+        "cock"
+      ],
+      "crossref_title": "seL4",
+      "crossref_years": [
+        2009
+      ],
+      "status": "OK (Crossref)",
+      "key": "klein2009sel4"
+    },
+    {
+      "target": "doi:10.1145/3158154",
+      "source": "crossref",
+      "ok": true,
+      "retracted": false,
+      "year_ok": true,
+      "title_ok": true,
+      "title_overlap": 1.0,
+      "author_ok": true,
+      "author_overlap": 1.0,
+      "bib_surnames": [
+        "jung",
+        "jourdan",
+        "krebbers",
+        "dreyer"
+      ],
+      "crossref_surnames": [
+        "jung",
+        "jourdan",
+        "krebbers",
+        "dreyer"
+      ],
+      "crossref_title": "RustBelt: securing the foundations of the Rust programming language",
+      "crossref_years": [
+        2017,
+        2018
+      ],
+      "status": "OK (Crossref)",
+      "key": "jung2018rustbelt"
+    },
+    {
+      "target": "doi:10.2307/2310304",
+      "source": "crossref",
+      "ok": true,
+      "retracted": false,
+      "year_ok": true,
+      "title_ok": true,
+      "title_overlap": 1.0,
+      "author_ok": true,
+      "author_overlap": 1.0,
+      "bib_surnames": [
+        "goertzel"
+      ],
+      "crossref_surnames": [
+        "goertzel"
+      ],
+      "crossref_title": "An Algorithm for the Evaluation of Finite Trigonometric Series",
+      "crossref_years": [
+        1958,
+        2006
+      ],
+      "status": "OK (Crossref)",
+      "key": "goertzel1958algorithm"
+    },
+    {
+      "target": "doi:10.1109/T-AIEE.1928.5055024",
+      "source": "crossref",
+      "ok": true,
+      "retracted": false,
+      "year_ok": true,
+      "title_ok": true,
+      "title_overlap": 1.0,
+      "author_ok": true,
+      "author_overlap": 1.0,
+      "bib_surnames": [
+        "nyquist"
+      ],
+      "crossref_surnames": [
+        "nyquist"
+      ],
+      "crossref_title": "Certain Topics in Telegraph Transmission Theory",
+      "crossref_years": [
+        1928,
+        2009
+      ],
+      "status": "OK (Crossref)",
+      "key": "nyquist1928certain"
+    },
+    {
+      "target": "doi:10.1109/4.996",
+      "source": "crossref",
+      "ok": true,
+      "retracted": false,
+      "year_ok": true,
+      "title_ok": true,
+      "title_overlap": 1.0,
+      "author_ok": true,
+      "author_overlap": 1.0,
+      "bib_surnames": [
+        "kanopoulos",
+        "vasanthavada",
+        "baker"
+      ],
+      "crossref_surnames": [
+        "kanopoulos",
+        "vasanthavada",
+        "baker"
+      ],
+      "crossref_title": "Design of an image edge detection filter using the Sobel operator",
+      "crossref_years": [
+        1988,
+        2002
+      ],
+      "status": "OK (Crossref)",
+      "key": "kanopoulos1988sobel"
+    },
+    {
+      "target": "doi:10.1016/0303-2647(74)90031-8",
+      "source": "crossref",
+      "ok": true,
+      "retracted": false,
+      "year_ok": true,
+      "title_ok": true,
+      "title_overlap": 1.0,
+      "author_ok": true,
+      "author_overlap": 1.0,
+      "bib_surnames": [
+        "varela",
+        "maturana",
+        "uribe"
+      ],
+      "crossref_surnames": [
+        "varela",
+        "maturana",
+        "uribe"
+      ],
+      "crossref_title": "Autopoiesis: The organization of living systems, its characterization and a model",
+      "crossref_years": [
+        1974,
+        2003
+      ],
+      "status": "OK (Crossref)",
+      "key": "varela1974autopoiesis"
+    },
+    {
+      "target": "doi:10.3389/fnsys.2022.768201",
+      "source": "crossref",
+      "ok": true,
+      "retracted": false,
+      "year_ok": true,
+      "title_ok": true,
+      "title_overlap": 1.0,
+      "author_ok": true,
+      "author_overlap": 1.0,
+      "bib_surnames": [
+        "levin"
+      ],
+      "crossref_surnames": [
+        "levin"
+      ],
+      "crossref_title": "Technological Approach to Mind Everywhere: An Experimentally-Grounded Framework for Understanding Diverse Bodies and Minds",
+      "crossref_years": [
+        2022
+      ],
+      "status": "OK (Crossref)",
+      "key": "levin2022tame"
+    }
+  ]
+}

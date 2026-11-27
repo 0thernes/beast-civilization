@@ -7,6 +7,53 @@ use std::io::{self, BufRead, Write};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
+fn json_escape_mcp(s: &str) -> String {
+    let mut out = String::with_capacity(s.len());
+    for ch in s.chars() {
+        match ch {
+            '"' => out.push_str("\\\""),
+            '\\' => out.push_str("\\\\"),
+            '\n' => out.push_str("\\n"),
+            '\r' => out.push_str("\\r"),
+            '\t' => out.push_str("\\t"),
+            c if (c as u32) < 0x20 => {}
+            c => out.push(c),
+        }
+    }
+    out
+}
+
+fn parse_jsonrpc_id(trimmed: &str) -> String {
+    let Some(pos) = trimmed.find("\"id\":") else {
+        return "1".to_string();
+    };
+    let rest = trimmed[pos + 5..].trim_start();
+    if let Some(after_q) = rest.strip_prefix('"') {
+        let mut s = String::new();
+        for ch in after_q.chars().take(64) {
+            if ch == '"' {
+                return format!("\"{}\"", json_escape_mcp(&s));
+            }
+            if ch.is_ascii_alphanumeric() || matches!(ch, '_' | '-' | '.') {
+                s.push(ch);
+            } else {
+                break;
+            }
+        }
+        return "null".to_string();
+    }
+    let digits: String = rest
+        .chars()
+        .take(20)
+        .take_while(|c| c.is_ascii_digit())
+        .collect();
+    if digits.is_empty() {
+        "null".to_string()
+    } else {
+        digits
+    }
+}
+
 /// Minimal zero-dependency JSON-RPC 2.0 MCP request dispatcher.
 pub fn handle_mcp_jsonrpc_line(repo_root: &Path, line: &str) -> Result<String, String> {
     let trimmed = line.trim();
@@ -14,21 +61,12 @@ pub fn handle_mcp_jsonrpc_line(repo_root: &Path, line: &str) -> Result<String, S
         return Err("MUTANT CAUGHT: malformed JSON-RPC 2.0 frame".into());
     }
 
-    // Extract numeric or string id (default 1)
-    let id_val = if let Some(pos) = trimmed.find("\"id\":") {
-        let rest = trimmed[pos + 5..].trim_start();
-        let tok: String = rest
-            .chars()
-            .take_while(|c| c.is_ascii_alphanumeric() || *c == '"')
-            .collect();
-        if tok.is_empty() { "1".to_string() } else { tok }
-    } else {
-        "1".to_string()
-    };
+    let id_val = parse_jsonrpc_id(trimmed);
 
     if trimmed.contains("\"method\":\"initialize\"") || trimmed.contains("\"method\": \"initialize\"") {
         return Ok(format!(
-            r#"{{"jsonrpc":"2.0","id":{id_val},"result":{{"protocolVersion":"2024-11-05","capabilities":{{"tools":{{}},"resources":{{}}}},"serverInfo":{{"name":"beast-civilization-mcp","version":"0.6.0"}}}}}}"#
+            r#"{{"jsonrpc":"2.0","id":{id_val},"result":{{"protocolVersion":"2024-11-05","capabilities":{{"tools":{{}},"resources":{{}}}},"serverInfo":{{"name":"beast-civilization-mcp","version":"{}"}}}}}}"#,
+            env!("CARGO_PKG_VERSION")
         ));
     }
 
@@ -71,7 +109,7 @@ pub fn serve_mcp_stdio(repo_root: &Path) {
             Ok(ok_json) => ok_json,
             Err(e) => format!(
                 r#"{{"jsonrpc":"2.0","id":null,"error":{{"code":-32600,"message":"{}"}}}}"#,
-                e.replace('"', "'")
+                json_escape_mcp(&e)
             ),
         };
         let _ = writeln!(stdout, "{resp}");

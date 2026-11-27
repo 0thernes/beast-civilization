@@ -36,11 +36,12 @@ pub fn build_allowlisted_url(provider_id: &str, query: &str) -> Result<String, S
     Ok(url)
 }
 
-/// Live query using native OS `curl` (strict 10s timeout, 4 KiB bounded NonHuman output!).
+/// Live query using native OS `curl` (strict 10s timeout, UTF-8-safe 4 KiB bounded NonHuman output!).
 pub fn query_public_oss_api(provider_id: &str, query: &str) -> Result<String, String> {
     let url = build_allowlisted_url(provider_id, query)?;
+    let ua = concat!("beast-civilization/", env!("CARGO_PKG_VERSION"));
     let out = Command::new("curl")
-        .args(["-fsSL", "--max-time", "10", "-A", "beast-civilization/0.2.0", &url])
+        .args(["-fsSL", "--max-time", "10", "-A", ua, &url])
         .output()
         .map_err(|e| format!("failed to execute curl: {e}"))?;
     if !out.status.success() {
@@ -48,7 +49,11 @@ pub fn query_public_oss_api(provider_id: &str, query: &str) -> Result<String, St
     }
     let mut text = String::from_utf8_lossy(&out.stdout).to_string();
     if text.len() > 4096 {
-        text.truncate(4096);
+        let mut cut = 4096;
+        while cut > 0 && !text.is_char_boundary(cut) {
+            cut -= 1;
+        }
+        text.truncate(cut);
         text.push_str("\n...[NonHuman 4KiB output cap]");
     }
     Ok(text)

@@ -93,7 +93,7 @@ pub fn probe_local_autophage(dll_path: &Path) -> AutophageProbeReport {
     };
 
     let ver_fn: extern "C" fn() -> u32 = match lib.symbol_raw("autophage_abi_version") {
-        Ok(p) => unsafe { std::mem::transmute(p) },
+        Ok(p) => unsafe { std::mem::transmute::<*mut c_void, extern "C" fn() -> u32>(p) },
         Err(_) => {
             return AutophageProbeReport {
                 available: false,
@@ -111,7 +111,8 @@ pub fn probe_local_autophage(dll_path: &Path) -> AutophageProbeReport {
 
     let mut caps = AutophageHwCaps::default();
     if let Ok(p) = lib.symbol_raw("autophage_probe_hardware") {
-        let probe_fn: extern "C" fn(*mut AutophageHwCaps) = unsafe { std::mem::transmute(p) };
+        let probe_fn: extern "C" fn(*mut AutophageHwCaps) =
+            unsafe { std::mem::transmute::<*mut c_void, extern "C" fn(*mut AutophageHwCaps)>(p) };
         probe_fn(&mut caps as *mut AutophageHwCaps);
     }
     let nul = caps.brand.iter().position(|&b| b == 0).unwrap_or(caps.brand.len());

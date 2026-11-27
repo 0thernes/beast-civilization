@@ -1,20 +1,25 @@
 # frozen_string_literal: true
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2026 Alexander Stephen Donahue
 
-# `beast_yarv.rb` v0.2.0: CRuby 3.4 + Prism AST + 10-Generation YARV Live Bytecode Evolutionary Breeder (Tier T1a)
-# Bridges directly into Zig `bin/beast_metal.dll` via Fiddle C-ABI with zero external gems.
+# `beast_yarv.rb` v1.0.0: CRuby 3.4 + Prism AST + 10-Generation YARV Live Bytecode Evolutionary Breeder (Tier T1a)
+# Bridges directly into Zig `bin/beast_metal.{dll,so,dylib}` via Fiddle C-ABI with zero external gems.
 
 require "digest"
 require "fiddle"
 require "prism"
+require "rbconfig"
 
 module BeastYarv
   FORBIDDEN_CALLS = %i[
     system exec spawn fork open popen syscall eval instance_eval class_eval module_eval
-    require_relative load autoload const_get remove_const delete unlink rmdir
+    require require_relative load autoload const_get const_set remove_const delete unlink rmdir
+    send public_send __send__ method public_method binding exit exit! abort trap sleep
   ].freeze
 
-  # Ring-0 Prism AST Gate: walks parsed Ruby 3.4 Prism AST and blocks forbidden calls/backticks
-  # BEFORE YARV bytecode compilation is permitted.
+  # Ring-0 Prism AST Gate: walks parsed Ruby 3.4 Prism AST and blocks forbidden calls,
+  # dynamic dispatch (`send`), constant access (`File`, `IO`, `Kernel`, `Fiddle`, `Process`),
+  # and shell backticks BEFORE YARV bytecode compilation is permitted.
   def self.verify_prism_ast!(source)
     res = Prism.parse(source)
     raise "Prism syntax error: #{res.errors.map(&:message).join('; ')}" unless res.success?
@@ -27,6 +32,8 @@ module BeastYarv
         violations << "forbidden call :#{node.name}" if FORBIDDEN_CALLS.include?(node.name)
       elsif node.is_a?(Prism::XStringNode) || node.is_a?(Prism::InterpolatedXStringNode)
         violations << "forbidden backtick shell literal"
+      elsif node.is_a?(Prism::ConstantReadNode) || node.is_a?(Prism::ConstantPathNode)
+        violations << "forbidden constant access"
       end
       node.compact_child_nodes.each { |child| walk.call(child) }
     end
@@ -139,19 +146,28 @@ module BeastYarv
 
     raise "YARV 10-gen breeder failed to improve!" unless best_fit > init_fit && promotions >= 4 && rollbacks >= 4
 
-    # 2. Planted Injection Mutants -> Prism Ring-0 AST Gate MUST block 2/2!
+    # 2. Planted Injection Mutants -> Prism Ring-0 AST Gate MUST block 4/4!
     m1 = begin; compile_and_run_yarv('system("echo pwned")'); false; rescue RuntimeError => e; e.message.include?("Ring-0 Prism AST blocked"); end
     m2 = begin; compile_and_run_yarv('`whoami`'); false; rescue RuntimeError => e; e.message.include?("Ring-0 Prism AST blocked"); end
-    raise "Planted Prism AST mutant escaped!" unless m1 && m2
+    m3 = begin; compile_and_run_yarv('public_send(:system, "id")'); false; rescue RuntimeError => e; e.message.include?("Ring-0 Prism AST blocked"); end
+    m4 = begin; compile_and_run_yarv('File.read("/etc/passwd")'); false; rescue RuntimeError => e; e.message.include?("Ring-0 Prism AST blocked"); end
+    raise "Planted Prism AST mutant escaped!" unless m1 && m2 && m3 && m4
 
     puts format(
       "[PASS] YARV 10-Gen Breeder (fit %.4f -> %.4f, promotions=%d, rollbacks=%d, final=%dB/%dops sha=%s)",
       init_fit, best_fit, promotions, rollbacks, best_bytes, best_ops, best_sha[0, 12]
     )
-    puts "[PASS] Prism Ring-0 AST Guard (2/2 planted injection mutants blocked before YARV compile)"
+    puts "[PASS] Prism Ring-0 AST Guard (4/4 planted injection/send/const mutants blocked before YARV compile)"
 
     # 3. Direct CRuby -> Zig Fiddle C-ABI bridge & latency test (KC-2 < 10,000 ns)
-    dll_name = Gem.win_platform? ? "beast_metal.dll" : "libbeast_metal.so"
+    host_os = RbConfig::CONFIG["host_os"].to_s
+    dll_name = if Gem.win_platform?
+                 "beast_metal.dll"
+               elsif host_os.include?("darwin")
+                 "libbeast_metal.dylib"
+               else
+                 "libbeast_metal.so"
+               end
     dll_path = File.join(repo_root, "bin", dll_name)
     if File.exist?(dll_path)
       zig = ZigBridge.new(dll_path)

@@ -20,7 +20,7 @@ pub struct CrossRepoAbiGraphReport {
 pub fn build_cross_repo_abi_graph(repo_root: &Path) -> Result<CrossRepoAbiGraphReport, String> {
     let parent = repo_root.parent().unwrap_or(repo_root);
     let sibling_specs = [
-        ("beast-civilization", repo_root.join("include").join("beast_metal.h")),
+        ("beast-civilization", repo_root.join("zig").join("beast-metal").join("include").join("beast_metal.h")),
         ("autophage", parent.join("autophage").join("include").join("autophage_abi.h")),
         ("cellular-engine-omega", parent.join("cellular-engine-omega").join("include")),
         ("cellulogonic-mecha", parent.join("cellulogonic-mecha").join("include")),
@@ -109,19 +109,19 @@ pub struct ConfluentWorktreeReport {
 pub fn verify_confluent_scheduler_and_worktrees(repo_root: &Path) -> Result<ConfluentWorktreeReport, String> {
     // 1. Bio-Frostbite Confluent Graph-Reduction Scheduler (`W028`):
     //    State = deterministic BTreeMap<u32, [u8; 32]> + commutative XOR accumulator over pure tasks.
-    let run_schedule = |order: Vec<u32>| -> [u8; 32] {
+    let run_schedule = |order: Vec<u32>| -> Result<[u8; 32], String> {
         let handles: Vec<_> = order
             .into_iter()
             .map(|task_id| {
                 thread::spawn(move || {
-                    let h = sha256(format!("CONFLUENT-NODE-V0.6:{task_id}").as_bytes());
+                    let h = sha256(format!("CONFLUENT-NODE-V1.0:{task_id}").as_bytes());
                     (task_id, h)
                 })
             })
             .collect();
         let mut results: BTreeMap<u32, [u8; 32]> = BTreeMap::new();
         for h in handles {
-            let (id, dig) = h.join().expect("worker panic");
+            let (id, dig) = h.join().map_err(|_| "confluent worker thread panicked".to_string())?;
             results.insert(id, dig);
         }
         let mut canonical = Vec::with_capacity(results.len() * 36);
@@ -129,11 +129,11 @@ pub fn verify_confluent_scheduler_and_worktrees(repo_root: &Path) -> Result<Conf
             canonical.extend_from_slice(&id.to_le_bytes());
             canonical.extend_from_slice(&dig);
         }
-        sha256(&canonical)
+        Ok(sha256(&canonical))
     };
 
-    let fwd = run_schedule((0..12u32).collect());
-    let rev = run_schedule((0..12u32).rev().collect());
+    let fwd = run_schedule((0..12u32).collect())?;
+    let rev = run_schedule((0..12u32).rev().collect())?;
     let church_rosser_confluent = fwd == rev;
     if !church_rosser_confluent {
         return Err("Confluent scheduler broke Church-Rosser invariance!".into());

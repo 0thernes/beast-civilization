@@ -33,6 +33,7 @@ fn find_zig() -> PathBuf {
 fn sanitize(name: &str) -> Result<String, String> {
     if name.is_empty()
         || name.len() > 32
+        || name.starts_with('-')
         || !name
             .bytes()
             .all(|b| b.is_ascii_alphanumeric() || b == b'_' || b == b'-')

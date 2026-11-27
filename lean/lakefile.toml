@@ -1,12 +1,18 @@
-name = "beast_proofs"
-version = "0.7.0"
-defaultTargets = ["LiveReceipt", "BeastProofs", "VerifyAxioms"]
+name = "BeastProofs"
+version = "1.0.0"
+defaultTargets = ["BeastProofs", "Solution"]
 
-[[lean_lib]]
-name = "LiveReceipt"
+[leanOptions]
+autoImplicit = false
+relaxedAutoImplicit = false
+linter.unusedVariables = true
+linter.deprecated = true
 
 [[lean_lib]]
 name = "BeastProofs"
 
 [[lean_lib]]
-name = "VerifyAxioms"
+name = "Challenge"
+
+[[lean_lib]]
+name = "Solution"

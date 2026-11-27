@@ -343,10 +343,10 @@ pub fn run_multilayer_llm_c2c_suite(gguf_out: &Path, seed: u64) -> Result<MultiL
     let mut projected_layers = Vec::with_capacity(N_LAYERS);
     let mut cos_sum = 0.0f64;
     let keep = 8usize;
-    for l in 0..N_LAYERS {
+    for (l, cache) in sharer_caches.iter().enumerate().take(N_LAYERS) {
         let (mapper, rep) = train_and_verify_swat_mapper(32, 24, 90, seed + (l as u64) * 19);
         cos_sum += rep.heldout_cosine_sim;
-        projected_layers.push(mapper.project_and_compact(&sharer_caches[l], keep));
+        projected_layers.push(mapper.project_and_compact(cache, keep));
         mappers.push(mapper);
     }
 
@@ -362,7 +362,7 @@ pub fn run_multilayer_llm_c2c_suite(gguf_out: &Path, seed: u64) -> Result<MultiL
         .sum::<f32>()
         .sqrt();
     let self_preserved_cos = dot_cos(&h_local, &h_c2c);
-    if !(delta_l2 > 1e-3) || !(self_preserved_cos > 0.50) {
+    if delta_l2.is_nan() || delta_l2 <= 1e-3 || self_preserved_cos.is_nan() || self_preserved_cos <= 0.50 {
         return Err(format!(
             "Multi-layer C2C failed sanity: delta_l2={delta_l2} self_cos={self_preserved_cos}"
         ));

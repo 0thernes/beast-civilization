@@ -8,7 +8,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 const TRACKED_EXTS: &[&str] = &["rs", "zig", "c", "h", "rb", "lean", "ptx"];
-const SKIP_DIRS: &[&str] = &["target", "vendor", ".git", "bin", "results", ".lake"];
+const SKIP_DIRS: &[&str] = &["target", "vendor", ".git", "bin", "results", ".lake", "_site", "dist"];
 
 #[derive(Debug, Clone)]
 pub struct FileSymbolEntry {
@@ -28,21 +28,21 @@ pub struct MerkleRepoMap {
     pub compact_prompt: String,
 }
 
-fn collect_source_files(root: &Path, dir: &Path, out: &mut Vec<PathBuf>) {
+fn collect_source_files(dir: &Path, out: &mut Vec<PathBuf>) {
     let Ok(rd) = fs::read_dir(dir) else { return; };
     for entry in rd.flatten() {
         let p = entry.path();
         if p.is_dir() {
-            if let Some(name) = p.file_name().and_then(|n| n.to_str()) {
-                if SKIP_DIRS.contains(&name) || name.starts_with('.') {
-                    continue;
-                }
+            if let Some(name) = p.file_name().and_then(|n| n.to_str())
+                && (SKIP_DIRS.contains(&name) || name.starts_with('.'))
+            {
+                continue;
             }
-            collect_source_files(root, &p, out);
-        } else if let Some(ext) = p.extension().and_then(|e| e.to_str()) {
-            if TRACKED_EXTS.contains(&ext) {
-                out.push(p);
-            }
+            collect_source_files(&p, out);
+        } else if let Some(ext) = p.extension().and_then(|e| e.to_str())
+            && TRACKED_EXTS.contains(&ext)
+        {
+            out.push(p);
         }
     }
 }
@@ -81,7 +81,10 @@ fn extract_symbols(ext: &str, text: &str) -> Vec<String> {
                 }
             }
             "lean" => {
-                if let Some(rest) = line.strip_prefix("theorem ") {
+                if let Some(rest) = line
+                    .strip_prefix("public theorem ")
+                    .or_else(|| line.strip_prefix("theorem "))
+                {
                     rest.split([' ', ':', '(']).next()
                 } else {
                     None
@@ -103,10 +106,11 @@ fn extract_symbols(ext: &str, text: &str) -> Vec<String> {
             }
             _ => None,
         };
-        if let Some(s) = sym {
-            if !s.is_empty() && syms.len() < 48 {
-                syms.push(s.to_string());
-            }
+        if let Some(s) = sym
+            && !s.is_empty()
+            && syms.len() < 48
+        {
+            syms.push(s.to_string());
         }
     }
     syms
@@ -137,7 +141,7 @@ pub fn compute_merkle_root(leaves: &[[u8; 32]]) -> [u8; 32] {
 
 pub fn build_merkle_repo_map(repo_root: &Path, byte_budget: usize) -> Result<MerkleRepoMap, String> {
     let mut paths = Vec::new();
-    collect_source_files(repo_root, repo_root, &mut paths);
+    collect_source_files(repo_root, &mut paths);
     paths.sort();
 
     let mut entries = Vec::with_capacity(paths.len());

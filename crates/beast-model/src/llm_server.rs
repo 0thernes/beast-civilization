@@ -65,10 +65,10 @@ impl LoadedServerModel {
         let mut mappers = Vec::with_capacity(N_LAYERS);
         let mut projected = Vec::with_capacity(N_LAYERS);
         let mut cos_sum = 0.0f64;
-        for l in 0..N_LAYERS {
+        for (l, cache) in sharer_caches.iter().enumerate().take(N_LAYERS) {
             let (mapper, rep) = train_and_verify_swat_mapper(32, 24, 48, seed + (l as u64) * 19);
             cos_sum += rep.heldout_cosine_sim;
-            projected.push(mapper.project_and_compact(&sharer_caches[l], 8));
+            projected.push(mapper.project_and_compact(cache, 8));
             mappers.push(mapper);
         }
         let (_, _, gen_bytes) = self.receiver.forward_with_optional_c2c(
@@ -103,7 +103,8 @@ impl LoadedServerModel {
             self.architecture, self.gguf_tensors
         );
         format!(
-            r#"{{"id":"chatcmpl-beast-v070","object":"chat.completion","model":"{}","choices":[{{"index":0,"message":{{"role":"assistant","content":"{}"}},"finish_reason":"stop"}}],"usage":{{"prompt_tokens":{},"completion_tokens":{},"total_tokens":{}}}}}"#,
+            r#"{{"id":"chatcmpl-beast-{}","object":"chat.completion","model":"{}","choices":[{{"index":0,"message":{{"role":"assistant","content":"{}"}},"finish_reason":"stop"}}],"usage":{{"prompt_tokens":{},"completion_tokens":{},"total_tokens":{}}}}}"#,
+            env!("CARGO_PKG_VERSION"),
             self.model_id,
             json_escape(&content),
             prompt_bytes.len(),
@@ -129,30 +130,31 @@ fn json_escape(s: &str) -> String {
     out
 }
 
-/// Extract the last `"content":"..."` string value from an OpenAI chat-completions JSON body.
-fn extract_last_json_content(body: &str) -> String {
+/// Extract the last `"content":"..."` string value from an OpenAI chat-completions JSON body
+/// (UTF-8 safe: accumulates raw bytes before UTF-8 conversion).
+pub fn extract_last_json_content(body: &str) -> String {
     let needle = "\"content\"";
     let mut search_from = 0usize;
     let mut last_val = String::new();
+    let bytes = body.as_bytes();
     while let Some(rel) = body[search_from..].find(needle) {
         let mut idx = search_from + rel + needle.len();
-        let bytes = body.as_bytes();
-        while idx < bytes.len() && (bytes[idx] == b' ' || bytes[idx] == b':' || bytes[idx] == b'\t' || bytes[idx] == b'\n' || bytes[idx] == b'\r') {
+        while idx < bytes.len() && matches!(bytes[idx], b' ' | b':' | b'\t' | b'\n' | b'\r') {
             idx += 1;
         }
         if idx < bytes.len() && bytes[idx] == b'"' {
             idx += 1;
-            let mut val = String::new();
+            let mut raw_val: Vec<u8> = Vec::new();
             let mut esc = false;
             while idx < bytes.len() {
                 let b = bytes[idx];
                 idx += 1;
                 if esc {
                     match b {
-                        b'n' => val.push('\n'),
-                        b'r' => val.push('\r'),
-                        b't' => val.push('\t'),
-                        _ => val.push(b as char),
+                        b'n' => raw_val.push(b'\n'),
+                        b'r' => raw_val.push(b'\r'),
+                        b't' => raw_val.push(b'\t'),
+                        _ => raw_val.push(b),
                     }
                     esc = false;
                 } else if b == b'\\' {
@@ -160,10 +162,10 @@ fn extract_last_json_content(body: &str) -> String {
                 } else if b == b'"' {
                     break;
                 } else {
-                    val.push(b as char);
+                    raw_val.push(b);
                 }
             }
-            last_val = val;
+            last_val = String::from_utf8_lossy(&raw_val).into_owned();
         }
         search_from = idx;
     }
@@ -197,23 +199,34 @@ fn handle_client(mut stream: TcpStream, model: &LoadedServerModel, req_idx: u64)
                     write_http_response(&mut stream, "413 Payload Too Large", r#"{"error":"body exceeds 256 KiB cap"}"#);
                     return;
                 }
-                if header_end.is_none() {
-                    if let Some(pos) = raw.windows(4).position(|w| w == b"\r\n\r\n") {
-                        header_end = Some(pos + 4);
-                        let hdr = String::from_utf8_lossy(&raw[..pos]);
-                        for line in hdr.lines() {
-                            if let Some((k, v)) = line.split_once(':') {
-                                if k.trim().eq_ignore_ascii_case("content-length") {
-                                    content_len = v.trim().parse::<usize>().unwrap_or(0);
+                if header_end.is_none()
+                    && let Some(pos) = raw.windows(4).position(|w| w == b"\r\n\r\n")
+                {
+                    header_end = Some(pos + 4);
+                    let hdr = String::from_utf8_lossy(&raw[..pos]);
+                    for line in hdr.lines() {
+                        if let Some((k, v)) = line.split_once(':')
+                            && k.trim().eq_ignore_ascii_case("content-length")
+                        {
+                            match v.trim().parse::<usize>() {
+                                Ok(cl) if cl <= MAX_HTTP_BODY_BYTES => content_len = cl,
+                                Ok(_) => {
+                                    write_http_response(&mut stream, "413 Payload Too Large", r#"{"error":"Content-Length exceeds 256 KiB cap"}"#);
+                                    return;
+                                }
+                                Err(_) => {
+                                    write_http_response(&mut stream, "400 Bad Request", r#"{"error":"invalid Content-Length"}"#);
+                                    return;
                                 }
                             }
                         }
                     }
                 }
-                if let Some(he) = header_end {
-                    if raw.len() >= he + content_len {
-                        break;
-                    }
+                if let Some(he) = header_end
+                    && let Some(need) = he.checked_add(content_len)
+                    && raw.len() >= need
+                {
+                    break;
                 }
             }
             Err(_) => break,
@@ -229,21 +242,26 @@ fn handle_client(mut stream: TcpStream, model: &LoadedServerModel, req_idx: u64)
     let mut parts = first_line.split_whitespace();
     let method = parts.next().unwrap_or("");
     let path = parts.next().unwrap_or("");
-    let body_end = (he + content_len).min(raw.len());
+    let body_end = he.saturating_add(content_len).min(raw.len());
     let body = String::from_utf8_lossy(&raw[he..body_end]);
 
     match (method, path) {
-        ("GET", "/health") => {
+        ("GET", "/health") | ("GET", "/healthz") => {
             let out = format!(
-                r#"{{"status":"ok","model":"{}","architecture":"{}","gguf_bytes":{},"gguf_tensors":{},"c2c_layers":{N_LAYERS}}}"#,
-                model.model_id, model.architecture, model.gguf_bytes, model.gguf_tensors
+                r#"{{"status":"ok","version":"{}","model":"{}","architecture":"{}","gguf_bytes":{},"gguf_tensors":{},"c2c_layers":{N_LAYERS}}}"#,
+                env!("CARGO_PKG_VERSION"),
+                json_escape(&model.model_id),
+                json_escape(&model.architecture),
+                model.gguf_bytes,
+                model.gguf_tensors
             );
             write_http_response(&mut stream, "200 OK", &out);
         }
         ("GET", "/v1/models") => {
             let out = format!(
                 r#"{{"object":"list","data":[{{"id":"{}","object":"model","owned_by":"0thernes","architecture":"{}"}}]}}"#,
-                model.model_id, model.architecture
+                json_escape(&model.model_id),
+                json_escape(&model.architecture)
             );
             write_http_response(&mut stream, "200 OK", &out);
         }
@@ -251,6 +269,9 @@ fn handle_client(mut stream: TcpStream, model: &LoadedServerModel, req_idx: u64)
             let prompt = extract_last_json_content(&body);
             let resp = model.infer_chat_completion(&prompt, 5000 + req_idx);
             write_http_response(&mut stream, "200 OK", &resp);
+        }
+        (_, "/health" | "/healthz" | "/v1/models" | "/v1/chat/completions") => {
+            write_http_response(&mut stream, "405 Method Not Allowed", r#"{"error":"method not allowed"}"#);
         }
         _ => {
             write_http_response(&mut stream, "404 Not Found", r#"{"error":"unknown route"}"#);
@@ -277,10 +298,10 @@ pub fn serve_openai_http(
         let Ok(st) = stream else { continue; };
         handled += 1;
         handle_client(st, &model, handled as u64);
-        if let Some(lim) = max_requests {
-            if handled >= lim {
-                break;
-            }
+        if let Some(lim) = max_requests
+            && handled >= lim
+        {
+            break;
         }
     }
     Ok(handled)

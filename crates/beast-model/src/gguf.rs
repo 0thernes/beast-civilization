@@ -52,15 +52,17 @@ impl GgufDtype {
 
     pub fn byte_len(self, n_elems: usize) -> Result<usize, String> {
         match self {
-            Self::F32 => Ok(n_elems * 4),
-            Self::F16 => Ok(n_elems * 2),
+            Self::F32 => n_elems.checked_mul(4).ok_or_else(|| "F32 byte_len overflow".to_string()),
+            Self::F16 => n_elems.checked_mul(2).ok_or_else(|| "F16 byte_len overflow".to_string()),
             Self::Q4_0 => {
-                if n_elems % Q4_0_BLOCK_ELEMS != 0 {
+                if !n_elems.is_multiple_of(Q4_0_BLOCK_ELEMS) {
                     return Err(format!(
                         "Q4_0 element count {n_elems} is not a multiple of {Q4_0_BLOCK_ELEMS}"
                     ));
                 }
-                Ok((n_elems / Q4_0_BLOCK_ELEMS) * Q4_0_BLOCK_BYTES)
+                (n_elems / Q4_0_BLOCK_ELEMS)
+                    .checked_mul(Q4_0_BLOCK_BYTES)
+                    .ok_or_else(|| "Q4_0 byte_len overflow".to_string())
             }
             Self::BeastB158 => Ok(n_elems.div_ceil(5)),
             Self::BeastNvfp4 => Ok(n_elems.div_ceil(2)),
@@ -116,7 +118,7 @@ pub fn f32_to_f16(val: f32) -> u16 {
 
 /// Quantize a slice of `f32` values (multiple of 32) into standard `llama.cpp` `Q4_0` blocks.
 pub fn quantize_q4_0(xs: &[f32]) -> Result<Vec<u8>, String> {
-    if xs.len() % Q4_0_BLOCK_ELEMS != 0 {
+    if !xs.len().is_multiple_of(Q4_0_BLOCK_ELEMS) {
         return Err(format!("quantize_q4_0 length {} not multiple of 32", xs.len()));
     }
     let mut out = Vec::with_capacity((xs.len() / Q4_0_BLOCK_ELEMS) * Q4_0_BLOCK_BYTES);
@@ -142,7 +144,7 @@ pub fn quantize_q4_0(xs: &[f32]) -> Result<Vec<u8>, String> {
 
 /// Dequantize standard `llama.cpp` `Q4_0` blocks back to `f32`.
 pub fn dequantize_q4_0(bytes: &[u8]) -> Result<Vec<f32>, String> {
-    if bytes.len() % Q4_0_BLOCK_BYTES != 0 {
+    if !bytes.len().is_multiple_of(Q4_0_BLOCK_BYTES) {
         return Err(format!(
             "dequantize_q4_0 byte length {} not multiple of {Q4_0_BLOCK_BYTES}",
             bytes.len()
@@ -186,7 +188,7 @@ impl GgufTensor {
     pub fn to_f32_vec(&self) -> Result<Vec<f32>, String> {
         match self.dtype {
             GgufDtype::F32 => {
-                if self.raw_bytes.len() % 4 != 0 {
+                if !self.raw_bytes.len().is_multiple_of(4) {
                     return Err("F32 tensor byte length not multiple of 4".into());
                 }
                 Ok(self
@@ -196,7 +198,7 @@ impl GgufTensor {
                     .collect())
             }
             GgufDtype::F16 => {
-                if self.raw_bytes.len() % 2 != 0 {
+                if !self.raw_bytes.len().is_multiple_of(2) {
                     return Err("F16 tensor byte length not multiple of 2".into());
                 }
                 Ok(self
@@ -217,48 +219,63 @@ pub struct GgufFile {
     pub tensors: Vec<GgufTensor>,
 }
 
+const MAX_GGUF_TENSORS: usize = 65_536;
+const MAX_GGUF_KV: usize = 65_536;
+const MAX_GGUF_DIMS: usize = 8;
+const MAX_GGUF_ARRAY_DEPTH: usize = 8;
+const MAX_GGUF_STR_LEN: usize = 4_194_304;
+const MAX_GGUF_ARRAY_ELEMS: usize = 1_048_576;
+
 fn write_gguf_str(buf: &mut Vec<u8>, s: &str) {
     buf.extend_from_slice(&(s.len() as u64).to_le_bytes());
     buf.extend_from_slice(s.as_bytes());
 }
 
 fn read_u8(buf: &[u8], off: &mut usize) -> Result<u8, String> {
-    if *off + 1 > buf.len() { return Err("unexpected EOF reading u8".into()); }
-    let v = buf[*off];
-    *off += 1;
+    let end = off.checked_add(1).ok_or_else(|| "GGUF offset overflow".to_string())?;
+    let v = *buf.get(*off).ok_or_else(|| "unexpected EOF reading u8".to_string())?;
+    *off = end;
     Ok(v)
 }
 
 fn read_u16(buf: &[u8], off: &mut usize) -> Result<u16, String> {
-    if *off + 2 > buf.len() { return Err("unexpected EOF reading u16".into()); }
-    let v = u16::from_le_bytes(buf[*off..*off + 2].try_into().unwrap());
-    *off += 2;
-    Ok(v)
+    let end = off.checked_add(2).ok_or_else(|| "GGUF offset overflow".to_string())?;
+    let sl = buf.get(*off..end).ok_or_else(|| "unexpected EOF reading u16".to_string())?;
+    *off = end;
+    Ok(u16::from_le_bytes([sl[0], sl[1]]))
 }
 
 fn read_u32(buf: &[u8], off: &mut usize) -> Result<u32, String> {
-    if *off + 4 > buf.len() { return Err("unexpected EOF reading u32".into()); }
-    let v = u32::from_le_bytes(buf[*off..*off + 4].try_into().unwrap());
-    *off += 4;
-    Ok(v)
+    let end = off.checked_add(4).ok_or_else(|| "GGUF offset overflow".to_string())?;
+    let sl = buf.get(*off..end).ok_or_else(|| "unexpected EOF reading u32".to_string())?;
+    *off = end;
+    Ok(u32::from_le_bytes([sl[0], sl[1], sl[2], sl[3]]))
 }
 
 fn read_u64(buf: &[u8], off: &mut usize) -> Result<u64, String> {
-    if *off + 8 > buf.len() { return Err("unexpected EOF reading u64".into()); }
-    let v = u64::from_le_bytes(buf[*off..*off + 8].try_into().unwrap());
-    *off += 8;
-    Ok(v)
+    let end = off.checked_add(8).ok_or_else(|| "GGUF offset overflow".to_string())?;
+    let sl = buf.get(*off..end).ok_or_else(|| "unexpected EOF reading u64".to_string())?;
+    *off = end;
+    Ok(u64::from_le_bytes([sl[0], sl[1], sl[2], sl[3], sl[4], sl[5], sl[6], sl[7]]))
 }
 
 fn read_str(buf: &[u8], off: &mut usize) -> Result<String, String> {
-    let len = read_u64(buf, off)? as usize;
-    if len > 4_194_304 || *off + len > buf.len() { return Err("invalid GGUF string length".into()); }
-    let s = String::from_utf8(buf[*off..*off + len].to_vec()).map_err(|_| "non-UTF8 GGUF string".to_string())?;
-    *off += len;
+    let len_u64 = read_u64(buf, off)?;
+    let len = usize::try_from(len_u64).map_err(|_| "GGUF string length overflow".to_string())?;
+    if len > MAX_GGUF_STR_LEN {
+        return Err("invalid GGUF string length".into());
+    }
+    let end = off.checked_add(len).ok_or_else(|| "GGUF string offset overflow".to_string())?;
+    let sl = buf.get(*off..end).ok_or_else(|| "truncated GGUF string".to_string())?;
+    let s = String::from_utf8(sl.to_vec()).map_err(|_| "non-UTF8 GGUF string".to_string())?;
+    *off = end;
     Ok(s)
 }
 
-fn skip_meta_value(buf: &[u8], off: &mut usize, ty: u32) -> Result<GgufMetaVal, String> {
+fn skip_meta_value(buf: &[u8], off: &mut usize, ty: u32, depth: usize) -> Result<GgufMetaVal, String> {
+    if depth > MAX_GGUF_ARRAY_DEPTH {
+        return Err("GGUF metadata array nesting depth exceeded".into());
+    }
     match ty {
         GGUF_TYPE_UINT8 | GGUF_TYPE_INT8 => Ok(GgufMetaVal::U32(read_u8(buf, off)? as u32)),
         GGUF_TYPE_UINT16 | GGUF_TYPE_INT16 => Ok(GgufMetaVal::U32(read_u16(buf, off)? as u32)),
@@ -273,12 +290,13 @@ fn skip_meta_value(buf: &[u8], off: &mut usize, ty: u32) -> Result<GgufMetaVal, 
         }
         GGUF_TYPE_ARRAY => {
             let elem_ty = read_u32(buf, off)?;
-            let count = read_u64(buf, off)? as usize;
-            if count > 1_048_576 {
-                return Err(format!("GGUF array too large: {count}"));
+            let count_u64 = read_u64(buf, off)?;
+            let count = usize::try_from(count_u64).map_err(|_| "GGUF array count overflow".to_string())?;
+            if count > MAX_GGUF_ARRAY_ELEMS || count > buf.len().saturating_sub(*off) {
+                return Err(format!("GGUF array too large for buffer: {count}"));
             }
             for _ in 0..count {
-                let _ = skip_meta_value(buf, off, elem_ty)?;
+                let _ = skip_meta_value(buf, off, elem_ty, depth + 1)?;
             }
             Ok(GgufMetaVal::ArrayCount(elem_ty, count))
         }
@@ -286,8 +304,11 @@ fn skip_meta_value(buf: &[u8], off: &mut usize, ty: u32) -> Result<GgufMetaVal, 
     }
 }
 
-fn align_up(v: usize, align: usize) -> usize {
-    (v + align - 1) & !(align - 1)
+fn align_up(v: usize, align: usize) -> Result<usize, String> {
+    let added = v
+        .checked_add(align.saturating_sub(1))
+        .ok_or_else(|| "GGUF alignment overflow".to_string())?;
+    Ok(added & !(align - 1))
 }
 
 impl GgufFile {
@@ -321,10 +342,11 @@ impl GgufFile {
                     buf.extend_from_slice(&GGUF_TYPE_STRING.to_le_bytes());
                     write_gguf_str(&mut buf, s);
                 }
-                GgufMetaVal::ArrayCount(elem_ty, count) => {
+                GgufMetaVal::ArrayCount(elem_ty, _count) => {
+                    // Emit empty array header so encoded GGUF always round-trips cleanly.
                     buf.extend_from_slice(&GGUF_TYPE_ARRAY.to_le_bytes());
                     buf.extend_from_slice(&elem_ty.to_le_bytes());
-                    buf.extend_from_slice(&(*count as u64).to_le_bytes());
+                    buf.extend_from_slice(&0u64.to_le_bytes());
                 }
             }
         }
@@ -339,16 +361,16 @@ impl GgufFile {
             }
             buf.extend_from_slice(&(t.dtype as u32).to_le_bytes());
             buf.extend_from_slice(&(rel_off as u64).to_le_bytes());
-            rel_off = align_up(rel_off + t.raw_bytes.len(), GGUF_ALIGNMENT);
+            rel_off = align_up(rel_off + t.raw_bytes.len(), GGUF_ALIGNMENT).unwrap_or(rel_off);
         }
 
         // Pad header to 32-byte boundary before tensor data section
-        let data_start = align_up(buf.len(), GGUF_ALIGNMENT);
+        let data_start = align_up(buf.len(), GGUF_ALIGNMENT).unwrap_or(buf.len());
         buf.resize(data_start, 0);
 
         for t in &self.tensors {
             buf.extend_from_slice(&t.raw_bytes);
-            let next_aligned = align_up(buf.len(), GGUF_ALIGNMENT);
+            let next_aligned = align_up(buf.len(), GGUF_ALIGNMENT).unwrap_or(buf.len());
             buf.resize(next_aligned, 0);
         }
         buf
@@ -363,14 +385,24 @@ impl GgufFile {
         if ver != GGUF_VERSION_3 {
             return Err(format!("expected GGUF v3, got v{ver}"));
         }
-        let n_tensors = read_u64(buf, &mut off)? as usize;
-        let n_kv = read_u64(buf, &mut off)? as usize;
+        let n_tensors = usize::try_from(read_u64(buf, &mut off)?)
+            .map_err(|_| "GGUF tensor count overflow".to_string())?;
+        let n_kv = usize::try_from(read_u64(buf, &mut off)?)
+            .map_err(|_| "GGUF kv count overflow".to_string())?;
+        if n_tensors > MAX_GGUF_TENSORS || n_kv > MAX_GGUF_KV {
+            return Err(format!("GGUF header counts exceed safety caps (tensors={n_tensors}, kv={n_kv})"));
+        }
+        if n_tensors.saturating_mul(16) > buf.len().saturating_sub(off)
+            || n_kv.saturating_mul(12) > buf.len().saturating_sub(off)
+        {
+            return Err("GGUF header counts exceed buffer capacity".into());
+        }
 
         let mut metadata = BTreeMap::new();
         for _ in 0..n_kv {
             let k = read_str(buf, &mut off)?;
             let ty = read_u32(buf, &mut off)?;
-            let val = skip_meta_value(buf, &mut off, ty)?;
+            let val = skip_meta_value(buf, &mut off, ty, 0)?;
             metadata.insert(k, val);
         }
 
@@ -378,29 +410,45 @@ impl GgufFile {
         for _ in 0..n_tensors {
             let name = read_str(buf, &mut off)?;
             let ndims = read_u32(buf, &mut off)? as usize;
+            if ndims > MAX_GGUF_DIMS {
+                return Err(format!("GGUF tensor '{name}' has too many dimensions: {ndims}"));
+            }
             let mut dims = Vec::with_capacity(ndims);
             for _ in 0..ndims {
                 dims.push(read_u64(buf, &mut off)?);
             }
             let dtype = GgufDtype::from_u32(read_u32(buf, &mut off)?)?;
-            let rel_offset = read_u64(buf, &mut off)? as usize;
+            let rel_offset = usize::try_from(read_u64(buf, &mut off)?)
+                .map_err(|_| "GGUF tensor offset overflow".to_string())?;
             specs.push((name, dims, dtype, rel_offset));
         }
 
-        let data_start = align_up(off, GGUF_ALIGNMENT);
+        let data_start = align_up(off, GGUF_ALIGNMENT)?;
         let mut tensors = Vec::with_capacity(n_tensors);
         for (name, dims, dtype, rel_offset) in specs.iter() {
-            let abs_start = data_start + *rel_offset;
-            let n_elems: usize = dims.iter().copied().product::<u64>() as usize;
+            let abs_start = data_start
+                .checked_add(*rel_offset)
+                .ok_or_else(|| format!("tensor '{name}' offset overflow"))?;
+            let mut n_elems_u64 = 1u64;
+            for &d in dims {
+                n_elems_u64 = n_elems_u64
+                    .checked_mul(d)
+                    .ok_or_else(|| format!("tensor '{name}' dimension product overflow"))?;
+            }
+            let n_elems = usize::try_from(n_elems_u64)
+                .map_err(|_| format!("tensor '{name}' element count overflow"))?;
             let byte_len = dtype.byte_len(n_elems)?;
-            if abs_start + byte_len > buf.len() {
+            let abs_end = abs_start
+                .checked_add(byte_len)
+                .ok_or_else(|| format!("tensor '{name}' end offset overflow"))?;
+            if abs_end > buf.len() {
                 return Err(format!("tensor '{name}' exceeds GGUF buffer bounds"));
             }
             tensors.push(GgufTensor {
                 name: name.clone(),
                 dims: dims.clone(),
                 dtype: *dtype,
-                raw_bytes: buf[abs_start..abs_start + byte_len].to_vec(),
+                raw_bytes: buf[abs_start..abs_end].to_vec(),
             });
         }
 

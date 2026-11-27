@@ -1,0 +1,12 @@
+BEAST CIVILIZATION
+Copyright (c) 2026 Alexander Stephen Donahue (Independent Researcher, Spokane, WA, USA; ORCID 0009-0006-8168-9648)
+
+This product includes clean-room polyglot software (Rust, Zig, C11, CRuby/YARV, CUDA PTX, Python, Lean 4)
+licensed under the Apache License, Version 2.0 (see `LICENSE` and `LICENSES/Apache-2.0.txt`).
+
+Manuscript, figures, documentation, and verification ledgers (`paper/`, `docs/`, `dist/*.pdf`, `*.md`)
+are licensed under the Creative Commons Attribution 4.0 International License (see `LICENSE-DOCS` and
+`LICENSES/CC-BY-4.0.txt`).
+
+Pinned third-party upstream repositories referenced via `vendor/VENDOR_MANIFEST.json` remain under their
+respective original authors' copyrights and open-source licenses; see `THIRD_PARTY_NOTICES.md`.

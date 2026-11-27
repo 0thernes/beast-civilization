@@ -22,13 +22,13 @@ pub struct SwatTrainingReport {
 
 fn matvec(w: &[f32], x: &[f32], rows: usize, cols: usize) -> Vec<f32> {
     let mut out = vec![0.0f32; rows];
-    for r in 0..rows {
+    for (r, slot) in out.iter_mut().enumerate().take(rows) {
         let base = r * cols;
         let mut acc = 0.0f32;
-        for c in 0..cols {
-            acc += w[base + c] * x[c];
+        for (c, &xc) in x.iter().enumerate().take(cols) {
+            acc += w[base + c] * xc;
         }
-        out[r] = acc;
+        *slot = acc;
     }
     out
 }
