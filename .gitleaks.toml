@@ -2,13 +2,21 @@
 # Copyright (c) 2026 Alexander Stephen Donahue
 # Gitleaks configuration extending built-in ruleset with documented false-positive exclusions.
 
-title = "CELLULOGONIC MECHA Gitleaks Config"
+title = "BEAST CIVILIZATION Gitleaks Config"
 
 [extend]
 useDefault = true
 
 [[allowlists]]
-description = "BibTeX citation key fields (e.g. 'schnakenberg1976') in results/citation-audit.json trigger generic-api-key"
+description = "BibTeX citation key fields in results/citation-audit.json trigger generic-api-key"
 paths = [
   '''^results/citation-audit\.json$''',
+]
+
+[[allowlists]]
+description = "Deliberate non-secret Ring-0 sandbox scrubbing canary fixtures in G15/G23 tests"
+regexes = [
+  '''sk-canary-[a-z0-9-]+-must-scrub''',
+  '''sk-ring0-only''',
+  '''sk-never-leak''',
 ]

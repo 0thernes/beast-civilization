@@ -25,8 +25,8 @@ jobs:
         os: [ubuntu-latest, windows-latest, macos-latest]
     steps:
       - uses: actions/checkout@v4
-      - name: Install Rust stable with clippy
-        uses: dtolnay/rust-toolchain@stable
+      - name: Install Pinned Rust 1.94.1 with clippy
+        uses: dtolnay/rust-toolchain@1.94.1
         with:
           components: clippy
       - name: Install Zig 0.17.1 (Linux)
@@ -93,11 +93,11 @@ jobs:
           New-Item -ItemType Directory -Force -Path bin | Out-Null
           zig test zig/beast-metal/src/root.zig
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          zig build-lib zig/beast-metal/src/root.zig -dynamic -OReleaseFast -femit-bin=bin/beast_metal.dll
+          zig build-lib zig/beast-metal/src/root.zig -dynamic -OReleaseFast "-femit-bin=bin/beast_metal.dll"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          zig build-exe zig/freestanding_kernel/src/kernel.zig -target x86_64-freestanding-none -OReleaseSmall -T zig/freestanding_kernel/linker.ld -femit-bin=bin/beast_microkernel.elf
+          zig build-exe zig/freestanding_kernel/src/kernel.zig -target x86_64-freestanding-none -OReleaseSmall -T zig/freestanding_kernel/linker.ld "-femit-bin=bin/beast_microkernel.elf"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          zig build-exe zig/freestanding_kernel/src/boot32.zig -target x86-freestanding-none -OReleaseSmall -T zig/freestanding_kernel/linker32.ld -femit-bin=bin/beast_boot32.elf
+          zig build-exe zig/freestanding_kernel/src/boot32.zig -target x86-freestanding-none -OReleaseSmall -T zig/freestanding_kernel/linker32.ld "-femit-bin=bin/beast_boot32.elf"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           cargo clippy --workspace --all-targets -- -D warnings
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
