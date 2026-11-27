@@ -183,8 +183,7 @@ impl PlanariaCapsule {
         }
         let mut h = leaf_hash(shard.index, &shard.data);
         let mut idx = shard.index as usize;
-        for level in 0..3 {
-            let sib = &shard.merkle_proof[level];
+        for sib in &shard.merkle_proof {
             h = if (idx & 1) == 0 {
                 node_hash(&h, sib)
             } else {
@@ -221,13 +220,13 @@ impl PlanariaCapsule {
 
         let mut recovered = Vec::with_capacity(self.shard_len * 4);
         for inv_row in &inv {
-            for pos in 0..self.shard_len {
-                let mut byte = 0u8;
-                for (r, &coeff) in inv_row.iter().enumerate() {
-                    byte ^= gf_mul(coeff, chosen[r].data[pos]);
+            let mut block = vec![0u8; self.shard_len];
+            for (r, &coeff) in inv_row.iter().enumerate() {
+                for (dst, &src) in block.iter_mut().zip(&chosen[r].data) {
+                    *dst ^= gf_mul(coeff, src);
                 }
-                recovered.push(byte);
             }
+            recovered.extend_from_slice(&block);
         }
         recovered.truncate(self.orig_len);
         if sha256(&recovered) != self.payload_sha256 {
